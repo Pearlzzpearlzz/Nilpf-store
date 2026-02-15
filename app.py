@@ -1,55 +1,36 @@
+
 import os
 import sqlite3
 from datetime import datetime
-
+import requests
 from dotenv import load_dotenv
+
+from flask import Flask, jsonify, redirect, request, send_file, abort
+
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+
+
+app = Flask(__name__)
 load_dotenv()
-from flask import Flask, jsonify, redirect, request, send_file, abort
 
-import stripe
+DOMAIN_URL = os.environ.get("DOMAIN_URL", "http://127.0.0.1:10000").rstrip("/")
 
-# PDF certificate
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
+PAYPAL_SECRET = os.getenv("PAYPAL_SECRET")
+PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")
 
-
-app = Flask(__name__)
+if PAYPAL_MODE == "live":
+    PAYPAL_BASE = "https://api-m.paypal.com"
+else:
+    PAYPAL_BASE = "https://api-m.sandbox.paypal.com"
 
 # -------------------------
 # Config
 # -------------------------
-DOMAIN_URL = os.environ.get("DOMAIN_URL", "http://127.0.0.1:10000").rstrip("/")
-STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")  # set in Render + local env if needed
-PRICE_ID = os.environ.get("PRICE_ID")  # Stripe Price ID for your product
+DOMAIN_URL = os.environ.get("DOMAIN_URL" )
 
-stripe.api_key = STRIPE_SECRET_KEY
-
-
-# --------------------
-
-import os
-import sqlite3
-from datetime import datetime
-
-from flask import Flask, jsonify, redirect, request, send_file, abort
-
-import stripe
-
-# PDF certificate
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-
-
-app = Flask(__name__)
-
-# -------------------------
-# Config
-# -------------------------
-DOMAIN_URL = os.environ.get("DOMAIN_URL", "http://127.0.0.1:10000").rstrip("/")
-STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")  # set in Render + local env if needed
-PRICE_ID = os.environ.get("PRICE_ID")  # Stripe Price ID for your product
-
-stripe.api_key = STRIPE_SECRET_KEY
 
 
 # -------------------------
@@ -86,6 +67,7 @@ def make_license_key(state_abbr: str, address: str) -> str:
 def upsert_license(session_id: str, email: str, name: str, address: str, state_abbr: str) -> str:
     license_key = make_license_key(state_abbr, address)
     conn = sqlite3.connect(DB_PATH)
+
     cur = conn.cursor()
     cur.execute(
         """
@@ -109,6 +91,24 @@ def get_license_by_session(session_id: str):
     conn.close()
     return row
 
+def get_paypal_access_token():
+    if not PAYPAL_CLIENT_ID or not PAYPAL_SECRET:
+        raise Exception("Missing PAYPAL_CLIENT_ID or PAYPAL_SECRET in environment.")
+
+    url = f"{PAYPAL_BASE}/v1/oauth2/token"
+    headers = {"Accept": "application/json", "Accept-Language": "en_US"}
+    data = {"grant_type": "client_credentials"}
+
+    r = requests.post(
+        url,
+        headers=headers,
+        data=data,
+        auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
+        timeout=20,
+    )
+
+    r.raise_for_status()
+    return r.json()["access_token"]
 
 # -------------------------
 # Routes
@@ -116,152 +116,68 @@ def get_license_by_session(session_id: str):
 @app.route("/health")
 def health():
     return jsonify(ok=True)
-
+@app.route("/certificate")
+def certificate():
+    session_id = request.args.get("session_id")
+    return f"CERTIFICATE FOR {session_id}"
 @app.route("/")
 def home():
     return (
         "NILPF Store is running.<br><br>"
-        "Start checkout: <a href='/checkout'>/checkout</a>"
+        "Start checkout: <a href='/buy'>/checkout</a>"
     )
 
-@app.route("/checkout")
-def checkout():
-    if not STRIPE_SECRET_KEY or not PRICE_ID:
-        return (
-            "Missing STRIPE_SECRET_KEY or PRICE_ID env vars. "
-            "Set them locally and in Render Environment.",
-            500,
-        )
 
-    session = stripe.checkout.Session.create(
-        mode="payment",
-        line_items=[{"price": PRICE_ID, "quantity": 1}],
-        billing_address_collection="required",
-        customer_creation="always",
-        success_url=f"{DOMAIN_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{DOMAIN_URL}/cancel",
-    )
-    return redirect(session.url, code=303)
-
-@app.route("/cancel")
-def cancel():
-    return "Payment canceled."
-
-@app.route("/success")
-def success():
-    session_id = request.args.get("session_id")
-    if not session_id:
-        return "Missing session_id", 400
-
-    # Verify with Stripe server-side
-    session = stripe.checkout.Session.retrieve(
-        session_id,
-        expand=["customer_details"],
-    )
-    if session.get("payment_status") != "paid":
-        return "Payment not verified.", 403
-
-    customer_details = session.get("customer_details") or {}
-    email = customer_details.get("email", "")
-    name = customer_details.get("name", "")
-
-    # Build a single-line property address
-    addr = customer_details.get("address") or {}
-    line1 = addr.get("line1") or ""
-    line2 = addr.get("line2") or ""
-    city = addr.get("city") or ""
-    state = addr.get("state") or ""
-    postal = addr.get("postal_code") or ""
-    country = addr.get("country") or ""
-
-    parts = [line1]
-    if line2:
-        parts.append(line2)
-    parts.append(", ".join([p for p in [city, state, postal] if p]))
-    if country:
-        parts.append(country)
-    property_address = " | ".join([p for p in parts if p]).strip()
-
-    license_key = upsert_license(session_id, email, name, property_address, state)
-
-    cert_link_1 = f"/certificate?session_id={session_id}&which=1"
-    cert_link_2 = f"/certificate?session_id={session_id}&which=2"
-
-    return f"""
-    <h2>Payment verified ✅</h2>
-    <p><b>License Key:</b> {license_key}</p>
-    <p><b>Property Address:</b> {property_address}</p>
-
-    <h3>Certificates (per property)</h3>
-    <p><a href="{cert_link_1}">Download Certificate (Property 1)</a></p>
-    <p><a href="{cert_link_2}">Download Certificate (Property 2)</a></p>
-    """
-
-@app.route("/certificate")
-def certificate():
-    session_id = request.args.get("session_id")
-    which = request.args.get("which", "1")
-
-    if not session_id:
-        return "Missing session_id", 400
-
-    # Verify with Stripe again (prevents sharing links)
-    session = stripe.checkout.Session.retrieve(session_id)
-    if session.get("payment_status") != "paid":
-        return "Payment not verified.", 403
-
-    row = get_license_by_session(session_id)
-    if not row:
-        return "License record not found.", 404
-
-    payer_email, payer_name, property_address, property_state, license_key, created_at = row
-
-    # Create PDF
-    filename = f"certificate_property_{which}.pdf"
-    pdf_path = f"/tmp/{filename}"
-
-    c = canvas.Canvas(pdf_path, pagesize=letter)
-    width, height = letter
-
-    c.setFont("Helvetica-Bold", 18)
-    c.drawString(72, height - 72, "NILPF License Certificate")
-
-    c.setFont("Helvetica", 12)
-    y = height - 120
-    c.drawString(72, y, f"Issued To: {payer_name}")
-    y -= 18
-    c.drawString(72, y, f"Email: {payer_email}")
-    y -= 18
-    c.drawString(72, y, f"License Key: {license_key}")
-    y -= 18
-    c.drawString(72, y, f"Property #{which}")
-    y -= 18
-    c.drawString(72, y, f"Property Address: {property_address}")
-    y -= 18
-    c.drawString(72, y, f"State: {property_state}")
-    y -= 18
-    c.drawString(72, y, f"Issued (UTC): {created_at}")
-
-    y -= 30
-    c.drawString(72, y, "License verification available upon request.")
-    y -= 18
-    c.drawString(72, y, "Published by Pearlzz")
-
-    c.showPage()
-    c.save()
-
-    return send_file(
-        pdf_path,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/pdf",
-    )
 
 
 # -------------------------
-# Startup
+# PayPal Buy Route
+# -------------------------
+@app.route("/buy")
+def buy():
+    access_token = get_paypal_access_token()
+
+    return_url = request.host_url.rstrip("/") + "/success"
+    cancel_url = request.host_url.rstrip("/") + "/cancel"
+
+    order_data = {
+        "intent": "CAPTURE",
+        "purchase_units": [
+            {"amount": {"currency_code": "USD", "value": "97.00"}}
+        ],
+        "application_context": {
+            "return_url": return_url,
+            "cancel_url": cancel_url,
+        },
+    }
+
+    resp = requests.post(
+        f"{PAYPAL_BASE}/v2/checkout/orders",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}",
+        },
+        json=order_data,
+        timeout=30,
+    )
+
+    resp.raise_for_status()
+    order = resp.json()
+
+    for link in order.get("links", []):
+        if link.get("rel") == "approve":
+            return redirect(link["href"])
+
+    abort(500, "No PayPal approval link found")
+@app.route("/success")
+
+def success():
+    return redirect("/certificate?session_id=TEST123&which=1")  
 # -------------------------
 init_db()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+
+
+
