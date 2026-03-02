@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env
 load_dotenv(override=True)
-from flask import Flask, jsonify, redirect, request, send_file, abort, session, render_template_string
+from flask import Flask, jsonify, redirect, request, send_file, abort, session, render_template_string, url_for
 from io import BytesIO
 
 app = Flask(__name__)
@@ -31,7 +31,7 @@ def _safe_redirect():
         return redirect("/address")
 
     if path.startswith("/product"):
-        return redirect("/product")
+        return redirect("/buy")
 
     return redirect("/")
 
@@ -361,7 +361,7 @@ def certificate():
 
 @app.route("/")
 def home():
-    return redirect("/notice")
+    return redirect("/product")
 
 
 
@@ -448,7 +448,7 @@ def success():
     location = session.get("licensed_location")
     product_sku = session.get("product_sku")
     if not product_sku:
-        return redirect("/product")
+        return redirect("/buy")
     if not location:
         abort(400, "Missing licensed location in session.")
 
@@ -473,7 +473,6 @@ def success():
       a.btn{display:inline-block;margin-right:10px;padding:12px 16px;border-radius:10px;text-decoration:none;border:2px solid #111}
     </style></head>
     <body>
-      <div class="box">
         <h1>Payment Completed</h1>
         <p>Your purchase is confirmed and locked to this address.</p>
         <p>
@@ -513,9 +512,77 @@ def cancel():
 # -------------------------
 @app.route("/product", methods=["GET", "POST"])
 def product():
-    # One-product store: auto-select the only SKU and proceed
-    session["product_sku"] = "COMPLETE_SET"
-    return redirect("/product")
+    # Front product page: show cover + what's included + continue
+    sku = "COMPLETE_SET"
+    product = PRODUCTS.get(sku)
+    if not product:
+        abort(500, "Product not found in catalog.")
+
+    if request.method == "POST":
+        # lock the SKU then continue into your existing flow
+        session["product_sku"] = sku
+        return redirect("/notice")
+
+    return render_template_string("""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>{{ label }}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body{font-family:Arial,sans-serif;max-width:920px;margin:40px auto;padding:0 16px}
+          .wrap{display:grid;grid-template-columns:1fr;gap:18px}
+          @media(min-width:900px){.wrap{grid-template-columns:1.2fr .8fr}}
+          .card{border:2px solid #111;border-radius:14px;padding:18px}
+          .img{width:100%;border-radius:12px;border:2px solid #111;display:block}
+          .btn{display:inline-block;padding:12px 16px;border-radius:10px;border:2px solid #111;background:#fff;cursor:pointer}
+          h1{margin:0 0 10px 0}
+          ul{margin:10px 0 0 18px}
+          .muted{opacity:.85}
+          .price{font-size:20px;font-weight:700;margin:12px 0}
+          .badge{display:inline-block;padding:6px 10px;border:2px solid #111;border-radius:999px;font-size:13px}
+        </style>
+      </head>
+      <body>
+        <div class="wrap">
+          <div class="card">
+            <img class="img" src="{{ url_for('static', filename='store_preview.png') }}" alt="NILPF Store Preview">
+            <p class="muted" style="margin:12px 0 0 0;">
+              Preview of what you will receive (download bundle + certificate).
+            </p>
+          </div>
+
+          <div class="card">
+            <span class="badge">One license per physical address</span>
+            <h1>{{ label }}</h1>
+
+            <div class="price">${{ price }}</div>
+
+            <div class="muted">
+              <b>What you receive:</b>
+              <ul>
+                <li>Essential Forms bundle</li>
+                <li>Core Docs bundle</li>
+               
+                <li>Immediate download link after payment</li>
+                <li>License Certificate (PDF)</li>
+              </ul>
+            </div>
+
+            <form method="POST" style="margin-top:16px;">
+              <button class="btn" type="submit">Continue</button>
+            </form>
+
+            <p class="muted" style="margin-top:12px;">
+              Next: license notice → enter your licensed address → checkout → download.
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """, label=product.get("label","NILPF Product"), price=product.get("price",""))
+
 
 @app.route("/download")
 def download():
@@ -563,6 +630,9 @@ NOTICE_HTML = """
     </style>
   </head>
   <body>
+<div style="margin: 18px 0;">
+  <img src="/static/store_preview.png" alt="What's Included Preview" style="max-width:100%; border:1px solid #ddd; border-radius:10px;">
+</div>
     <div class="box">
       <h1>⚠️ License & Usage Notice</h1>
       <p>This framework license is valid for <b>one physical business location only</b>.</p>
@@ -669,7 +739,7 @@ def address():
     }
 
     # CHANGE THIS redirect to match your existing purchase route
-    return redirect("/product")
+    return redirect("/buy")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
