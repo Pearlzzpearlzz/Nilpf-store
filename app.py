@@ -1,22 +1,53 @@
+
 import os
 import sqlite3
 from datetime import datetime
 import requests
+import io
+import zipfile
 from dotenv import load_dotenv
 
+# Load environment variables from .env
+load_dotenv(override=True)
 from flask import Flask, jsonify, redirect, request, send_file, abort, session, render_template_string
+from io import BytesIO
+
+app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
+
+
 
 
 
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
 
+def _safe_redirect():
+    path = (request.path or "").lower()
 
-app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-in-render")
-load_dotenv()
+    if path.startswith("/buy") or path.startswith("/success") or path.startswith("/cancel"):
+        return redirect("/address")
 
+    if path.startswith("/product"):
+        return redirect("/buy")
+
+    return redirect("/")
+
+@app.errorhandler(400)
+def handle_400(e):
+    return _safe_redirect()
+
+@app.errorhandler(404)
+def handle_404(e):
+    return _safe_redirect()
+
+@app.errorhandler(500)
+def handle_500(e):
+    return _safe_redirect()
+
+# ------------------------------------------------
 DOMAIN_URL = os.environ.get("DOMAIN_URL", "http://127.0.0.1:10000").rstrip("/")
 
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
@@ -32,16 +63,32 @@ else:
     PAYPAL_BASE = "https://api-m.sandbox.paypal.com"
 
 # -------------------------
-# Config
-# -------------------------
-DOMAIN_URL = os.environ.get("DOMAIN_URL" )
-
-
-
-# -------------------------
 # DB Helpers
 # -------------------------
 DB_PATH = "licenses.db"
+
+def ensure_db_columns():
+    """Lightweight migration so existing licenses.db doesn't break."""
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("PRAGMA table_info(licenses)")
+    cols = {row[1] for row in cur.fetchall()}
+    if "product_sku" not in cols:
+        cur.execute("ALTER TABLE licenses ADD COLUMN product_sku TEXT")
+    if "transaction_id" not in cols:
+        cur.execute("ALTER TABLE licenses ADD COLUMN transaction_id TEXT")
+    conn.commit()
+    conn.close()
+
+# Product catalog (edit prices + file paths as you wish)
+
+PRODUCTS = {
+    "COMPLETE_SET": {
+        "label": "NILPF Complete Authority Set",
+        "price": "297.00",
+        "file": "downloads/ALL_BUNDLE.zip",
+    }
+}
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -56,7 +103,8 @@ def init_db():
             payer_name TEXT,
             property_address TEXT,
             property_state TEXT,
-            license_key TEXT
+            license_key TEXT,
+            product_sku TEXT
         )
         """
     )
@@ -69,17 +117,17 @@ def make_license_key(state_abbr: str, address: str) -> str:
     safe_state = (state_abbr or "NA").upper()[:2]
     return f"NILPF-{safe_state}-{stamp}"
 
-def upsert_license(session_id: str, email: str, name: str, address: str, state_abbr: str) -> str:
+def upsert_license(session_id: str, email: str, name: str, address: str, state_abbr: str, product_sku: str = None) -> str:
     license_key = make_license_key(state_abbr, address)
     conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT OR REPLACE INTO licenses (created_at, session_id, payer_email, payer_name, property_address, property_state, license_key)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO licenses (created_at, session_id, payer_email, payer_name, property_address, property_state, license_key, product_sku)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (datetime.utcnow().isoformat(), session_id, email, name, address, state_abbr, license_key),
+        (datetime.utcnow().isoformat(), session_id, email, name, address, state_abbr, license_key, product_sku),
     )
     conn.commit()
     conn.close()
@@ -89,7 +137,7 @@ def get_license_by_session(session_id: str):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute(
-        "SELECT payer_email, payer_name, property_address, property_state, license_key, created_at FROM licenses WHERE session_id = ?",
+        "SELECT payer_email, payer_name, property_address, property_state, license_key, created_at, product_sku FROM licenses WHERE session_id = ?",
         (session_id,),
     )
     row = cur.fetchone()
@@ -121,10 +169,196 @@ def get_paypal_access_token():
 @app.route("/health")
 def health():
     return jsonify(ok=True)
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from flask import Response
+import io
+
 @app.route("/certificate")
 def certificate():
     session_id = request.args.get("session_id")
-    return f"CERTIFICATE FOR {session_id}"
+    if not session_id:
+        abort(400, "Missing session_id.")
+
+    lic = get_license_by_session(session_id)
+    if not lic:
+        abort(404, "License not found.")
+
+    payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
+
+    # Business Name priority:
+    business_name = (payer_name or "").strip() or "NILPF Registered Operator"
+    licensed_address = (prop_addr or "").strip() or "Address on file"
+    state_text = (prop_state or "").strip() or "NA"
+    license_id = (license_key or "").strip() or "NILPF-NA-UNKNOWN"
+    issued_raw = (created_at or "").strip()
+
+    # Friendly date (best-effort)
+    issued_display = issued_raw
+    try:
+        # created_at stored as ISO string; trim microseconds if present
+        # Example: 2026-03-02T13:44:21.773103
+        dt = issued_raw.replace("Z","")
+        issued_display = dt.split(".")[0].replace("T", " ")
+    except Exception:
+        issued_display = issued_raw or "Unknown"
+
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=letter)
+    width, height = letter
+
+    # -------------------------
+    # Simple "parchment" style layout (no external images required)
+    # -------------------------
+    margin = 0.6 * inch
+
+    # Border
+    c.setLineWidth(2)
+    c.rect(margin, margin, width - 2*margin, height - 2*margin)
+
+    # Title
+    c.setFont("Helvetica-Bold", 22)
+    c.drawCentredString(width/2, height - 1.25*inch, "NILPF CERTIFICATE OF REGISTRATION")
+
+    c.setFont("Helvetica", 13)
+    c.drawCentredString(width/2, height - 1.55*inch, "National Independent Living Program Framework (NILPF)")
+
+    # Core statement
+    y = height - 2.25*inch
+    c.setFont("Helvetica-Oblique", 12)
+    c.drawCentredString(width/2, y, "This certifies that")
+    y -= 0.45*inch
+
+    # Business name
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(width/2, y, business_name)
+    y -= 0.40*inch
+
+    c.setFont("Helvetica-Oblique", 12)
+    c.drawCentredString(width/2, y, "is registered for the licensed business location:")
+    y -= 0.35*inch
+
+    # Address
+    c.setFont("Helvetica", 12)
+    # Split address into multiple lines if long
+    addr_lines = []
+    addr = licensed_address
+    if len(addr) > 62:
+        # naive wrap
+        while len(addr) > 62:
+            cut = addr.rfind(" ", 0, 62)
+            if cut == -1:
+                cut = 62
+            addr_lines.append(addr[:cut].strip())
+            addr = addr[cut:].strip()
+        if addr:
+            addr_lines.append(addr)
+    else:
+        addr_lines = [addr]
+
+    for line in addr_lines[:3]:
+        c.drawCentredString(width/2, y, line)
+        y -= 0.22*inch
+
+    # Descriptive paragraph
+    y -= 0.10*inch
+    c.setFont("Helvetica", 11)
+    para = ("Operating in alignment with dignity-centered standards of autonomy, structural clarity, "
+            "and sustainable housing governance. This registration is site-specific and non-transferable.")
+    # simple wrap
+    words = para.split()
+    lines = []
+    line = []
+    for w in words:
+        test = (" ".join(line + [w]))
+        if len(test) > 90:
+            lines.append(" ".join(line))
+            line = [w]
+        else:
+            line.append(w)
+    if line:
+        lines.append(" ".join(line))
+
+    for pline in lines[:4]:
+        c.drawString(margin + 0.35*inch, y, pline)
+        y -= 0.20*inch
+
+    # Footer details
+    y = margin + 1.70*inch
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(margin + 0.35*inch, y, f"License ID:  {license_id}")
+    y -= 0.25*inch
+    c.drawString(margin + 0.35*inch, y, f"Registration Date:  {issued_display}")
+    y -= 0.25*inch
+    c.drawString(margin + 0.35*inch, y, "Status:  Active")
+    y -= 0.25*inch
+    c.setFont("Helvetica", 10)
+    c.drawString(margin + 0.35*inch, y, f"Transaction ID:  {session_id}")
+
+    # -------------------------
+    # Vector Seal (no image file needed)
+    # -------------------------
+    try:
+        from reportlab.lib import colors
+    except Exception:
+        colors = None
+
+    seal_x = width/2
+    seal_y = height/2 - 0.3*inch
+    outer_r = 0.85*inch
+    inner_r = 0.68*inch
+
+    if colors:
+        gold = colors.Color(0.78, 0.63, 0.19)   # gold-ish
+        dark = colors.Color(0.30, 0.24, 0.05)   # dark gold/brown
+        c.setStrokeColor(gold)
+        c.setFillColor(colors.white)
+    c.setLineWidth(3)
+
+    # Outer ring
+    c.circle(seal_x, seal_y, outer_r, stroke=1, fill=0)
+    if colors:
+        c.setStrokeColor(dark)
+    c.setLineWidth(2)
+    c.circle(seal_x, seal_y, inner_r, stroke=1, fill=0)
+
+    # Stars around ring (simple)
+    c.setFont("Helvetica-Bold", 12)
+    star = "★"
+    for dx, dy in [(0, outer_r-10), (outer_r-10, 0), (0, -(outer_r-10)), (-(outer_r-10), 0)]:
+        c.drawCentredString(seal_x+dx, seal_y+dy-4, star)
+
+    # Seal text
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(seal_x, seal_y + 12, "PEARLZZ LLC")
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(seal_x, seal_y - 6, "NILPF")
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(seal_x, seal_y - 22, "OFFICIAL SEAL • 2026")
+
+    # Signature block (right)
+    sig_x = width - margin - 3.1*inch
+    sig_y = margin + 1.55*inch
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(sig_x, sig_y, "PEARLZZ")
+    c.setFont("Helvetica", 10)
+    c.drawString(sig_x, sig_y - 0.25*inch, "Founder, NILPF")
+    c.drawString(sig_x, sig_y - 0.45*inch, "Pearlzz LLC")
+
+    # Final copyright line
+    c.setFont("Helvetica-Oblique", 9)
+    c.drawCentredString(width/2, margin + 0.55*inch,
+                        "© 2026 Pearlzz LLC. All Rights Reserved.")
+
+    c.showPage()
+    c.save()
+
+    buf.seek(0)
+    filename = f"certificate_{session_id}.pdf"
+    return send_file(buf, as_attachment=True, download_name=filename, mimetype="application/pdf")
+
+
+
 @app.route("/")
 def home():
     return redirect("/notice")
@@ -137,6 +371,18 @@ def home():
 # -------------------------
 @app.route("/buy")
 def buy():
+    sku = request.args.get("product") or session.get("product_sku")
+
+
+
+
+
+    if not sku:
+       return redirect("/buy")
+
+    product = PRODUCTS.get(sku)
+    if not product:
+        abort(400, "Invalid product selection.")
     access_token = get_paypal_access_token()
 
     return_url = request.host_url.rstrip("/") + "/success"
@@ -145,7 +391,11 @@ def buy():
     order_data = {
         "intent": "CAPTURE",
         "purchase_units": [
-            {"amount": {"currency_code": "USD", "value": "97.00"}}
+            {
+                "amount": {"currency_code": "USD", "value": product["price"]},
+                "custom_id": sku,
+                "description": product.get("label", sku),
+            }
         ],
         "application_context": {
             "return_url": return_url,
@@ -196,6 +446,9 @@ def success():
         abort(400, "Payment not completed.")
 
     location = session.get("licensed_location")
+    product_sku = session.get("product_sku")
+    if not product_sku:
+        return redirect("/buy")
     if not location:
         abort(400, "Missing licensed location in session.")
 
@@ -207,9 +460,89 @@ def success():
         location.get("business_name"),
         full_address,
         location.get("state"),
+        product_sku,
     )
 
-    return redirect(f"/certificate?session_id={order_id}")
+    return render_template_string("""
+    <!doctype html>
+    <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Purchase Complete</title>
+    <style>
+      body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:0 16px}
+      .box{border:2px solid #111;border-radius:12px;padding:18px}
+      a.btn{display:inline-block;margin-right:10px;padding:12px 16px;border-radius:10px;text-decoration:none;border:2px solid #111}
+    </style></head>
+    <body>
+      <div class="box">
+        <h1>Payment Completed</h1>
+        <p>Your purchase is confirmed and locked to this address.</p>
+        <p>
+          <a class="btn" href="/download?session_id={{sid}}">Download Files</a>
+          <a class="btn" href="/certificate?session_id={{sid}}">Download Certificate</a>
+        </p>
+      </div>
+    </body></html>
+    """, sid=order_id)
+
+
+# -------------------------
+# Cancel Route (PayPal)
+# -------------------------
+@app.route("/cancel")
+def cancel():
+    return render_template_string("""
+    <!doctype html>
+    <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Checkout Canceled</title>
+    <style>
+      body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:0 16px}
+      .box{border:2px solid #111;border-radius:12px;padding:18px}
+      a.btn{display:inline-block;padding:12px 16px;border-radius:10px;text-decoration:none;border:2px solid #111}
+    </style></head>
+    <body>
+      <div class="box">
+        <h1>Checkout Canceled</h1>
+        <p>No payment was completed.</p>
+        <p><a class="btn" href="/notice">Start Over</a></p>
+      </div>
+    </body></html>
+    """)
+
+# -------------------------
+# Product Choice Route
+# -------------------------
+@app.route("/product", methods=["GET", "POST"])
+def product():
+    # One-product store: auto-select the only SKU and proceed
+    session["product_sku"] = "COMPLETE_SET"
+    return redirect("/buy")
+
+@app.route("/download")
+def download():
+    session_id = request.args.get("session_id")
+    if not session_id:
+        abort(400, "Missing session_id.")
+
+    lic = get_license_by_session(session_id)
+    if not lic:
+        abort(404, "License not found.")
+
+    payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
+    if not product_sku:
+        abort(400, "Missing product selection for this purchase.")
+
+    product = PRODUCTS.get(product_sku)
+    if not product:
+        abort(400, "Invalid product on record.")
+    # Resolve file path (single bundle)
+    file_path = product["file"]
+
+    if not os.path.exists(file_path):
+        abort(500, f"File not found on server: {file_path}")
+
+    # Serve as attachment
+    filename = os.path.basename(file_path)
+    return send_file(file_path, as_attachment=True, download_name=filename)
 
 init_db()
 
