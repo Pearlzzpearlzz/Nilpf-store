@@ -31,7 +31,7 @@ def _safe_redirect():
         return redirect("/address")
 
     if path.startswith("/product"):
-        return redirect("/buy")
+        return redirect("/product")
 
     return redirect("/")
 
@@ -378,7 +378,7 @@ def buy():
 
 
     if not sku:
-       return redirect("/buy")
+       return redirect("/product")
 
     product = PRODUCTS.get(sku)
     if not product:
@@ -448,7 +448,7 @@ def success():
     location = session.get("licensed_location")
     product_sku = session.get("product_sku")
     if not product_sku:
-        return redirect("/buy")
+        return redirect("/product")
     if not location:
         abort(400, "Missing licensed location in session.")
 
@@ -515,7 +515,7 @@ def cancel():
 def product():
     # One-product store: auto-select the only SKU and proceed
     session["product_sku"] = "COMPLETE_SET"
-    return redirect("/buy")
+    return redirect("/product")
 
 @app.route("/download")
 def download():
@@ -669,7 +669,7 @@ def address():
     }
 
     # CHANGE THIS redirect to match your existing purchase route
-    return redirect("/buy")
+    return redirect("/product")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
