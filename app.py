@@ -1,6 +1,11 @@
+from itsdangerous import URLSafeTimedSerializer
+from flask import Flask, jsonify, redirect, request, send_file, abort, session, render_template_string, url_for
 
 import os
 import sqlite3
+import json
+import re
+from pathlib import Path
 from datetime import datetime
 import requests
 import io
@@ -9,11 +14,23 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env
 load_dotenv(override=True)
-from flask import Flask, jsonify, redirect, request, send_file, abort, session, render_template_string, url_for
+
 from io import BytesIO
 
 app = Flask(__name__)
+
+
+def participant_has_notes(pid):
+    conn=sqlite3.connect(DB_PATH)
+    cur=conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM participant_notes WHERE participant_id=?", (str(pid),))
+    n=cur.fetchone()[0]
+    conn.close()
+    return n>0
+
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
+download_serializer = URLSafeTimedSerializer(app.secret_key)
+
 
 
 
@@ -33,7 +50,8 @@ def _safe_redirect():
     if path.startswith("/product"):
         return redirect("/buy")
 
-    return redirect("/")
+    # NOTE: removed global redirect that was breaking /intake
+# return redirect("/")
 
 @app.errorhandler(400)
 def handle_400(e):
@@ -67,6 +85,26 @@ else:
 # -------------------------
 DB_PATH = "licenses.db"
 
+# -------------------------
+# Participant Notes Table
+# -------------------------
+def ensure_notes_table():
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS participant_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            participant_name TEXT NOT NULL,
+            staff_name TEXT,
+            note_text TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+
 def ensure_db_columns():
     """Lightweight migration so existing licenses.db doesn't break."""
     conn = sqlite3.connect(DB_PATH)
@@ -89,6 +127,25 @@ PRODUCTS = {
         "file": "downloads/ALL_BUNDLE.zip",
     }
 }
+
+# -------------------------
+# Field Map Schema Loader
+# -------------------------
+FIELD_MAP_PATH = Path("field_map.json")
+
+def load_field_map():
+    """
+    Loads the NILPF field schema from field_map.json.
+    Returns a dict with sections like: golden_static_fields, emergency_contacts, etc.
+    """
+    try:
+        return json.loads(FIELD_MAP_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return {}
+    except Exception:
+        # If JSON is malformed or unreadable, fail safe
+        return {}
+
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -117,7 +174,17 @@ def make_license_key(state_abbr: str, address: str) -> str:
     safe_state = (state_abbr or "NA").upper()[:2]
     return f"NILPF-{safe_state}-{stamp}"
 
-def upsert_license(session_id: str, email: str, name: str, address: str, state_abbr: str, product_sku: str = None) -> str:
+
+
+def transaction_id_used(transaction_id):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM licenses WHERE transaction_id=?", (transaction_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row is not None
+
+def upsert_license(session_id: str, email: str, name: str, address: str, state_abbr: str, product_sku: str = None, transaction_id: str = None) -> str:
     license_key = make_license_key(state_abbr, address)
     conn = sqlite3.connect(DB_PATH)
 
@@ -129,6 +196,16 @@ def upsert_license(session_id: str, email: str, name: str, address: str, state_a
         """,
         (datetime.utcnow().isoformat(), session_id, email, name, address, state_abbr, license_key, product_sku),
     )
+    # Store PayPal transaction id (replay protection)
+    if transaction_id:
+        try:
+            cur.execute("UPDATE licenses SET transaction_id=? WHERE session_id=?", (transaction_id, session_id))
+        except Exception:
+            try:
+                cur.execute("UPDATE licenses SET transaction_id=? WHERE license_key=?", (transaction_id, license_key))
+            except Exception:
+                pass
+
     conn.commit()
     conn.close()
     return license_key
@@ -171,7 +248,7 @@ def health():
     return jsonify(ok=True)
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from flask import Response
+
 import io
 
 @app.route("/certificate")
@@ -422,6 +499,23 @@ def buy():
 
     abort(500, "No PayPal approval link found")
 
+
+
+@app.route("/download/<token>")
+def download(token):
+    try:
+        data = download_serializer.loads(token, max_age=600)
+    except Exception:
+        abort(403, "Download link expired.")
+
+    file_path = data.get("file")
+
+    if not file_path:
+        abort(404)
+
+    return send_file(file_path, as_attachment=True)
+
+
 @app.route("/success")
 def success():
     order_id = request.args.get("token")
@@ -444,7 +538,8 @@ def success():
 
     if capture_data.get("status") != "COMPLETED":
         abort(400, "Payment not completed.")
-
+    if transaction_id and transaction_id_used(transaction_id):
+        abort(409, "This payment was already processed.")
     location = session.get("licensed_location")
     product_sku = session.get("product_sku")
     if not product_sku:
@@ -461,6 +556,7 @@ def success():
         full_address,
         location.get("state"),
         product_sku,
+        transaction_id=transaction_id,
     )
 
     return render_template_string("""
@@ -477,6 +573,9 @@ def success():
         <p>Your purchase is confirmed and locked to this address.</p>
         <p>
           <a class="btn" href="/download?session_id={{sid}}">Download Files</a>
+<hr style="border:none;border-top:1px solid #111;margin:20px 0;">
+<p><b>Wishing You Prosperity.</b></p>
+
           <a class="btn" href="/certificate?session_id={{sid}}">Download Certificate</a>
         </p>
       </div>
@@ -584,8 +683,8 @@ def product():
     """, label=product.get("label","NILPF Product"), price=product.get("price",""))
 
 
-@app.route("/download")
-def download():
+@app.route("/download-alt")
+def download_alt():
     session_id = request.args.get("session_id")
     if not session_id:
         abort(400, "Missing session_id.")
@@ -610,8 +709,125 @@ def download():
     # Serve as attachment
     filename = os.path.basename(file_path)
     return send_file(file_path, as_attachment=True, download_name=filename)
-
 init_db()
+
+# -------------------------
+# Intake Route (auto-built from field_map.json)
+# -------------------------
+@app.route("/intake", methods=["GET", "POST"])
+def intake():
+    schema = load_field_map() or {}
+
+    # On POST, just echo that we received data (DB + packet generation comes next)
+    if request.method == "POST":
+        submitted = {k: v for k, v in request.form.items()}
+        return render_template_string("""
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>NILPF Intake Received</title>
+            <style>
+              body { font-family: Arial, sans-serif; max-width: 900px; margin: 28px auto; padding: 0 16px; }
+              .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
+              pre { white-space: pre-wrap; word-wrap: break-word; background:#f6f6f6; padding:12px; border-radius:10px; }
+              a { color: #0b57d0; }
+            </style>
+          </head>
+          <body>
+            <h1>✅ Intake received</h1>
+            <div class="card">
+              <p>Next step: we’ll save this to the database and generate the packet.</p>
+              <pre>{{ submitted }}</pre>
+              <p><a href="/intake">Back to intake form</a></p>
+            </div>
+          </body>
+        </html>
+        """, submitted=submitted)
+
+    # Build form from schema
+    sections = [
+        ("Golden Static Fields", "golden_static_fields"),
+        ("Emergency Contacts", "emergency_contacts"),
+        ("Safety Fields", "safety_fields"),
+        ("Financial Fields", "financial_fields"),
+        ("Signature Envelope", "signature_envelope"),
+    ]
+
+    def input_type(field_name: str) -> str:
+        f = field_name.lower()
+        if "date of birth" in f:
+            return "date"
+        if "ssn" in f or "social security" in f:
+            return "password"
+        return "text"
+
+    def field_key(field_name: str) -> str:
+        # stable key for HTML name attributes
+        key = re.sub(r'[^a-zA-Z0-9]+', '_', field_name.strip()).strip('_').lower()
+        return key or "field"
+
+    form_sections = []
+    for title, key in sections:
+        fields = schema.get(key, [])
+        form_sections.append((title, fields))
+
+    return render_template_string("""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>NILPF Intake</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 900px; margin: 28px auto; padding: 0 16px; }
+          h1 { margin-bottom: 6px; }
+          .hint { color: #555; margin-top: 0; }
+          .section { border: 1px solid #ddd; border-radius: 14px; padding: 16px; margin: 16px 0; background: #fff; }
+          .row { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 10px 0; }
+          label { font-weight: 600; }
+          input { padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+          .btn { display: inline-block; padding: 12px 16px; border-radius: 12px; border: 0; background: #111; color: #fff; font-size: 16px; cursor: pointer; }
+          .btn:hover { opacity: .9; }
+          .footer { color: #666; font-size: 13px; margin-top: 18px; }
+        </style>
+      </head>
+      <body>
+        <h1>NILPF Intake</h1>
+        <p class="hint">This form is auto-built from <code>field_map.json</code>.</p>
+
+        <form method="POST">
+          {% for section_title, fields in form_sections %}
+            <div class="section">
+              <h2>{{ section_title }}</h2>
+              {% if not fields %}
+                <p class="hint">No fields found for this section.</p>
+              {% endif %}
+              {% for field in fields %}
+                <div class="row">
+                  <label for="{{ field_key(field) }}">{{ field }}</label>
+                  <input
+                    id="{{ field_key(field) }}"
+                    name="{{ field_key(field) }}"
+                    type="{{ input_type(field) }}"
+                    placeholder="{{ field }}"
+                    {% if "age" in field.lower() and "auto" in field.lower() %}readonly{% endif %}
+                  >
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+
+          <button class="btn" type="submit">Submit Intake</button>
+        </form>
+
+        <div class="footer">© Pearlzz — NILPF Field Mapping System</div>
+      </body>
+    </html>
+    """, form_sections=form_sections, input_type=input_type, field_key=field_key, re=re)
+
+
 
 NOTICE_HTML = """
 <!doctype html>
@@ -740,8 +956,263 @@ def address():
 
     # CHANGE THIS redirect to match your existing purchase route
     return redirect("/buy")
+# -------------------------
+# Participants + Notes
+# -------------------------
+# -------------------------
+# Participants + Notes
+# -------------------------
+@app.route("/participants", methods=["GET", "POST"])
+def participants():
+    # Ensure tables exist
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS participants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      legal_name TEXT NOT NULL,
+      preferred_name TEXT,
+      created_at TEXT NOT NULL
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS participant_notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      participant_id INTEGER NOT NULL,
+      note TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+    """)
+
+    msg = "Notes system installed successfully."
+
+    if request.method == "POST":
+        action = (request.form.get("action") or "").strip()
+
+        if action == "add_participant":
+            legal_name = (request.form.get("legal_name") or "").strip()
+            preferred_name = (request.form.get("preferred_name") or "").strip()
+            if not legal_name:
+                conn.close()
+                abort(400, "Legal name is required.")
+            cur.execute(
+                "INSERT INTO participants (legal_name, preferred_name, created_at) VALUES (?,?,?)",
+                (legal_name, preferred_name or None, datetime.now().isoformat())
+            )
+            conn.commit()
+            msg = "Participant added."
+
+        elif action == "add_note":
+            pid = (request.form.get("participant_id") or "").strip()
+            note = (request.form.get("note") or "").strip()
+            if not pid.isdigit():
+                conn.close()
+                abort(400, "Invalid participant.")
+            if not note:
+                conn.close()
+                abort(400, "Note cannot be empty.")
+            cur.execute(
+                "INSERT INTO participant_notes (participant_id, participant_name, staff_name, note_text, created_at) VALUES (?,?,?,?,?)",
+                (int(pid), "", "", note, datetime.now().isoformat())
+            )
+            conn.commit()
+            msg = "Note saved."
+        else:
+            conn.close()
+            abort(400, "Invalid action.")
+
+    # Load participants + notes
+    cur.execute("SELECT id, legal_name, COALESCE(preferred_name,''), created_at FROM participants ORDER BY id DESC")
+    people = cur.fetchall()
+
+    cur.execute("SELECT participant_id, note_text, created_at FROM participant_notes ORDER BY id DESC LIMIT 200")
+    notes = cur.fetchall()
+
+    conn.close()
+
+    notes_by = {}
+    for pid, note, created_at in notes:
+        notes_by.setdefault(pid, []).append((note, created_at))
+
+    return render_template_string("""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Participants</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; }
+          h1 { margin: 0 0 8px; }
+          .msg { margin: 10px 0 20px; }
+          .box { border: 1px solid #ddd; border-radius: 10px; padding: 14px; margin: 14px 0; }
+          label { display:block; font-size: 13px; margin-top: 10px; }
+          input, textarea, select { width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; }
+          textarea { min-height: 120px; }
+          button { margin-top: 12px; padding: 10px 14px; border:0; border-radius:8px; background:#111; color:#fff; }
+          .row { border-top: 1px solid #eee; padding: 10px 0; }
+          .muted { color:#666; font-size: 12px; }
+          .note { border-left: 3px solid #ddd; padding-left: 10px; margin: 10px 0; }
+        </style>
+      </head>
+      <body>
+        <h1>Participants</h1>
+        <div class="msg">{{ msg }}</div>
+
+        <div class="box">
+          <h3>Add Participant</h3>
+          <form method="post">
+            <input type="hidden" name="action" value="add_participant">
+            <label>Legal Name</label>
+            <input name="legal_name" required>
+            <label>Preferred Name (optional)</label>
+            <input name="preferred_name">
+            <button type="submit">Add Participant</button>
+          </form>
+        </div>
+
+        <div class="box">
+          <h3>Add Note (Narrative)</h3>
+          {% if people %}
+          <form method="post">
+            <input type="hidden" name="action" value="add_note">
+            <label>Participant</label>
+            <select name="participant_id" required>
+              {% for p in people %}
+                <option value="{{ p[0] }}"><a href="/participant/{{p[0]}}" style="text-decoration:none;">{{ '🔴' if participant_has_notes(p[0]) else '⚪' }} #{{p[0]}} — {{p[1]}}</a></option>
+              {% endfor %}
+            </select>
+            <label>Note</label>
+            <textarea name="note" required placeholder="Type anything out of the ordinary here..."></textarea>
+            <button type="submit">Save Note</button>
+          </form>
+          {% else %}
+            <div class="muted">Add a participant first, then you can write notes.</div>
+          {% endif %}
+        </div>
+
+        <div class="box">
+          <h3>Participants</h3>
+          {% if people %}
+            {% for p in people %}
+              <div class="row">
+                <b><a href="/participant/{{p[0]}}" style="text-decoration:none;">{{ '🔴' if participant_has_notes(p[0]) else '⚪' }} #{{p[0]}} — {{p[1]}}</a></b>{% if p[2] %} ({{ p[2] }}){% endif %}
+                <div class="muted">Created: {{ p[3] }}</div>
+
+                {% if notes_by.get(p[0]) %}
+                  {% for n in notes_by.get(p[0]) %}
+                    <div class="note">
+                      <div>{{ n[0] }}</div>
+                      <div class="muted">{{ n[1] }}</div>
+                    </div>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="muted">No participants yet.</div>
+          {% endif %}
+        </div>
+      </body>
+    </html>
+    """, msg=msg, people=people, notes_by=notes_by)
+
+
+
+
+
+# -------------------------
+# Participant Detail + Notes Viewer
+# -------------------------
+@app.route("/participant/<int:pid>")
+def participant_detail(pid: int):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    # Get participant name (best effort)
+    pname = None
+    try:
+        cur.execute("SELECT name FROM participants WHERE id = ?", (pid,))
+        row = cur.fetchone()
+        if row:
+            pname = row[0]
+    except Exception:
+        pname = None
+
+    # Load notes for this participant (supports both schemas)
+    notes = []
+    try:
+        cur.execute("""
+            SELECT id,
+                   COALESCE(note_text, note) AS note_body,
+                   COALESCE(created_at, '') AS created_at,
+                   COALESCE(staff_name, '') AS staff_name
+            FROM participant_notes
+            WHERE (participant_id = ?)
+               OR (participant_name IS NOT NULL AND participant_name != '' AND participant_name = ?)
+            ORDER BY datetime(created_at) DESC
+        """, (str(pid), pname or ""))
+        for nid, body, created_at, staff in cur.fetchall():
+            if body is None:
+                body = ""
+            notes.append({"id": nid, "note": body, "created_at": created_at, "staff": staff})
+    except Exception:
+        notes = []
+
+    conn.close()
+
+    return render_template_string("""
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Participant Notes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; padding: 0 14px; }
+      .card { border:1px solid #e6e6e6; border-radius:12px; padding:16px; margin-top:12px; }
+      .muted { color:#666; font-size:13px; }
+      a.btn { display:inline-block; padding:10px 12px; border-radius:10px; border:1px solid #ddd; text-decoration:none; color:#111; }
+      ul { margin: 10px 0 0 18px; }
+      li { margin: 8px 0; }
+      .stamp { color:#777; font-size:12px; margin-right:8px; }
+      .staff { color:#555; font-size:12px; margin-left:8px; }
+    </style>
+  </head>
+  <body>
+    <a class="btn" href="/participants">← Back to Participants</a>
+
+    <div class="card">
+      <h2 style="margin:0 0 6px 0;">Participant Notes</h2>
+      <div class="muted">
+        Participant: <b>#{{pid}}</b>{% if pname %} — {{pname}}{% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px 0;">Narrative Log</h3>
+
+      {% if notes %}
+        <ul>
+          {% for n in notes %}
+            <li>
+              <span class="stamp">{{ n.created_at }}</span>
+              <span>{{ n.note }}</span>
+              {% if n.staff %}<span class="staff">({{ n.staff }})</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="muted">No notes found for this participant yet.</div>
+      {% endif %}
+    </div>
+  </body>
+</html>
+""", pid=pid, pname=pname, notes=notes)
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
-
-
+    # bind for Chromebook/Linux environments
+    app.run(host="0.0.0.0", port=10000, debug=False)

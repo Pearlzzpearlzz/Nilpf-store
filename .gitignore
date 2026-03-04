@@ -1,4 +1,38 @@
-venv/
-__pycache__/
+# Secrets
 .env
+.env.*
+*.env
+
+# Databases
 *.db
+*.sqlite
+*.sqlite3
+
+# Downloads / bundles / generated
+downloads/
+*.zip
+*.pdf
+cookies.txt
+stripe_hits.txt
+
+# Backups / temp
+*.bak
+*.bak_*
+*.backup
+app.py.bak*
+app.py.backup*
+app.py.save
+*.save
+
+# Large content folders (keep out of repo)
+56 State_Addenda/
+Core-v2.1/
+states/
+
+# Python cache / venv
+__pycache__/
+*.pyc
+venv/
+
+# Misc
+field_map.json
