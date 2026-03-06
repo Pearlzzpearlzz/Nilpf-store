@@ -50,8 +50,11 @@ def _safe_redirect():
     if path.startswith("/product"):
         return redirect("/buy")
 
+    if path.startswith("/documents") or path.startswith("/upgrade"):
+        return "Documents/upgrade request failed. Check session_id or purchase record.", 400
+
     # NOTE: removed global redirect that was breaking /intake
-# return redirect("/")
+    return redirect("/address")
 
 @app.errorhandler(400)
 def handle_400(e):
@@ -121,10 +124,15 @@ def ensure_db_columns():
 # Product catalog (edit prices + file paths as you wish)
 
 PRODUCTS = {
-    "COMPLETE_SET": {
-        "label": "NILPF Complete Authority Set",
+    "STANDARD_SET": {
+        "label": "NILPF Standard Docs System",
         "price": "297.00",
         "file": "downloads/ALL_BUNDLE.zip",
+    },
+    "MASTER_LEASE": {
+        "label": "Master Lease v2.1",
+        "price": "197.00",
+        "file": "static/documents/Master_Lease_v2.1.pdf",
     }
 }
 
@@ -572,12 +580,12 @@ def success():
         <h1>Payment Completed</h1>
         <p>Your purchase is confirmed and locked to this address.</p>
         <p>
-          <a class="btn" href="/download?session_id={{sid}}">Download Files</a>
-<hr style="border:none;border-top:1px solid #111;margin:20px 0;">
-<p><b>Wishing You Prosperity.</b></p>
-
+          <a class="btn" href="/documents?session_id={{sid}}">Open Licensed Documents</a>
+          <a class="btn" href="/download-alt?session_id={{sid}}">Download Included Files</a>
           <a class="btn" href="/certificate?session_id={{sid}}">Download Certificate</a>
         </p>
+<hr style="border:none;border-top:1px solid #111;margin:20px 0;">
+<p><b>Wishing You Prosperity.</b></p>
       </div>
     </body></html>
     """, sid=order_id)
@@ -611,76 +619,87 @@ def cancel():
 # -------------------------
 @app.route("/product", methods=["GET", "POST"])
 def product():
-    # Front product page: show cover + what's included + continue
-    sku = "COMPLETE_SET"
-    product = PRODUCTS.get(sku)
-    if not product:
-        abort(500, "Product not found in catalog.")
-
     if request.method == "POST":
-        # lock the SKU then continue into your existing flow
+        sku = (request.form.get("product_sku") or "").strip()
+        if sku not in PRODUCTS:
+            abort(400, "Invalid product selection.")
         session["product_sku"] = sku
         return redirect("/notice")
+
+    standard = PRODUCTS.get("STANDARD_SET")
+    ml = PRODUCTS.get("MASTER_LEASE")
 
     return render_template_string("""
     <!doctype html>
     <html>
       <head>
         <meta charset="utf-8">
-        <title>{{ label }}</title>
+        <title>NILPF Products</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-          body{font-family:Arial,sans-serif;max-width:920px;margin:40px auto;padding:0 16px}
-          .wrap{display:grid;grid-template-columns:1fr;gap:18px}
-          @media(min-width:900px){.wrap{grid-template-columns:1.2fr .8fr}}
+          body{font-family:Arial,sans-serif;max-width:1080px;margin:40px auto;padding:0 16px}
+          .hero{border:2px solid #111;border-radius:14px;padding:18px;margin-bottom:18px}
+          .cards{display:grid;grid-template-columns:1fr;gap:18px}
+          @media(min-width:920px){.cards{grid-template-columns:1fr 1fr}}
           .card{border:2px solid #111;border-radius:14px;padding:18px}
-          .img{width:100%;border-radius:12px;border:2px solid #111;display:block}
-          .btn{display:inline-block;padding:12px 16px;border-radius:10px;border:2px solid #111;background:#fff;cursor:pointer}
-          h1{margin:0 0 10px 0}
+          .img{width:100%;border-radius:12px;border:2px solid #111;display:block;margin-bottom:14px}
+          .btn{display:inline-block;padding:12px 16px;border-radius:10px;border:2px solid #111;background:#fff;cursor:pointer;font-weight:700}
+          h1,h2{margin:0 0 10px 0}
           ul{margin:10px 0 0 18px}
           .muted{opacity:.85}
-          .price{font-size:20px;font-weight:700;margin:12px 0}
-          .badge{display:inline-block;padding:6px 10px;border:2px solid #111;border-radius:999px;font-size:13px}
+          .price{font-size:22px;font-weight:700;margin:12px 0}
+          .badge{display:inline-block;padding:6px 10px;border:2px solid #111;border-radius:999px;font-size:13px;margin-bottom:10px}
         </style>
       </head>
       <body>
-        <div class="wrap">
+        <div class="hero">
+          <img class="img" src="{{ url_for('static', filename='store_preview.png') }}" alt="NILPF Store Preview">
+          <p class="muted">One license per physical address. Choose the document system you want to license for this location.</p>
+        </div>
+
+        <div class="cards">
           <div class="card">
-            <img class="img" src="{{ url_for('static', filename='store_preview.png') }}" alt="NILPF Store Preview">
-            <p class="muted" style="margin:12px 0 0 0;">
-              Preview of what you will receive (download bundle + certificate).
-            </p>
-          </div>
-
-          <div class="card">
-            <span class="badge">One license per physical address</span>
-            <h1>{{ label }}</h1>
-
-            <div class="price">${{ price }}</div>
-
+            <span class="badge">Standard System</span>
+            <h2>{{ standard.label }}</h2>
+            <div class="price">${{ standard.price }}</div>
             <div class="muted">
-              <b>What you receive:</b>
+              <b>Includes:</b>
               <ul>
                 <li>Essential Forms bundle</li>
                 <li>Core Docs bundle</li>
-               
-                <li>Immediate download link after payment</li>
+                <li>Master License Agreement (MLA) v2.1</li>
                 <li>License Certificate (PDF)</li>
+                <li>Immediate digital delivery</li>
               </ul>
             </div>
-
             <form method="POST" style="margin-top:16px;">
-              <button class="btn" type="submit">Continue</button>
+              <input type="hidden" name="product_sku" value="STANDARD_SET">
+              <button class="btn" type="submit">Choose Standard</button>
             </form>
+          </div>
 
-            <p class="muted" style="margin-top:12px;">
-              Next: license notice → enter your licensed address → checkout → download.
-            </p>
+          <div class="card">
+            <span class="badge">Standalone Premium</span>
+            <h2>{{ ml.label }}</h2>
+            <div class="price">${{ ml.price }}</div>
+            <div class="muted">
+              <b>Includes:</b>
+              <ul>
+                <li>Master Lease Agreement v2.1</li>
+                <li>Single-location license</li>
+                <li>Licensed address stamped on document</li>
+                <li>Immediate digital delivery</li>
+              </ul>
+            </div>
+            <form method="POST" style="margin-top:16px;">
+              <input type="hidden" name="product_sku" value="MASTER_LEASE">
+              <button class="btn" type="submit">Choose Master Lease</button>
+            </form>
           </div>
         </div>
       </body>
     </html>
-    """, label=product.get("label","NILPF Product"), price=product.get("price",""))
+    """, standard=standard, ml=ml)
 
 
 @app.route("/download-alt")
@@ -1214,5 +1233,166 @@ def participant_detail(pid: int):
 
 
 if __name__ == "__main__":
-    # bind for Chromebook/Linux environments
     app.run(host="0.0.0.0", port=10000, debug=False)
+# bind for Chromebook/Linux environments
+
+
+
+@app.route("/upgrade/master-lease")
+def upgrade_master_lease():
+    session_id = request.args.get("session_id")
+    if not session_id:
+        abort(400, "Missing session_id.")
+
+    lic = get_license_by_session(session_id)
+    if not lic:
+        abort(404, "License not found.")
+
+    payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
+    if product_sku not in ("STANDARD_SET", "COMPLETE_SET", "ALL_BUNDLE"):
+        return redirect(f"/documents?session_id={session_id}")
+
+    import re
+    m = re.match(r"^(.*),\s*([^,]+),\s*([A-Z]{2})\s+([0-9\-]+)$", prop_addr or "")
+    if not m:
+        abort(400, "Could not reuse the saved licensed address.")
+
+    street, city, state, zip_code = m.groups()
+    session["licensed_location"] = {
+        "business_name": payer_name or "Licensed Buyer",
+        "street": street.strip(),
+        "city": city.strip(),
+        "state": state.strip(),
+        "zip": zip_code.strip(),
+        "email": payer_email or "",
+    }
+    session["product_sku"] = "MASTER_LEASE"
+    return redirect("/buy")
+
+
+@app.route("/documents")
+def documents():
+    session_id = request.args.get("session_id")
+    if not session_id:
+        abort(400, "Missing session_id.")
+
+    lic = get_license_by_session(session_id)
+    if not lic:
+        abort(404, "License not found.")
+
+    payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
+    has_standard = product_sku in ("STANDARD_SET", "COMPLETE_SET", "ALL_BUNDLE")
+    has_ml = product_sku == "MASTER_LEASE"
+
+    return render_template_string("""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>NILPF Documents</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 820px; margin: 40px auto; padding: 0 16px; }
+          .card { border: 2px solid #111; border-radius: 18px; padding: 18px; margin-bottom: 18px; }
+          h1 { margin: 0 0 8px; }
+          p { margin: 8px 0; }
+          a.btn {
+            display: inline-block;
+            padding: 12px 14px;
+            margin: 10px 10px 0 0;
+            border: 2px solid #111;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #111;
+            font-weight: 800;
+          }
+          a.btn:hover { background: #f2f2f2; }
+          .small { color: #444; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>Documents</h1>
+          <p><b>Licensed address:</b> {{ prop_addr }}</p>
+          <p><b>License key:</b> {{ license_key }}</p>
+
+          {% if has_ml %}
+            <a class="btn" href="/documents/master-lease.pdf?session_id={{ session_id }}" target="_blank">Open Stamped Master Lease (ML)</a>
+          {% endif %}
+
+          {% if has_standard %}
+            <a class="btn" href="/static/documents/MASTER_LICENSE_AGREEMENT_MLA_v2.1.pdf" target="_blank">Open Master License Agreement (MLA)</a>
+          {% endif %}
+
+          <p class="small">This page only shows documents included with the purchased license.</p>
+        </div>
+
+        {% if has_standard and not has_ml %}
+        <div class="card">
+          <h2>Upgrade Available</h2>
+          <p>Add <b>Master Lease v2.1</b> for this same licensed address without retyping it.</p>
+          <a class="btn" href="/upgrade/master-lease?session_id={{ session_id }}">Add Master Lease for This Address</a>
+        </div>
+        {% endif %}
+      </body>
+    </html>
+    """, session_id=session_id, prop_addr=prop_addr, license_key=license_key, has_standard=has_standard, has_ml=has_ml)
+
+
+@app.route("/documents/master-lease.pdf")
+def stamped_master_lease():
+    session_id = request.args.get("session_id")
+    if not session_id:
+        abort(400, "Missing session_id.")
+
+    lic = get_license_by_session(session_id)
+    if not lic:
+        abort(404, "License not found.")
+
+    payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
+    if product_sku != "MASTER_LEASE":
+        abort(403, "Master Lease access not included with this purchase.")
+
+    src_path = Path("static/documents/Master_Lease_v2.1.pdf")
+    if not src_path.exists():
+        abort(404, "Master Lease PDF not found on server.")
+
+    import io
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import letter
+    from pypdf import PdfReader, PdfWriter
+
+    packet = io.BytesIO()
+    c = canvas.Canvas(packet, pagesize=letter)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(42, 34, f"Licensed Address: {prop_addr}")
+    c.drawRightString(570, 34, f"License Key: {license_key}")
+    c.save()
+    packet.seek(0)
+
+    base_reader = PdfReader(str(src_path))
+    overlay_reader = PdfReader(packet)
+    writer = PdfWriter()
+
+    for i, page in enumerate(base_reader.pages):
+        if i == 0:
+            page.merge_page(overlay_reader.pages[0])
+        writer.add_page(page)
+
+    out = io.BytesIO()
+    writer.write(out)
+    out.seek(0)
+
+    return send_file(
+        out,
+        mimetype="application/pdf",
+        as_attachment=False,
+        download_name="Master_Lease_v2.1_Stamped.pdf"
+    )
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000, debug=False)
+# -------------------------
+# Electronic Documents (ML / MLA)
+# -------------------------
+
