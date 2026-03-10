@@ -97,17 +97,22 @@ from reportlab.lib.units import inch
 def _safe_redirect(e=None):
     path = (request.path or "").lower()
 
+    # PayPal checkout flow
     if path.startswith("/buy") or path.startswith("/success") or path.startswith("/cancel"):
-        return redirect("/buy") if session.get("licensed_location") else redirect("/address")
+        if session.get("licensed_location"):
+            return redirect("/buy")
+        return redirect("/address")
 
+    # Product page should stay product page
     if path.startswith("/product"):
         return redirect("/product")
 
+    # Documents or upgrade should not redirect away
     if path.startswith("/documents") or path.startswith("/upgrade"):
         return e if e is not None else ("Documents/upgrade request failed. Check session_id or purchase record.", 400)
 
-    # NOTE: removed global redirect that was breaking /intake
-    return redirect("/address")
+    # Default: return the actual error instead of bouncing to /address
+    return e if e is not None else ("Bad Request", 400)
 
 @app.errorhandler(400)
 def handle_400(e):
@@ -142,7 +147,7 @@ else:
 DB_PATH = "licenses.db"
 
 # -------------------------
-# Participant Notes Table
+# Incident / Status Documentation Table
 # -------------------------
 
 
@@ -159,55 +164,62 @@ def ensure_participant_forms_table():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             participant_id TEXT NOT NULL,
             form_name TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
+            is_complete INTEGER NOT NULL DEFAULT 0,
             completed_at TEXT
         )
     """)
+    cols = [r[1] for r in cur.execute("PRAGMA table_info(participant_forms)").fetchall()]
+    if "is_complete" not in cols:
+        cur.execute("ALTER TABLE participant_forms ADD COLUMN is_complete INTEGER NOT NULL DEFAULT 0")
     conn.commit()
     conn.close()
 
 
 def seed_participant_forms(participant_id: str):
     import sqlite3
+    from datetime import datetime
+
+    forms = [
+        "Entry Screening",
+        "Participant Financial Responsibility Agreement",
+        "Important Notice and Disclaimer",
+        "Communication and Consent Form",
+        "Transfer Form",
+        "Pet / Animal Information Sheet",
+        "Vehicle / Parking Information Form",
+        "Complaint / Grievance Procedure Form"
+    ]
+
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    starter_forms = [
-        "00_Member_Bill_of_Rights_v2.1.pdf",
-        "01_NILPF_Charter_of_Human_Dignity_and_Independent_Living_v2.1.pdf",
-        "18_Entry_Screening_v2.1.pdf",
-        "1_Independent_Living_Disclosure_v2.1.pdf",
-        "2_No_Services_No_Supervision_Acknowledgement.pdf",
-        "3_Voluntary_Participation_Acknowledgement.pdf",
-        "4_House_Rules_and_Community_Standards.pdf",
-        "20_Participant_Privacy_AND_Non_Commercialization_Acknowledgement.pdf",
-        "21_Property_AND_Personal_Belongings_Acknowledgement.pdf",
-        "16_Participant_Financial_Responsibility_Agreement.pdf",
-        "15_IMPORTANT_NOTICE_AND_DISCLAIMER_v2.1.pdf",
-        "17_NO_PAYEE_FINANCIAL_CONTROL_DISCLOSURE.pdf",
-        "7_Emergency_Contact_Form.pdf",
-        "6_Emergency_Evacuation_Plan.pdf",
-        "5_Fire_Safety_and_Self-Preservation_Acknowledgement.pdf",
-        "19-Common_Area_Security_Disclosure.pdf",
-        "13-Communication_and_Consent_Form.pdf",
-        "10-Pet_Animal_Information_Sheet.pdf",
-        "11-Vehicle_Parking_Information_Form.pdf",
-        "9_Guest_Addendum.pdf",
-        "8_Incident_Report_Form.pdf",
-        "15_COMPLAINT_GRIEVANCE_PROCEDURE_FORM.pdf",
-        "12-Transfer_Form.pdf"
-    ]
+    cols = [r[1] for r in cur.execute("PRAGMA table_info(participant_forms)").fetchall()]
 
-    for form_name in starter_forms:
-        cur.execute("""
-            SELECT COUNT(*) FROM participant_forms
-            WHERE participant_id=? AND form_name=?
-        """,(str(participant_id),form_name))
-        if cur.fetchone()[0]==0:
-            cur.execute("""
-                INSERT INTO participant_forms (participant_id,form_name,status)
-                VALUES (?,?,?)
-            """,(str(participant_id),form_name,"pending"))
+    for form_name in forms:
+        existing = cur.execute(
+            "SELECT COUNT(*) FROM participant_forms WHERE participant_id = ? AND form_name = ?",
+            (str(participant_id), form_name)
+        ).fetchone()[0]
+
+        if existing:
+            continue
+
+        data = {
+            "participant_id": str(participant_id),
+            "form_name": form_name
+        }
+
+        if "is_complete" in cols:
+            data["is_complete"] = 0
+        if "created_at" in cols:
+            data["created_at"] = datetime.utcnow().isoformat()
+
+        fields = ", ".join(data.keys())
+        placeholders = ", ".join(["?"] * len(data))
+        cur.execute(
+            f"INSERT INTO participant_forms ({fields}) VALUES ({placeholders})",
+            tuple(data.values())
+        )
 
     conn.commit()
     conn.close()
@@ -218,69 +230,29 @@ def get_participant_forms(pid: str):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
-        SELECT form_name,status,completed_at
+        SELECT form_name, is_complete, completed_at
         FROM participant_forms
         WHERE participant_id=?
         ORDER BY id
-    """,(str(pid),))
+    """, (str(pid),))
     rows = cur.fetchall()
     conn.close()
     return rows
 
 
-def mark_participant_form_complete(pid: str,form_name: str):
+def mark_participant_form_complete(pid: str, form_name: str):
     import sqlite3
     from datetime import datetime
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
         UPDATE participant_forms
-        SET status='complete', completed_at=?
+        SET is_complete=1, completed_at=?
         WHERE participant_id=? AND form_name=?
-    """,(datetime.utcnow().isoformat(),str(pid),form_name))
+    """, (datetime.utcnow().isoformat(), str(pid), form_name))
     conn.commit()
     conn.close()
 
-def ensure_notes_table():
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS participant_notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            participant_name TEXT NOT NULL,
-            staff_name TEXT,
-            note_text TEXT NOT NULL,
-            created_at TEXT NOT NULL
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-REQUIRED_PARTICIPANT_FORMS = [
-    "14-Pre_Opening_Waitlist_Form.pdf",
-    "18_Entry_Screening_v2.1.pdf",
-    "1_Independent_Living_Disclosure_v2.1.pdf",
-    "2_No_Services_No_Supervision_Acknowledgement.pdf",
-    "3_Voluntary_Participation_Acknowledgement.pdf",
-    "4_House_Rules_and_Community_Standards.pdf",
-    "5_Fire_Safety_and_Self-Preservation_Acknowledgement.pdf",
-    "6_Emergency_Evacuation_Plan.pdf",
-    "7_Emergency_Contact_Form.pdf",
-    "8_Incident_Report_Form.pdf",
-    "9_Guest_Addendum.pdf",
-    "10-Pet_Animal_Information_Sheet.pdf",
-    "11-Vehicle_Parking_Information_Form.pdf",
-    "12-Transfer_Form.pdf",
-    "13-Communication_and_Consent_Form.pdf",
-    "15_COMPLAINT_GRIEVANCE_PROCEDURE_FORM.pdf",
-    "15_IMPORTANT_NOTICE_AND_DISCLAIMER_v2.1.pdf",
-    "16_Participant_Financial_Responsibility_Agreement.pdf",
-    "17_NO_PAYEE_FINANCIAL_CONTROL_DISCLOSURE.pdf",
-    "19-Common_Area_Security_Disclosure.pdf",
-    "20_Participant_Privacy_AND_Non_Commercialization_Acknowledgement.pdf",
-    "21_Property_AND_Personal_Belongings_Acknowledgement.pdf",
-]
 
 def ensure_participants_table():
     import sqlite3
@@ -299,38 +271,22 @@ def ensure_participants_table():
     conn.commit()
     conn.close()
 
-def ensure_participant_forms_table():
+def ensure_notes_table():
+
     import sqlite3
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS participant_forms (
+        CREATE TABLE IF NOT EXISTS participant_notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            participant_id INTEGER NOT NULL,
-            form_filename TEXT NOT NULL,
-            completed INTEGER NOT NULL DEFAULT 0,
-            completed_at TEXT,
-            staff_initials TEXT,
-            UNIQUE(participant_id, form_filename)
+            participant_name TEXT NOT NULL,
+            staff_name TEXT,
+            note_text TEXT NOT NULL,
+            created_at TEXT NOT NULL
         )
     """)
     conn.commit()
     conn.close()
-
-def seed_forms_for_participant(participant_id):
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    for form_filename in REQUIRED_PARTICIPANT_FORMS:
-        cur.execute("""
-            INSERT OR IGNORE INTO participant_forms
-            (participant_id, form_filename, completed, completed_at, staff_initials)
-            VALUES (?, ?, 0, NULL, NULL)
-        """, (participant_id, form_filename))
-    conn.commit()
-    conn.close()
-
-
 
 def ensure_db_columns():
     """Lightweight migration so existing licenses.db doesn't break."""
@@ -657,46 +613,171 @@ FORM_GROUPS = {
     "12-Transfer_Form.pdf": "Exit",
 }
 
+
+FORM_REQUIREMENTS = {
+    "00_Member_Bill_of_Rights_v2.1.pdf": "required",
+    "01_NILPF_Charter_of_Human_Dignity_and_Independent_Living_v2.1.pdf": "required",
+
+    "18_Entry_Screening_v2.1.pdf": "required",
+
+    "1_Independent_Living_Disclosure_v2.1.pdf": "required",
+    "2_No_Services_No_Supervision_Acknowledgement.pdf": "required",
+    "3_Voluntary_Participation_Acknowledgement.pdf": "required",
+
+    "4_House_Rules_and_Community_Standards.pdf": "required",
+    "20_Participant_Privacy_AND_Non_Commercialization_Acknowledgement.pdf": "required",
+    "21_Property_AND_Personal_Belongings_Acknowledgement.pdf": "required",
+    "16_Participant_Financial_Responsibility_Agreement.pdf": "conditional",
+    "15_IMPORTANT_NOTICE_AND_DISCLAIMER_v2.1.pdf": "required",
+    "17_NO_PAYEE_FINANCIAL_CONTROL_DISCLOSURE.pdf": "required",
+
+    "7_Emergency_Contact_Form.pdf": "required",
+    "6_Emergency_Evacuation_Plan.pdf": "required",
+    "5_Fire_Safety_and_Self-Preservation_Acknowledgement.pdf": "required",
+    "19-Common_Area_Security_Disclosure.pdf": "conditional",
+
+    "13-Communication_and_Consent_Form.pdf": "conditional",
+    "10-Pet_Animal_Information_Sheet.pdf": "optional",
+    "11-Vehicle_Parking_Information_Form.pdf": "optional",
+    "9_Guest_Addendum.pdf": "optional",
+
+    "8_Incident_Report_Form.pdf": "conditional",
+    "15_COMPLAINT_GRIEVANCE_PROCEDURE_FORM.pdf": "required",
+
+    "12-Transfer_Form.pdf": "conditional",
+}
+
+
 def participant_workflow(participant_id):
     import sqlite3
+    from urllib.parse import quote
+
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
     participant = cur.execute(
-        "SELECT id, legal_name, preferred_name, created_at FROM participants WHERE id=?",
+        """
+        SELECT id, legal_name, preferred_name, dob, gender, phone, email,
+               address, city, state, zip_code,
+               emergency_contact_name, emergency_contact_phone,
+               move_in_date, room_unit, created_at
+        FROM participants
+        WHERE id=?
+        """,
         (participant_id,)
     ).fetchone()
 
-    rows = cur.execute("""
-        SELECT form_name, is_complete, completed_at
-        FROM participant_forms
-        WHERE participant_id=?
-        ORDER BY id
-    """, (str(participant_id),)).fetchall()
+    form_rows = cur.execute(
+        "SELECT form_name, is_complete, completed_at FROM participant_forms WHERE participant_id=?",
+        (str(participant_id),)
+    ).fetchall()
 
     conn.close()
 
-    grouped = {k: [] for k in GROUP_ORDER}
-    for form_name, is_complete, completed_at in rows:
-        group_name = FORM_GROUPS.get(form_name, "Administration")
-        grouped.setdefault(group_name, []).append({
-            "form_name": form_name,
-            "label": FORM_LABELS.get(form_name, form_name.replace(".pdf","").replace("_"," ")),
-            "is_complete": int(is_complete or 0),
-            "completed_at": completed_at,
-            "href": f"/participant-form/{participant_id}/{quote(form_name)}"
-        })
+    if not participant:
+        return None, {}, {"completed": 0, "total_required": 0, "percent": 0}
 
-    return participant, grouped
+    completed_map = {
+        row[0]: {"is_complete": bool(row[1]), "completed_at": row[2]}
+        for row in form_rows
+    }
+
+    grouped_defs = get_grouped_participant_forms()
+    grouped = {}
+    total_required = 0
+    completed_required = 0
+
+    for group_name, forms in grouped_defs.items():
+        items = []
+        for form in forms:
+            form_name = form.get("form_name") or form.get("name") or ""
+            label = form.get("label") or form_name
+            status = completed_map.get(form_name, {})
+            is_complete = bool(status.get("is_complete"))
+            completed_at = status.get("completed_at")
+            href = f"/participant-form/{participant_id}/{quote(form_name)}"
+
+            is_conditional = bool(form.get("conditional"))
+            is_required = not is_conditional
+            requirement_label = "Conditional" if is_conditional else "Required"
+
+            if is_required:
+                total_required += 1
+                if is_complete:
+                    completed_required += 1
+
+            items.append({
+                "form_name": form_name,
+                "label": label,
+                "href": href,
+                "is_complete": is_complete,
+                "completed_at": completed_at,
+                "is_required": is_required,
+                "is_conditional": is_conditional,
+                "requirement_label": requirement_label
+            })
+        grouped[group_name] = items
+
+    percent = int((completed_required / total_required) * 100) if total_required else 0
+    progress = {
+        "completed": completed_required,
+        "total_required": total_required,
+        "percent": percent
+    }
+
+    return participant, grouped, progress
+
+
+def get_grouped_participant_forms():
+    return {
+        "Foundation": [
+            {"form_name": "00_Member_Bill_of_Rights_v2.1.pdf", "label": "Member Bill of Rights", "conditional": False},
+            {"form_name": "01_NILPF_Charter_of_Human_Dignity_and_Independent_Living_v2.1.pdf", "label": "NILPF Charter of Human Dignity and Independent Living", "conditional": False}
+        ],
+        "Entry": [
+            {"form_name": "18_Entry_Screening_v2.1.pdf", "label": "Entry Screening", "conditional": False},
+            {"form_name": "3_Voluntary_Participation_Acknowledgement.pdf", "label": "Voluntary Participation Acknowledgement", "conditional": False},
+            {"form_name": "13-Communication_and_Consent_Form.pdf", "label": "Communication and Consent Form", "conditional": True}
+        ],
+        "Disclosures": [
+            {"form_name": "1_Independent_Living_Disclosure_v2.1.pdf", "label": "Independent Living Disclosure", "conditional": False},
+            {"form_name": "2_No_Services_No_Supervision_Acknowledgement.pdf", "label": "No Services / No Supervision Acknowledgement", "conditional": False}
+        ],
+        "Program Agreements": [
+            {"form_name": "MASTER_LICENSE_AGREEMENT_MLA_v2.2.pdf", "label": "Master License Agreement (MLA)", "conditional": False},
+            {"form_name": "4_House_Rules_and_Community_Standards.pdf", "label": "House Rules and Community Standards", "conditional": False},
+            {"form_name": "16_Participant_Financial_Responsibility_Agreement.pdf", "label": "Participant Financial Responsibility Agreement", "conditional": True},
+            {"form_name": "15_IMPORTANT_NOTICE_AND_DISCLAIMER_v2.1.pdf", "label": "Important Notice and Disclaimer", "conditional": False},
+            {"form_name": "17_NO_PAYEE_FINANCIAL_CONTROL_DISCLOSURE.pdf", "label": "No Payee Financial Control Disclosure", "conditional": False},
+            {"form_name": "20_Participant_Privacy_AND_Non_Commercialization_Acknowledgement.pdf", "label": "Participant Privacy and Non-Commercialization Acknowledgement", "conditional": False},
+            {"form_name": "21_Property_AND_Personal_Belongings_Acknowledgement.pdf", "label": "Property and Personal Belongings Acknowledgement", "conditional": False}
+        ],
+        "Safety": [
+            {"form_name": "7_Emergency_Contact_Form.pdf", "label": "Emergency Contact Form", "conditional": False},
+            {"form_name": "6_Emergency_Evacuation_Plan.pdf", "label": "Emergency Evacuation Plan", "conditional": False},
+            {"form_name": "5_Fire_Safety_and_Self-Preservation_Acknowledgement.pdf", "label": "Fire Safety and Self-Preservation Acknowledgement", "conditional": False},
+            {"form_name": "19-Common_Area_Security_Disclosure.pdf", "label": "Common Area Security Disclosure", "conditional": True}
+        ],
+        "Resident Info": [
+            {"form_name": "10-Pet_Animal_Information_Sheet.pdf", "label": "Pet / Animal Information Sheet", "conditional": True},
+            {"form_name": "11-Vehicle_Parking_Information_Form.pdf", "label": "Vehicle / Parking Information Form", "conditional": True},
+            {"form_name": "9_Guest_Addendum.pdf", "label": "Guest Addendum", "conditional": True}
+        ],
+        "Administration": [
+            {"form_name": "8_Incident_Report_Form.pdf", "label": "Incident Report Form", "conditional": True},
+            {"form_name": "15_COMPLAINT_GRIEVANCE_PROCEDURE_FORM.pdf", "label": "Complaint / Grievance Procedure Form", "conditional": False}
+        ],
+        "Exit": [
+            {"form_name": "12-Transfer_Form.pdf", "label": "Transfer / Exit Form", "conditional": True}
+        ]
+    }
+
 
 
 GENERIC_FORM_FIELDS = [
-    {"name": "legal_name", "label": "Legal Name", "type": "text"},
-    {"name": "form_date", "label": "Form Date", "type": "date"},
-    {"name": "status_or_response", "label": "Status / Response", "type": "text"},
-    {"name": "details", "label": "Details", "type": "textarea"},
-    {"name": "notes", "label": "Notes", "type": "textarea"},
-    {"name": "completed_by", "label": "Completed By", "type": "text"},
+    {"name": "participant_name", "label": "Participant Name", "type": "text"},
+    {"name": "date", "label": "Date", "type": "date"},
+    {"name": "notes", "label": "Notes", "type": "textarea"}
 ]
 
 def get_form_definition(form_name):
@@ -706,13 +787,10 @@ def get_form_definition(form_name):
     label = FORM_LABELS.get(form_name, form_name.replace(".pdf", "").replace("_", " "))
     return {
         "title": label,
-        "fields": GENERIC_FORM_FIELDS,
+        "fields": globals().get("GENERIC_FORM_FIELDS", [{"name":"participant_name","label":"Participant Name","type":"text"},{"name":"date","label":"Date","type":"date"},{"name":"notes","label":"Notes","type":"textarea"}]),
     }
 
 
-# -------------------------
-# Universal In-App Forms
-# -------------------------
 def get_participant_form_values(participant_id, form_name):
     import sqlite3
     conn = sqlite3.connect(DB_PATH)
@@ -779,7 +857,14 @@ def participant_form_page(participant_id, form_name):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     participant = cur.execute(
-        "SELECT id, legal_name, preferred_name, created_at FROM participants WHERE id=?",
+        """
+        SELECT id, legal_name, preferred_name, dob, gender, phone, email,
+               address, city, state, zip_code,
+               emergency_contact_name, emergency_contact_phone,
+               move_in_date, room_unit, created_at
+        FROM participants
+        WHERE id=?
+        """,
         (participant_id,)
     ).fetchone()
     conn.close()
@@ -787,7 +872,12 @@ def participant_form_page(participant_id, form_name):
     if not participant:
         abort(404, "Participant not found.")
 
-    pid, legal_name, preferred_name, created_at = participant
+    (
+        pid, legal_name, preferred_name, dob, gender, phone, email,
+        address, city, state, zip_code,
+        emergency_contact_name, emergency_contact_phone,
+        move_in_date, room_unit, created_at
+    ) = participant
     display_name = preferred_name or legal_name
     form_def = get_form_definition(form_name)
 
@@ -800,12 +890,29 @@ def participant_form_page(participant_id, form_name):
         return redirect(f"/participant-form/{participant_id}/{quote(form_name)}")
 
     values = get_participant_form_values(participant_id, form_name)
+    # AUTO-FILL EMPTY DATE FIELDS
+    from datetime import datetime as _dt
+    for _field in form_def.get('fields', []):
+        if _field.get('type') == 'date' and not values.get(_field.get('name', '')):
+            values[_field['name']] = _dt.utcnow().strftime('%Y-%m-%d')
 
     # Inject participant demographics if not already set
-    participant_demographics = dict(zip(
-        ["legal_name","preferred_name","dob","gender","phone","email","address","city","state","zip_code","emergency_contact_name","emergency_contact_phone","move_in_date","room_unit"],
-        participant[1:]  # skip id
-    ))
+    participant_demographics = {
+        "legal_name": legal_name,
+        "preferred_name": preferred_name,
+        "dob": dob,
+        "gender": gender,
+        "phone": phone,
+        "email": email,
+        "address": address,
+        "city": city,
+        "state": state,
+        "zip_code": zip_code,
+        "emergency_contact_name": emergency_contact_name,
+        "emergency_contact_phone": emergency_contact_phone,
+        "move_in_date": move_in_date,
+        "room_unit": room_unit,
+    }
     for key, val in participant_demographics.items():
         if key not in values or not values[key]:
             values[key] = val
@@ -847,9 +954,8 @@ def participant_form_page(participant_id, form_name):
     <body>
 <div style="background:#111;color:#fff;padding:10px;">
 <a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
+<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
+<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
 
       <div class="wrap">
@@ -865,6 +971,7 @@ def participant_form_page(participant_id, form_name):
 
         <div class="card">
           <form method="POST">
+
             {% for field in form_def.fields %}
               <div class="field">
                 <label for="{{ field.name }}">{{ field.label }}</label>
@@ -902,7 +1009,14 @@ def participant_form_print(participant_id, form_name):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     participant = cur.execute(
-        "SELECT id, legal_name, preferred_name, created_at FROM participants WHERE id=?",
+        """
+        SELECT id, legal_name, preferred_name, dob, gender, phone, email,
+               address, city, state, zip_code,
+               emergency_contact_name, emergency_contact_phone,
+               move_in_date, room_unit, created_at
+        FROM participants
+        WHERE id=?
+        """,
         (participant_id,)
     ).fetchone()
     conn.close()
@@ -910,10 +1024,35 @@ def participant_form_print(participant_id, form_name):
     if not participant:
         abort(404, "Participant not found.")
 
-    pid, legal_name, preferred_name, created_at = participant
+    (
+        pid, legal_name, preferred_name, dob, gender, phone, email,
+        address, city, state, zip_code,
+        emergency_contact_name, emergency_contact_phone,
+        move_in_date, room_unit, created_at
+    ) = participant
     display_name = preferred_name or legal_name
     form_def = get_form_definition(form_name)
     values = get_participant_form_values(participant_id, form_name)
+
+    participant_demographics = {
+        "legal_name": legal_name,
+        "preferred_name": preferred_name,
+        "dob": dob,
+        "gender": gender,
+        "phone": phone,
+        "email": email,
+        "address": address,
+        "city": city,
+        "state": state,
+        "zip_code": zip_code,
+        "emergency_contact_name": emergency_contact_name,
+        "emergency_contact_phone": emergency_contact_phone,
+        "move_in_date": move_in_date,
+        "room_unit": room_unit,
+    }
+    for key, val in participant_demographics.items():
+        if key not in values or not values[key]:
+            values[key] = val
 
     if not values.get("legal_name"):
         values["legal_name"] = legal_name
@@ -926,12 +1065,20 @@ def participant_form_print(participant_id, form_name):
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>{{ form_def.title }} - Print</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 24px; color: #111; }
-        h1 { margin-bottom: 4px; }
-        .sub { margin-bottom: 18px; color: #444; }
-        .line { margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #ccc; }
-        .label { font-weight: 700; margin-bottom: 4px; }
-        .value { white-space: pre-wrap; min-height: 18px; }
+        body { font-family: Arial, sans-serif; margin: 24px; color: #111; background:#fff; }
+        .sheet { max-width: 900px; margin: 0 auto; }
+        .head { border-bottom: 3px solid #111; padding-bottom: 12px; margin-bottom: 18px; }
+        h1 { margin: 0 0 6px 0; font-size: 28px; }
+        .sub { margin-bottom: 6px; color: #444; }
+        .meta { margin-top: 10px; font-size: 14px; color: #333; }
+        .line { margin-bottom: 16px; padding: 10px 0 12px 0; border-bottom: 1px solid #ccc; }
+        .label { font-weight: 700; margin-bottom: 6px; font-size: 15px; }
+        .value { white-space: pre-wrap; min-height: 22px; font-size: 15px; line-height: 1.4; }
+        .printbtn {
+          display: inline-block; border: 2px solid #111; background: #111; color: #fff;
+          padding: 10px 14px; border-radius: 999px; font-weight: 700; cursor: pointer;
+        }
+        .footnote { margin-top: 24px; font-size: 12px; color: #555; }
         @media print {
           .noprint { display: none; }
           body { margin: 0.5in; }
@@ -941,24 +1088,32 @@ def participant_form_print(participant_id, form_name):
     <body>
 <div style="background:#111;color:#fff;padding:10px;">
 <a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
+<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
+<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
 
-      <div class="noprint" style="margin-bottom:16px;">
-        <button onclick="window.print()">Print</button>
-      </div>
-
-      <h1>{{ form_def.title }}</h1>
-      <div class="sub">Participant: {{ display_name }}{% if legal_name != display_name %} | Legal Name: {{ legal_name }}{% endif %}</div>
-
-      {% for field in form_def.fields %}
-        <div class="line">
-          <div class="label">{{ field.label }}</div>
-          <div class="value">{{ values.get(field.name, "") }}</div>
+      <div class="sheet">
+        <div class="noprint" style="margin-bottom:16px;">
+          <button class="printbtn" onclick="window.print()">Print</button>
         </div>
-      {% endfor %}
+
+        <div class="head">
+          <h1>{{ form_def.title }}</h1>
+          <div class="sub">Participant: {{ display_name }}{% if legal_name != display_name %} | Legal Name: {{ legal_name }}{% endif %}</div>
+          <div class="meta">Printable participant copy generated from the NILPF workflow.</div>
+        </div>
+
+        {% for field in form_def.fields %}
+          <div class="line">
+            <div class="label">{{ field.label }}</div>
+            <div class="value">{{ values.get(field.name, "") }}</div>
+          </div>
+        {% endfor %}
+
+        <div class="footnote">
+          This copy reflects the information currently saved in the participant workflow for this form.
+        </div>
+      </div>
     </body>
     </html>
     """,
@@ -966,6 +1121,8 @@ def participant_form_print(participant_id, form_name):
     values=values,
     display_name=display_name,
     legal_name=legal_name)
+
+
 
 
 @app.route("/home")
@@ -983,6 +1140,17 @@ def app_home():
             margin: 0;
             background: #f6f7fb;
             color: #111;
+          }
+          .topbar {
+            background: #111;
+            color: #fff;
+            padding: 10px 16px;
+          }
+          .topbar a {
+            color: #fff;
+            margin-right: 20px;
+            text-decoration: none;
+            font-weight: 700;
           }
           .wrap {
             max-width: 1000px;
@@ -1042,12 +1210,12 @@ def app_home():
         </style>
       </head>
       <body>
-<div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
-</div>
+        <div class="topbar">
+          <a href="/home">Home</a>
+          <a href="/documents">Dashboard</a>
+          <a href="/participants">Add / View Participants</a>
+          <a href="/notes">Incident / Status Documentation</a>
+        </div>
 
         <div class="wrap">
           <div class="hero">
@@ -1057,7 +1225,7 @@ def app_home():
 
           <div class="grid">
             <div class="card">
-              <h2>Participants</h2>
+              <h2>Add / View Participants</h2>
               <p>Open the participant manager and access participant workflow records.</p>
               <a class="btn" href="/participants">Open Participants</a>
             </div>
@@ -1066,6 +1234,12 @@ def app_home():
               <h2>Operational Framework</h2>
               <p>Return to the main framework and document workspace.</p>
               <a class="btn" href="/documents">Open Framework</a>
+            </div>
+
+            <div class="card">
+              <h2>Incident / Status Documentation</h2>
+              <p>Record participant decline, incidents, concerns, and follow-up notes.</p>
+              <a class="btn" href="/notes">Open Notes</a>
             </div>
           </div>
 
@@ -1077,116 +1251,155 @@ def app_home():
     </html>
     """)
 
+
+@app.route("/participant-form-complete", methods=["POST"])
+def participant_form_complete():
+    participant_id = request.form.get("participant_id", "").strip()
+    form_name = request.form.get("form_name", "").strip()
+    go_back = request.form.get("go_back", "").strip()
+
+    if not participant_id or not form_name:
+        abort(400, "Missing participant_id or form_name.")
+
+    import sqlite3
+    from datetime import datetime
+
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE participant_forms
+        SET is_complete=1, completed_at=?
+        WHERE participant_id=? AND form_name=?
+    """, (datetime.utcnow().isoformat(timespec="seconds"), str(participant_id), form_name))
+
+    if cur.rowcount == 0:
+        ts = datetime.utcnow().isoformat(timespec="seconds")
+        cur.execute("""
+            INSERT INTO participant_forms (participant_id, form_name, is_complete, completed_at, created_at)
+            VALUES (?, ?, 1, ?, ?)
+        """, (str(participant_id), form_name, ts, ts))
+
+    conn.commit()
+    conn.close()
+
+    if go_back:
+        return redirect(go_back)
+
+    return redirect(f"/participant-workflow/{participant_id}")
+
 @app.route("/participant-workflow/<int:participant_id>")
 def participant_workflow_page(participant_id):
-    participant, grouped = participant_workflow(participant_id)
+    participant, grouped, progress = participant_workflow(participant_id)
     if not participant:
         abort(404, "Participant not found.")
 
-    pid, legal_name, preferred_name, created_at = participant
+    pid = participant[0]
+    legal_name = participant[1]
+    preferred_name = participant[2]
+    created_at = participant[-1]
     display_name = preferred_name or legal_name
 
     return render_template_string("""
     <!doctype html>
     <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Participant Workflow</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f6f7fb; color: #111; }
-        .wrap { max-width: 1150px; margin: 0 auto; padding: 24px; }
-        .top { background: #fff; border: 2px solid #111; border-radius: 18px; padding: 18px; margin-bottom: 18px; }
-        .top h1 { margin: 0 0 8px 0; font-size: 28px; }
-        .note { color: #444; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
-        .card { background: #fff; border: 2px solid #111; border-radius: 18px; padding: 16px; }
-        .card h2 { margin: 0 0 12px 0; font-size: 20px; }
-        .row { border: 1px solid #d7d7d7; border-radius: 14px; padding: 12px; margin-bottom: 10px; background: #fafafa; }
-        .row.done { background: #dff7df; border-color: #2f8f2f; }
-        .title { font-weight: 700; margin-bottom: 8px; }
-        .meta { font-size: 12px; color: #444; margin-top: 6px; }
-        .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-        .btn {
-          display: inline-block; text-decoration: none; border: 2px solid #111; background: #111; color: #fff;
-          padding: 8px 12px; border-radius: 999px; font-weight: 700; cursor: pointer;
-        }
-        .btn.alt { background: #fff; color: #111; }
-        .badge {
-          display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700;
-          background: #eee; margin-left: 8px;
-        }
-        .done .badge { background: #2f8f2f; color: #fff; }
-      </style>
-    </head>
-    <body>
-<div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
-</div>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Participant Workflow</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; background: #f6f7fb; color: #111; }
+          .wrap { max-width: 1150px; margin: 0 auto; padding: 24px; }
+          .top { background: #fff; border: 2px solid #111; border-radius: 18px; padding: 18px; margin-bottom: 18px; }
+          .top h1 { margin: 0 0 8px 0; font-size: 28px; }
+          .note { color: #444; }
+          .btnrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+          .btn { display:inline-block; padding:10px 14px; border-radius:12px; border:2px solid #111; background:#111; color:#fff; text-decoration:none; font-weight:700; cursor:pointer; }
+          .btn.alt { background:#fff; color:#111; }
+          .progressbox { margin-top:14px; }
+          .progressmeta { display:flex; justify-content:space-between; gap:10px; font-weight:700; margin-bottom:8px; }
+          .bar { width:100%; height:16px; background:#e5e7eb; border:2px solid #111; border-radius:999px; overflow:hidden; }
+          .fill { height:100%; background:#111; }
+          .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; }
+          .card { background:#fff; border:2px solid #111; border-radius:18px; padding:16px; }
+          .card h2 { margin:0 0 12px 0; font-size:20px; }
+          .row { border:1px solid #d7dbe7; border-radius:14px; padding:12px; margin-bottom:10px; background:#fafafa; }
+          .row.done { background:#eefbf1; border-color:#b7e4c7; }
+          .title { font-weight:700; font-size:16px; margin-bottom:10px; line-height:1.3; }
+          .title a { color:#111; text-decoration:none; }
+          .title a:hover { text-decoration:underline; }
+          .badges { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+          .badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; background:#e9ecef; }
+          .stamp { font-size:12px; color:#555; margin-top:6px; }
+          .actions { display:flex; gap:8px; flex-wrap:wrap; }
+          form { margin:0; }
+        </style>
+      </head>
+      <body>
+        <div class="wrap">
+          <div class="top">
+            <h1>Participant Workflow</h1>
+            <div class="note"><strong>{{ display_name }}</strong> · Participant ID {{ pid }}</div>
+            <div class="note">Created: {{ created_at }}</div>
 
-      <div class="wrap">
-        <div class="top">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-            <a class="btn alt" href="/">Home</a>
-            <a class="btn alt" href="/participants">Participants</a>
+            <div class="progressbox">
+              <div class="progressmeta">
+                <span>{{ progress.completed }} / {{ progress.total_required }} required complete</span>
+                <span>{{ progress.percent }}%</span>
+              </div>
+              <div class="bar">
+                <div class="fill" style="width: {{ progress.percent }}%;"></div>
+              </div>
+            </div>
+
+            <div class="btnrow">
+              <a class="btn alt" href="/participant/{{ pid }}">Back to Participant</a>
+              <a class="btn alt" href="/participants">Participant Manager</a>
+              <a class="btn alt" href="/home">Home</a>
+            </div>
           </div>
-          <h1>{{ display_name }}</h1>
-          <div class="note">Legal Name: {{ legal_name }}</div>
-          <div class="note">Participant ID: {{ pid }}</div>
-          <div class="note" style="margin-top:10px;">
-            This page is now the live NILPF workflow panel. Open a form, then mark it complete when finished.
-          </div>
-        </div>
 
-        <div class="grid">
-          {% for group_name in group_order %}
-            <div class="card">
-              <h2>{{ group_name }}</h2>
-              {% for item in grouped.get(group_name, []) %}
-                <div class="row {% if item.is_complete %}done{% endif %}">
-                  <div class="title">
-                    {{ item.label }}
-                    <span class="badge">{% if item.is_complete %}Complete{% else %}Pending{% endif %}</span>
-                  </div>
+          <div class="grid">
+            {% for group_name, items in grouped.items() %}
+              <div class="card">
+                <h2>{{ group_name }}</h2>
+                {% for item in items %}
+                  <div class="row {% if item.is_complete %}done{% endif %}">
+                    <div class="title">
+                      <a href="{{ item.href }}">{{ item.label }}</a>
+                    </div>
 
-                  <div class="btnrow">
-                    {% if item.href != "#" %}
-                      <a class="btn alt" href="{{ item.href }}" target="_blank">Open PDF</a>
+                    <div class="badges">
+                      <span class="badge">{{ item.requirement_label }}</span>
+                      <span class="badge">{% if item.is_complete %}Complete{% else %}Pending{% endif %}</span>
+                    </div>
+
+                    {% if item.completed_at %}
+                      <div class="stamp">Completed: {{ item.completed_at }}</div>
                     {% endif %}
 
-                    <form method="POST" action="/participant-form-toggle/{{ pid }}" style="display:inline;">
-                      <input type="hidden" name="form_name" value="{{ item.form_name }}">
-                      <input type="hidden" name="go_back" value="/participant-workflow/{{ pid }}">
-                      {% if item.is_complete %}
-                        <input type="hidden" name="is_complete" value="0">
-                        <button class="btn alt" type="submit">Mark Pending</button>
-                      {% else %}
-                        <input type="hidden" name="is_complete" value="1">
-                        <button class="btn" type="submit">Mark Complete</button>
+                    <div class="actions">
+                      {% if not item.is_complete %}
+                      <form method="post" action="/participant-form-complete">
+                        <input type="hidden" name="participant_id" value="{{ pid }}">
+                        <input type="hidden" name="form_name" value="{{ item.form_name }}">
+                        <input type="hidden" name="go_back" value="/participant-workflow/{{ pid }}">
+                        <button class="btn alt" type="submit">Mark Complete</button>
+                      </form>
                       {% endif %}
-                    </form>
-                  </div>
 
-                  {% if item.completed_at %}
-                    <div class="meta">Completed: {{ item.completed_at }}</div>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-          {% endfor %}
+                      <a class="btn alt" href="/participant-form-print/{{ pid }}/{{ item.form_name|replace(' ', '%20') }}">Print</a>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
         </div>
-      </div>
-    </body>
+      </body>
     </html>
-    """,
-    pid=pid,
-    legal_name=legal_name,
-    display_name=display_name,
-    grouped=grouped,
-    group_order=GROUP_ORDER)
+    """, pid=pid, display_name=display_name, created_at=created_at, grouped=grouped, progress=progress)
+
 
 @app.route("/participant-form-toggle/<int:participant_id>", methods=["POST"])
 def participant_form_toggle(participant_id):
@@ -1226,14 +1439,26 @@ def login():
         address = request.form.get("address","").strip()
 
         if not email or not address:
-            error = "Email and Property Address are required."
+            error = "Email and Business Address are required."
         else:
             session_id = get_license_session_by_email_address(email, address)
 
             if session_id:
-                return redirect(f"/documents?session_id={session_id}")
+                lic = get_license_by_session(session_id)
+                if lic:
+                    payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
+                    session["session_id"] = session_id
+                    session["license_key"] = license_key
+                    session["payer_email"] = payer_email or email
+                    session["payer_name"] = payer_name or ""
+                    session["licensed_location"] = prop_addr or address
+                    session["property_state"] = prop_state or ""
+                    session["product_sku"] = product_sku or ""
+                    return redirect("/documents")
+                else:
+                    error = "License found, but record could not be opened."
             else:
-                error = "No license found for that email and property address."
+                error = "No license found for that email and business address."
 
     return render_template_string("""
     <!doctype html>
@@ -1250,18 +1475,18 @@ def login():
       <body>
 <div style="background:#111;color:#fff;padding:10px;">
 <a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
+<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
+<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
 
 
         <h2>Access Your Operational Framework</h2>
-        <p>Enter the email and property address used during purchase.</p>
+        <p>Enter the email and business address used during purchase.</p>
 
         <form method="post">
           <input name="email" placeholder="Email address">
-          <input name="address" placeholder="Property address">
+          <input name="address" placeholder="Business address">
           <button type="submit">Access Framework</button>
         </form>
 
@@ -1541,9 +1766,9 @@ def home():
       <body>
 <div style="background:#111;color:#fff;padding:10px;">
 <a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
+<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
+<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
 
         <div class="wrap">
@@ -1564,8 +1789,25 @@ def home():
             </ul>
 
             <div class="actions">
-              <a class="btn primary" href="/activate">Activate Operational Framework</a>
-              <a class="btn" href="/product">Legacy Product Page</a>
+              {% if session.get("licensed_location") %}
+                <a class="btn primary" href="/activate">Add New Location</a>
+              {% else %}
+                <a class="btn primary" href="/activate">Activate Primary Location</a>
+              {% endif %}
+            </div>
+
+            <div style="margin-top:24px;padding:18px;border:2px solid #111;border-radius:14px;">
+              <h3 style="margin-top:0;">Business Address Login</h3>
+              <p class="note">Enter your licensed business address to restore access.</p>
+              <form method="POST" action="/restore-access">
+                <input
+                  name="business_address"
+                  placeholder="Licensed Business Address"
+                  required
+                  style="width:100%;padding:12px;border:2px solid #111;border-radius:10px;box-sizing:border-box;margin-bottom:12px;"
+                >
+                <button class="btn primary" type="submit">Restore Access</button>
+              </form>
             </div>
           </div>
         </div>
@@ -1573,6 +1815,78 @@ def home():
     </html>
     """)
 
+
+
+
+def get_license_by_business_address(address: str):
+    import sqlite3
+    addr = (address or "").strip()
+    if not addr:
+        return None
+
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    row = cur.execute(
+        """
+        SELECT session_id, payer_email, payer_name, property_address, property_state, license_key, created_at, product_sku
+        FROM licenses
+        WHERE TRIM(LOWER(property_address)) = TRIM(LOWER(?))
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (addr,)
+    ).fetchone()
+    conn.close()
+    return row
+
+
+@app.route("/restore-access", methods=["POST"])
+def restore_access():
+    business_address = (request.form.get("business_address") or "").strip()
+    if not business_address:
+        abort(400, "Business address is required.")
+
+    lic = get_license_by_business_address(business_address)
+    if not lic:
+        return render_template_string("""
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Business Address Login</title>
+            <style>
+              body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:0 16px;background:#f6f7fb}
+              .card{background:#fff;border:2px solid #111;border-radius:16px;padding:24px}
+              .btn{display:inline-block;padding:12px 16px;border:2px solid #111;border-radius:12px;background:#111;color:#fff;text-decoration:none;font-weight:bold}
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <h1>Business Address Login</h1>
+              <p>No paid record was found for that address.</p>
+              <p>Please try the exact licensed business address used during activation.</p>
+              <p><a class="btn" href="/">Return Home</a></p>
+            </div>
+          </body>
+        </html>
+        """), 404
+
+    db_session_id, payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
+
+    session["license_session_id"] = db_session_id
+    session["product_sku"] = product_sku or "COMPLETE_SET"
+    session["license_key"] = license_key
+    session["licensed_location"] = {
+        "business_name": (payer_name or "").strip(),
+        "email": (payer_email or "").strip(),
+        "street": (prop_addr or "").strip(),
+        "city": "",
+        "state": (prop_state or "").strip().upper(),
+        "zip": "",
+    }
+
+    return redirect(f"/documents?session_id={db_session_id}")
 
 
 @app.route("/activate", methods=["GET", "POST"])
@@ -1601,31 +1915,56 @@ def activate():
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Activate Operational Framework</title>
         <style>
-          body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:0 16px;background:#f6f7fb}
+          body{font-family:Arial,sans-serif;max-width:1200px;margin:40px auto;padding:0 16px;background:#f6f7fb}
           .card{background:#fff;border:2px solid #111;border-radius:16px;padding:24px}
-          label{display:block;margin:12px 0 6px;font-weight:bold}
+          .activate-grid{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+          .field{display:flex;flex-direction:column;min-width:140px;flex:1}
+          .field.street{min-width:260px;flex:2}
+          label{display:block;margin:0 0 6px;font-weight:bold}
           input{width:100%;padding:12px;border:2px solid #111;border-radius:10px;box-sizing:border-box}
-          .btn{margin-top:18px;display:inline-block;padding:14px 18px;border:2px solid #111;border-radius:12px;background:#111;color:#fff;text-decoration:none;font-weight:bold}
+          .btn{display:inline-block;padding:14px 18px;border:2px solid #111;border-radius:12px;background:#111;color:#fff;text-decoration:none;font-weight:bold;white-space:nowrap}
         </style>
       </head>
       <body>
 <div style="background:#111;color:#fff;padding:10px;">
 <a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
+<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
+<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
 
         <div class="card">
           <h1>Activate Operational Framework</h1>
           <form method="post">
-            <label>Business Name</label><input name="business_name">
-            <label>Email</label><input name="email" type="email">
-            <label>Street</label><input name="street">
-            <label>City</label><input name="city">
-            <label>State</label><input name="state">
-            <label>ZIP</label><input name="zip">
-            <button class="btn" type="submit">Continue to Payment</button>
+            <div class="activate-grid">
+              <div class="field">
+                <label>Business Name</label>
+                <input name="business_name">
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <input name="email" type="email">
+              </div>
+              <div class="field street">
+                <label>Street</label>
+                <input name="street">
+              </div>
+              <div class="field">
+                <label>City</label>
+                <input name="city">
+              </div>
+              <div class="field" style="max-width:110px;">
+                <label>State</label>
+                <input name="state">
+              </div>
+              <div class="field" style="max-width:130px;">
+                <label>ZIP</label>
+                <input name="zip">
+              </div>
+              <div class="field" style="flex:0 0 auto;min-width:auto;">
+                <button class="btn" type="submit">Continue to Payment</button>
+              </div>
+            </div>
           </form>
         </div>
       </body>
@@ -1854,9 +2193,9 @@ def documents():
       <body>
 <div style="background:#111;color:#fff;padding:10px;">
 <a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
+<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
+<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
 
       <div class="box">
@@ -1870,11 +2209,11 @@ def documents():
         <div class="layout">
           <aside class="sidebar">
             <a class="tablink {% if active_tab == 'dashboard' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=dashboard">Dashboard</a>
-            <a class="tablink {% if active_tab == 'participants' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=participants">Participants</a>
+            <a class="tablink {% if active_tab == 'participants' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=participants">Add / View Participants</a>
             <a class="tablink {% if active_tab == 'operational' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=operational">Program Framework</a>
             <a class="tablink {% if active_tab == 'master' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=master">Master Lease</a>
             <a class="tablink {% if active_tab == 'client' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=client">Operations</a>
-            <a class="tablink {% if active_tab == 'notes' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=notes">Notes</a>
+            <a class="tablink {% if active_tab == 'notes' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=notes">Incident / Status Documentation</a>
           </aside>
 
           <main class="main">
@@ -1906,7 +2245,7 @@ def documents():
               </div>
             {% elif active_tab == 'participants' %}
               <div class="card">
-                <h2>Participants</h2>
+                <h2>Add / View Participants</h2>
                 <p class="note">Create and manage participant ENTRY records here. This area controls ENTRY SCREENING, participant notes, and completion tracking.</p>
                 <div class="btnrow" style="margin-bottom:12px;gap:8px;flex-wrap:wrap;">
                   
@@ -1989,7 +2328,7 @@ def documents():
               </div>
             {% elif active_tab == 'notes' %}
               <div class="card">
-                <h2>Notes</h2>
+                <h2>Incident / Status Documentation</h2>
                 <div style="background:#fff8e1;border:2px solid #111;padding:12px;border-radius:10px;margin-bottom:15px;">
                 <b>Adverse Occurrence Log Notice</b><br><br>
                 This log records events that may affect <b>program participation, housing safety, or property operations</b>.<br><br>
@@ -2005,7 +2344,7 @@ def documents():
                 <b>Quick Entry</b><br><br>
                 <form>
                 Date:<br>
-                <input type="date" style="width:200px;"><br><br>
+                <input type="date" value="2026-03-10" style="width:200px;"><br><br>
                 Reporter:<br>
                 <input type="text" placeholder="Your name" style="width:250px;"><br><br>
                 Participant:<br>
@@ -2016,7 +2355,7 @@ def documents():
                 </form>
                 </div>
                 <div class="btnrow">
-                  <a href="/participants">Go to Participant Notes</a>
+                  <a href="/participants">Go to Incident / Status Documentation</a>
                 </div>
               </div>
             {% endif %}
@@ -2095,6 +2434,7 @@ document.addEventListener("click", resetIdleTimer);
 def participants():
     ensure_participants_table()
     ensure_notes_table()
+    ensure_participant_forms_table()
 
     import sqlite3
     from datetime import datetime
@@ -2104,7 +2444,7 @@ def participants():
     if request.method == "POST":
         full_name = (request.form.get("full_name") or "").strip()
         dob = (request.form.get("dob") or "").strip()
-        move_in_date = (request.form.get("move_in_date") or "").strip()
+        move_in_date = (request.form.get("move_in_date") or datetime.utcnow().strftime("%Y-%m-%d") or "").strip()
         room_unit = (request.form.get("room_unit") or "").strip()
         gender = (request.form.get("gender") or "").strip()
         phone = (request.form.get("phone") or "").strip()
@@ -2168,7 +2508,9 @@ def participants():
                 fields = ", ".join(data.keys())
                 placeholders = ", ".join(["?"] * len(data))
                 cur.execute(f"INSERT INTO participants ({fields}) VALUES ({placeholders})", tuple(data.values()))
+                participant_id = cur.lastrowid
                 conn.commit()
+                seed_participant_forms(participant_id)
                 message = "Participant added."
             else:
                 message = "Participants table exists, but no matching columns were found."
@@ -2223,7 +2565,7 @@ def participants():
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Participants</title>
+      <title>Add / View Participants</title>
       <style>
         body { font-family: Arial, sans-serif; max-width: 1100px; margin: 30px auto; padding: 0 16px; background: #f6f6f6; }
         .card { background: white; border: 2px solid #111; border-radius: 18px; padding: 18px; margin-bottom: 18px; }
@@ -2240,13 +2582,13 @@ def participants():
     <body>
 <div style="background:#111;color:#fff;padding:10px;">
 <a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
+<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
+<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
 
       <div class="card">
-        <h1>Participants</h1>
+        <h1>Add / View Participants</h1>
         <p class="note">Create and view participant entry records here.</p>
         <p><a class="btn" href="javascript:history.back()">Go Back</a></p>
       </div>
@@ -2262,7 +2604,7 @@ def participants():
             </div>
             <div>
               <label>Date of Birth</label>
-              <input type="date" name="dob">
+              <input type="date" value="2026-03-10" name="dob">
             </div>
             <div>
               <label>Gender</label>
@@ -2274,7 +2616,7 @@ def participants():
             </div>
             <div>
               <label>Email</label>
-              <input type="email" name="email">
+              <input type="text" name="email">
             </div>
             <div>
               <label>Address</label>
@@ -2302,7 +2644,7 @@ def participants():
             </div>
             <div>
               <label>Move In Date</label>
-              <input type="date" name="move_in_date">
+              <input type="date" value="2026-03-10" name="move_in_date">
             </div>
             <div>
               <label>Room / Unit</label>
@@ -2328,12 +2670,13 @@ def participants():
             <tbody>
               {% for row in rows %}
                 <tr>
-                  {% for item in row %}
-                    {% if loop.index0 == 1 %}
-                    <td><a href="/participant/{{ row[0] }}">{{ item }}</a></td>
-                    {% else %}
-                    <td>{{ item }}</td>
-                    {% endif %}
+                  <td>
+                    <a href="/participant/{{ row[0] }}">
+                      {{ row[1] if row|length > 1 else row[0] }}
+                    </a>
+                  </td>
+                  {% for item in row[2:] %}
+                  <td>{{ item }}</td>
                   {% endfor %}
                   <td>
                     {% set alert = alerts_by_pid.get(row[0]|string, {"total": 0, "incomplete": 0}) %}
@@ -2363,170 +2706,7 @@ def participants():
 
 @app.route("/participant/<int:pid>", methods=["GET", "POST"])
 def participant_detail(pid):
-    ensure_participants_table()
-    ensure_notes_table()
-
-    import sqlite3
-
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-
-    cols = [r[1] for r in cur.execute("PRAGMA table_info(participants)").fetchall()]
-    select_cols = []
-    for c in ["id", "legal_name", "preferred_name", "full_name", "participant_name", "dob", "gender", "phone", "email", "address", "city", "state", "zip_code", "emergency_contact_name", "emergency_contact_phone", "move_in_date", "room_unit", "room", "unit", "created_at"]:
-        if c in cols and c not in select_cols:
-            select_cols.append(c)
-
-    if not select_cols:
-        conn.close()
-        abort(404, "No participant columns found.")
-
-    q = "SELECT " + ", ".join(select_cols) + " FROM participants WHERE id = ?"
-    row = cur.execute(q, (pid,)).fetchone()
-
-    if not row:
-        conn.close()
-        abort(404, "Participant not found.")
-
-    participant = dict(zip(select_cols, row))
-
-    if request.method == "POST":
-        pname = participant.get("legal_name") or participant.get("full_name") or participant.get("participant_name") or ""
-
-        completed_form_id = (request.form.get("complete_form_id") or "").strip()
-        if completed_form_id:
-            cur.execute(
-                "UPDATE participant_forms SET is_complete = 1, completed_at = ? WHERE id = ? AND participant_id = ?",
-                (__import__("datetime").datetime.utcnow().isoformat(), completed_form_id, str(pid))
-            )
-            conn.commit()
-
-        staff_name = (request.form.get("staff_name") or "").strip()
-        note_text = (request.form.get("note_text") or "").strip()
-
-        if note_text:
-            cur.execute(
-                "INSERT INTO participant_notes (participant_name, staff_name, note_text, created_at, participant_id) VALUES (?, ?, ?, ?, ?)",
-                (pname, staff_name, note_text, __import__("datetime").datetime.utcnow().isoformat(), str(pid))
-            )
-            conn.commit()
-
-    form_rows = cur.execute(
-        "SELECT id, form_name, is_complete, completed_at FROM participant_forms WHERE participant_id = ? ORDER BY id ASC",
-        (str(pid),)
-    ).fetchall()
-
-    note_rows = []
-    try:
-        note_rows = cur.execute(
-            "SELECT id, participant_name, staff_name, note_text, created_at FROM participant_notes WHERE participant_id = ? ORDER BY id DESC",
-            (str(pid),)
-        ).fetchall()
-    except:
-        try:
-            pname = participant.get("legal_name") or participant.get("full_name") or participant.get("participant_name") or ""
-            note_rows = cur.execute(
-                "SELECT id, participant_name, staff_name, note_text, created_at FROM participant_notes WHERE participant_name = ? ORDER BY id DESC",
-                (pname,)
-            ).fetchall()
-        except:
-            note_rows = []
-
-    conn.close()
-
-    return render_template_string("""
-    <!doctype html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Participant File</title>
-      <style>
-        body { font-family: Arial, sans-serif; max-width: 1100px; margin: 30px auto; padding: 0 16px; background: #f6f6f6; }
-        .card { background: white; border: 2px solid #111; border-radius: 18px; padding: 18px; margin-bottom: 18px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-        .mini { background: #fafafa; border: 1px solid #ddd; border-radius: 12px; padding: 12px; }
-        .mini.done { background: #dff7df; border: 2px solid #2e8b57; }
-        .btn { display: inline-block; padding: 10px 14px; border: 2px solid #111; border-radius: 12px; background: #fff; text-decoration: none; color: #111; font-weight: 700; }
-        .tinybtn { margin-top: 8px; padding: 8px 10px; border: 2px solid #111; border-radius: 10px; background: #fff; font-weight: 700; cursor: pointer; }
-        h1,h2,h3 { margin-top: 0; }
-        .note { color: #444; }
-      </style>
-    </head>
-    <body>
-<div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Framework</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Participants</a>
-<a href="/notes" style="color:#fff;">Notes</a>
-</div>
-
-      <div class="card">
-        <h1>Participant File</h1>
-        <p><a class="btn" href="/participants">Back to Participants</a></p>
-      </div>
-
-      <div class="card">
-        <h2>{{ participant.get('legal_name') or participant.get('full_name') or participant.get('participant_name') or 'Participant' }}</h2>
-        <div class="grid">
-          {% for k, v in participant.items() %}
-            <div class="mini">
-              <strong>{{ k }}</strong><br>
-              <span>{{ v }}</span>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Participant Workflow</h3>
-        {% if form_rows %}
-          <div class="grid">
-            {% for f in form_rows %}
-              <div class="mini {% if f[2] %}done{% endif %}">
-                <strong>{{ f[1] }}</strong><br>
-                <span>Status: {{ "Complete" if f[2] else "Not Complete" }}</span><br>
-                <span>Completed: {{ f[3] or "—" }}</span><br>
-                {% if not f[2] %}
-                <form method="post">
-                  <input type="hidden" name="complete_form_id" value="{{ f[0] }}">
-                  <button type="submit" class="tinybtn">Mark Complete</button>
-                </form>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="note">No workflow forms attached yet.</p>
-        {% endif %}
-      </div>
-
-      <div class="card">
-        <h3>Add Note</h3>
-        <form method="post" style="margin-bottom:18px;">
-          <p><input type="text" name="staff_name" placeholder="Staff name" style="width:100%;padding:10px;border:2px solid #111;border-radius:10px;box-sizing:border-box;"></p>
-          <p><textarea name="note_text" placeholder="Write note here" style="width:100%;min-height:120px;padding:10px;border:2px solid #111;border-radius:10px;box-sizing:border-box;"></textarea></p>
-          <p><button type="submit" class="btn">Save Note</button></p>
-        </form>
-      </div>
-
-      <div class="card">
-        <h3>Notes</h3>
-        {% if note_rows %}
-          {% for n in note_rows %}
-            <div class="mini" style="margin-bottom:10px;">
-              <strong>{{ n[4] }}</strong><br>
-              <span><b>Staff:</b> {{ n[2] or '—' }}</span><br>
-              <span>{{ n[3] }}</span>
-            </div>
-          {% endfor %}
-        {% else %}
-          <p class="note">No notes yet for this participant.</p>
-        {% endif %}
-      </div>
-    </body>
-    </html>
-    """, participant=participant, note_rows=note_rows, form_rows=form_rows)
+    return redirect(f"/participant-workflow/{pid}")
 
 
 @app.route("/documents/master-lease.pdf")
@@ -2545,6 +2725,20 @@ def stamped_master_lease():
 # -------------------------
 @app.route("/notes")
 def notes():
+    session_id = session.get("session_id")
+    license_key = session.get("license_key")
+    if not session_id or not license_key:
+        return redirect("/product")
+
+    lic = get_license_by_session(session_id)
+    if not lic:
+        session.clear()
+        return redirect("/product")
+
+    payer_email, payer_name, prop_addr, prop_state, db_license_key, created_at, product_sku = lic
+    if product_sku != "COMPLETE_SET":
+        session.clear()
+        return redirect("/product")
     import sqlite3
     conn=sqlite3.connect("licenses.db")
     cur=conn.cursor()
@@ -2552,7 +2746,7 @@ def notes():
     rows=cur.fetchall()
     conn.close()
 
-    html="<h1>Participant Notes</h1><a href='/home'>Home</a><hr>"
+    html="<h1>Incident / Status Documentation</h1><a href='/home'>Home</a><hr>"
     for r in rows:
         html+=f"<p><b>{r[0]}</b> | {r[1]} | {r[3]}<br>{r[2]}</p><hr>"
     return html
@@ -2561,3 +2755,53 @@ def notes():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000, debug=False)
+
+
+# -------------------------
+# Universal Form Loader
+# -------------------------
+@app.route("/form/<form_name>")
+def open_form(form_name):
+    pid = request.args.get("pid")
+
+    return f"""
+    <html>
+    <body style="font-family:Arial;padding:40px">
+    <h2>Form: {form_name}</h2>
+    <p>Participant ID: {pid}</p>
+    <p>This confirms the form route is working.</p>
+    </body>
+    </html>
+    """
+
+
+
+def seed_forms_for_participant(pid):
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    forms = cur.execute("""
+        SELECT form_name
+        FROM forms_master
+        ORDER BY display_order
+    """).fetchall()
+
+    for f in forms:
+        name = f[0]
+
+        exists = cur.execute("""
+            SELECT 1
+            FROM participant_forms
+            WHERE participant_id=? AND form_name=?
+        """, (pid, name)).fetchone()
+
+        if not exists:
+            cur.execute("""
+                INSERT INTO participant_forms
+                (participant_id, form_name, is_complete)
+                VALUES (?, ?, 0)
+            """, (pid, name))
+
+    conn.commit()
+    conn.close()
