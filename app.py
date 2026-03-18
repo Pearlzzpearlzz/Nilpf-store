@@ -7,7 +7,7 @@ framework_groups = {
     ],
     "Getting Started": [
         ("Pre-Opening Waitlist Form", "14-Pre_Opening_Waitlist_Form.pdf"),
-        ("Entry Screening", "18_Entry_Screening_v2.1.pdf"),
+        ("Entry Screening", "18_Entry_Screening_v2.2.pdf"),
         ("Independent Living Disclosure", "1_Independent_Living_Disclosure_v2.1.pdf"),
         ("No Services / No Supervision Acknowledgement", "2_No_Services_No_Supervision_Acknowledgement.pdf"),
         ("Voluntary Participation Acknowledgement", "3_Voluntary_Participation_Acknowledgement.pdf"),
@@ -45,6 +45,13 @@ framework_groups = {
 
 
 from itsdangerous import URLSafeTimedSerializer
+
+
+ALLOWED_EXTENSIONS = {'pdf'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 from flask import Flask, jsonify, redirect, request, send_file, abort, session, render_template_string, url_for
 
 import os
@@ -64,6 +71,18 @@ load_dotenv(override=True)
 from io import BytesIO
 
 app = Flask(__name__)
+
+@app.after_request
+def strip_bad_unicode(response):
+    try:
+        if response.mimetype == "text/html":
+            body = response.get_data(as_text=True)
+            body = body.encode("utf-8", "ignore").decode("utf-8", "ignore")
+            response.set_data(body)
+    except Exception:
+        pass
+    return response
+
 
 from datetime import timedelta
 import os
@@ -298,26 +317,32 @@ def ensure_db_columns():
         cur.execute("ALTER TABLE licenses ADD COLUMN product_sku TEXT")
     if "transaction_id" not in cols:
         cur.execute("ALTER TABLE licenses ADD COLUMN transaction_id TEXT")
+    if "price_paid" not in cols:
+        cur.execute("ALTER TABLE licenses ADD COLUMN price_paid TEXT")
     conn.commit()
     conn.close()
 
 # Product catalog (edit prices + file paths as you wish)
 
 PRODUCTS = {
-    "STANDARD_SET": {
-        "label": "NILPF Standard Docs System",
+    "FIRST_PROPERTY": {
+        "label": "NILPF First Property Access",
         "price": "1.00",
-        "file": "downloads/ALL_BUNDLE.zip",
+        "file": "",
+        "kind": "one_time",
     },
-    "COMPLETE_SET": {
-        "label": "NILPF Complete Docs System",
+    "ADDITIONAL_PROPERTY": {
+        "label": "NILPF Additional Property Access",
         "price": "1.00",
-        "file": "downloads/ALL_BUNDLE.zip",
+        "file": "",
+        "kind": "one_time",
     },
-    "MASTER_LEASE": {
-        "label": "Master Lease v2.1",
+    "PROPERTY_MONTHLY": {
+        "label": "NILPF Monthly Property Subscription",
         "price": "1.00",
-        "file": "static/documents/Master_Lease_v2.1.pdf",
+        "file": "",
+        "kind": "subscription",
+        "plan_id": "P-93D65823U4853871NNGWD7NQ",
     }
 }
 
@@ -381,25 +406,43 @@ def transaction_id_used(transaction_id):
     conn.close()
     return row is not None
 
-def upsert_license(session_id: str, email: str, name: str, address: str, state_abbr: str, product_sku: str = None, transaction_id: str = None) -> str:
+def upsert_license(session_id: str, email: str, name: str, address: str, state_abbr: str, product_sku: str = None, transaction_id: str = None, price_paid: str = None) -> str:
     license_key = make_license_key(state_abbr, address)
     conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT OR REPLACE INTO licenses (created_at, session_id, payer_email, payer_name, property_address, property_state, license_key, product_sku)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO licenses (
+            created_at, session_id, payer_email, payer_name,
+            property_address, property_state, license_key, product_sku, price_paid
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (datetime.utcnow().isoformat(), session_id, email, name, address, state_abbr, license_key, product_sku),
+        (
+            datetime.utcnow().isoformat(),
+            session_id,
+            email,
+            name,
+            address,
+            state_abbr,
+            license_key,
+            product_sku,
+            price_paid,
+        ),
     )
-    # Store PayPal transaction id (replay protection)
     if transaction_id:
         try:
-            cur.execute("UPDATE licenses SET transaction_id=? WHERE session_id=?", (transaction_id, session_id))
+            cur.execute(
+                "UPDATE licenses SET transaction_id=?, price_paid=COALESCE(?, price_paid), product_sku=COALESCE(?, product_sku) WHERE session_id=?",
+                (transaction_id, price_paid, product_sku, session_id),
+            )
         except Exception:
             try:
-                cur.execute("UPDATE licenses SET transaction_id=? WHERE license_key=?", (transaction_id, license_key))
+                cur.execute(
+                    "UPDATE licenses SET transaction_id=?, price_paid=COALESCE(?, price_paid), product_sku=COALESCE(?, product_sku) WHERE license_key=?",
+                    (transaction_id, price_paid, product_sku, license_key),
+                )
             except Exception:
                 pass
 
@@ -461,8 +504,16 @@ def get_paypal_access_token():
 # -------------------------
 # In-App Form Definitions
 # -------------------------
+TEST_FORM_PDF_MAP = {
+    "03_Voluntary_Participation_ Acknowledgement.pdf": {
+        "participant_name": {"page": 0, "x": 170, "y": 145},
+        "signature_name": {"page": 0, "x": 145, "y": 118},
+        "signature_date": {"page": 0, "x": 430, "y": 118},
+    }
+}
+
 FORM_DEFINITIONS = {
-    "18_Entry_Screening_v2.1.pdf": {
+    "18_Entry_Screening_v2.2.pdf": {
         "title": "Entry Screening",
         "fields": [
             {"name": "legal_name", "label": "Legal Name", "type": "text"},
@@ -540,13 +591,149 @@ FORM_DEFINITIONS = {
     },
 }
 
+
+# -------------------------
+# Participant PDF source lookup
+# -------------------------
+def get_source_pdf_relpath(form_name: str) -> str:
+    from pathlib import Path
+
+    raw = Path(form_name).name if form_name else ""
+    if not raw:
+        return ""
+
+    source_hint = ""
+    fname = raw
+    if "|" in raw:
+        source_hint, fname = raw.split("|", 1)
+        source_hint = Path(source_hint).name.strip()
+        fname = Path(fname).name.strip()
+    else:
+        fname = Path(raw).name.strip()
+
+    source_map = {
+        "EF": "EF_v2.2",
+        "EF_v2.2": "EF_v2.2",
+        "CORE": "Core-v2.1",
+        "Core": "Core-v2.1",
+        "Core-v2.1": "Core-v2.1",
+    }
+
+    if source_hint in source_map:
+        preferred = Path(source_map[source_hint]) / fname
+        if preferred.exists():
+            return preferred.as_posix()
+
+    # Only the 2 real source folders, plus static/documents as a last fallback
+    direct = [
+        Path("EF_v2.2") / fname,
+        Path("Core-v2.1") / fname,
+        Path("static/documents") / fname,
+    ]
+    for c in direct:
+        if c.exists():
+            return c.as_posix()
+
+    # Search only inside EF_v2.2 and Core-v2.1
+    for base in [Path("EF_v2.2"), Path("Core-v2.1")]:
+        if base.exists():
+            hits = list(base.rglob(fname))
+            if hits:
+                return hits[0].as_posix()
+
+    return ""
+
+def get_source_pdf_url(form_name: str) -> str:
+    from urllib.parse import quote
+    return f"/source-pdf/{quote(form_name)}" if form_name else ""
+
+def candidate_form_keys(form_name: str):
+    from pathlib import Path as _Path
+    import re as _re
+
+    raw = _Path(form_name).name if form_name else ""
+    if not raw:
+        return []
+
+    stem = _Path(raw).stem
+    suffix = _Path(raw).suffix or ".pdf"
+    variants = []
+
+    def add(name):
+        if name and name not in variants:
+            variants.append(name)
+
+    def add_swaps(name):
+        add(name)
+        add(name.replace("&", "AND"))
+        add(name.replace("AND", "&"))
+
+    add_swaps(raw)
+
+    m = _re.match(r"^(\d+)(.*)$", stem)
+    if m:
+        num = m.group(1)
+        rest = m.group(2)
+        try:
+            n = int(num)
+            for width in (1, 2, 3):
+                add_swaps(f"{n:0{width}d}{rest}{suffix}")
+        except Exception:
+            pass
+
+    norm = stem
+    norm = norm.replace("&", " AND ")
+    norm = norm.replace("-", " ")
+    norm = norm.replace("_", " ")
+    norm = _re.sub(r"\s+", " ", norm).strip()
+
+    add_swaps(norm.replace(" ", "_") + suffix)
+
+    m2 = _re.match(r"^(\d+)(.*)$", norm)
+    if m2:
+        num = m2.group(1)
+        rest = m2.group(2)
+        rest_us = rest.replace(" ", "_")
+        try:
+            n = int(num)
+            for width in (1, 2, 3):
+                add_swaps(f"{n:0{width}d}{rest_us}{suffix}")
+        except Exception:
+            pass
+
+    return variants
+
+def resolve_layout_path(layout_dir, form_name: str):
+    from pathlib import Path as _Path
+    for key in candidate_form_keys(form_name):
+        candidate = _Path(layout_dir) / f"{_Path(key).name}.json"
+        if candidate.exists():
+            return candidate
+    return _Path(layout_dir) / f"{_Path(form_name).name}.json"
+
+@app.route("/source-pdf/<path:form_name>")
+def source_pdf(form_name):
+    raw_name = Path(form_name).name
+
+    rel = get_source_pdf_relpath(raw_name)
+    if not rel:
+        for key in candidate_form_keys(raw_name):
+            rel = get_source_pdf_relpath(key)
+            if rel:
+                break
+
+    if not rel:
+        abort(404)
+
+    return send_file(rel, mimetype="application/pdf")
+
 # -------------------------
 # Participant Workflow UI
 # -------------------------
 FORM_LABELS = {
     "00_Member_Bill_of_Rights_v2.1.pdf": "Member Bill of Rights",
     "01_NILPF_Charter_of_Human_Dignity_and_Independent_Living_v2.1.pdf": "Charter of Human Dignity and Independent Living",
-    "18_Entry_Screening_v2.1.pdf": "Entry Screening",
+    "18_Entry_Screening_v2.2.pdf": "Entry Screening",
     "1_Independent_Living_Disclosure_v2.1.pdf": "Independent Living Disclosure",
     "2_No_Services_No_Supervision_Acknowledgement.pdf": "No Services / No Supervision Acknowledgement",
     "3_Voluntary_Participation_Acknowledgement.pdf": "Voluntary Participation Acknowledgement",
@@ -584,7 +771,7 @@ FORM_GROUPS = {
     "00_Member_Bill_of_Rights_v2.1.pdf": "Foundation",
     "01_NILPF_Charter_of_Human_Dignity_and_Independent_Living_v2.1.pdf": "Foundation",
 
-    "18_Entry_Screening_v2.1.pdf": "Entry",
+    "18_Entry_Screening_v2.2.pdf": "Entry",
 
     "1_Independent_Living_Disclosure_v2.1.pdf": "Disclosures",
     "2_No_Services_No_Supervision_Acknowledgement.pdf": "Disclosures",
@@ -618,13 +805,14 @@ FORM_REQUIREMENTS = {
     "00_Member_Bill_of_Rights_v2.1.pdf": "required",
     "01_NILPF_Charter_of_Human_Dignity_and_Independent_Living_v2.1.pdf": "required",
 
-    "18_Entry_Screening_v2.1.pdf": "required",
+    "18_Entry_Screening_v2.2.pdf": "required",
 
     "1_Independent_Living_Disclosure_v2.1.pdf": "required",
     "2_No_Services_No_Supervision_Acknowledgement.pdf": "required",
     "3_Voluntary_Participation_Acknowledgement.pdf": "required",
 
     "4_House_Rules_and_Community_Standards.pdf": "required",
+    "MASTER_LICENSE_AGREEMENT_MLA_v2.2.pdf": "required",
     "20_Participant_Privacy_AND_Non_Commercialization_Acknowledgement.pdf": "required",
     "21_Property_AND_Personal_Belongings_Acknowledgement.pdf": "required",
     "16_Participant_Financial_Responsibility_Agreement.pdf": "conditional",
@@ -637,9 +825,9 @@ FORM_REQUIREMENTS = {
     "19-Common_Area_Security_Disclosure.pdf": "conditional",
 
     "13-Communication_and_Consent_Form.pdf": "conditional",
-    "10-Pet_Animal_Information_Sheet.pdf": "optional",
-    "11-Vehicle_Parking_Information_Form.pdf": "optional",
-    "9_Guest_Addendum.pdf": "optional",
+    "10-Pet_Animal_Information_Sheet.pdf": "conditional",
+    "11-Vehicle_Parking_Information_Form.pdf": "conditional",
+    "9_Guest_Addendum.pdf": "conditional",
 
     "8_Incident_Report_Form.pdf": "conditional",
     "15_COMPLAINT_GRIEVANCE_PROCEDURE_FORM.pdf": "required",
@@ -696,6 +884,7 @@ def participant_workflow(participant_id):
             is_complete = bool(status.get("is_complete"))
             completed_at = status.get("completed_at")
             href = f"/participant-form/{participant_id}/{quote(form_name)}"
+            pdf_url = get_source_pdf_url(form_name)
 
             is_conditional = bool(form.get("conditional"))
             is_required = not is_conditional
@@ -710,22 +899,34 @@ def participant_workflow(participant_id):
                 "form_name": form_name,
                 "label": label,
                 "href": href,
+                "pdf_url": pdf_url,
                 "is_complete": is_complete,
                 "completed_at": completed_at,
                 "is_required": is_required,
                 "is_conditional": is_conditional,
                 "requirement_label": requirement_label
             })
+        items = sorted(items, key=lambda x: x.get("is_complete", False))
         grouped[group_name] = items
 
     percent = int((completed_required / total_required) * 100) if total_required else 0
+    entry_ready = completed_required >= total_required and total_required > 0
+
     progress = {
         "completed": completed_required,
         "total_required": total_required,
-        "percent": percent
+        "percent": percent,
+        "entry_ready": entry_ready
     }
 
+
+    grouped = dict(sorted(
+        grouped.items(),
+        key=lambda g: all(item.get("is_complete", False) for item in g[1])
+    ))
+
     return participant, grouped, progress
+
 
 
 def get_grouped_participant_forms():
@@ -735,7 +936,7 @@ def get_grouped_participant_forms():
             {"form_name": "01_NILPF_Charter_of_Human_Dignity_and_Independent_Living_v2.1.pdf", "label": "NILPF Charter of Human Dignity and Independent Living", "conditional": False}
         ],
         "Entry": [
-            {"form_name": "18_Entry_Screening_v2.1.pdf", "label": "Entry Screening", "conditional": False},
+            {"form_name": "18_Entry_Screening_v2.2.pdf", "label": "Entry Screening", "conditional": False},
             {"form_name": "3_Voluntary_Participation_Acknowledgement.pdf", "label": "Voluntary Participation Acknowledgement", "conditional": False},
             {"form_name": "13-Communication_and_Consent_Form.pdf", "label": "Communication and Consent Form", "conditional": True}
         ],
@@ -849,6 +1050,16 @@ def auto_mark_form_complete_if_has_data(participant_id, form_name):
     conn.commit()
     conn.close()
 
+
+
+@app.route("/log-dignity-screen", methods=["POST"])
+def log_dignity_screen():
+    from datetime import datetime
+    ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    with open("dignity_log.txt", "a") as f:
+        f.write(f"Dignity screen shown: {ts}\n")
+    return "ok"
+
 @app.route("/participant-form/<int:participant_id>/<path:form_name>", methods=["GET", "POST"])
 def participant_form_page(participant_id, form_name):
     form_name = unquote(form_name)
@@ -881,10 +1092,37 @@ def participant_form_page(participant_id, form_name):
     display_name = preferred_name or legal_name
     form_def = get_form_definition(form_name)
 
+    from pathlib import Path as _Path
+    import json as _json
+    layout_path = resolve_layout_path(_Path("form_builder_layouts"), form_name)
+    pdf_layout = []
+    if layout_path.exists():
+        try:
+            pdf_layout = _json.loads(layout_path.read_text())
+        except Exception:
+            pdf_layout = []
+
     if request.method == "POST":
+        from datetime import datetime as _dt
         payload = {}
         for field in form_def["fields"]:
             payload[field["name"]] = request.form.get(field["name"], "").strip()
+
+        signature_name = (request.form.get("signature_name") or "").strip()
+        signature_date = (request.form.get("signature_date") or "").strip()
+        signature_ack = "yes" if request.form.get("signature_ack") else ""
+        signature_data = request.form.get("signature_data", "")
+        payload["signature_name"] = signature_name
+        payload["signature_date"] = signature_date
+        payload["signature_ack"] = signature_ack
+        payload["signature_data"] = signature_data
+
+        existing_values = get_participant_form_values(participant_id, form_name)
+        if signature_name and signature_ack:
+            payload["signed_at"] = existing_values.get("signed_at") or _dt.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        else:
+            payload["signed_at"] = ""
+
         save_participant_form_values(participant_id, form_name, payload)
         auto_mark_form_complete_if_has_data(participant_id, form_name)
         return redirect(f"/participant-form/{participant_id}/{quote(form_name)}")
@@ -930,7 +1168,7 @@ def participant_form_page(participant_id, form_name):
       <title>{{ form_def.title }}</title>
       <style>
         body { font-family: Arial, sans-serif; margin: 0; background: #f6f7fb; color: #111; }
-        .wrap { max-width: 920px; margin: 0 auto; padding: 24px; }
+        .wrap { max-width: 920px; margin: 0 auto; padding: 18px; }
         .card { background: #fff; border: 2px solid #111; border-radius: 18px; padding: 18px; margin-bottom: 18px; }
         h1 { margin: 0 0 8px 0; }
         .note { color: #444; margin-bottom: 6px; }
@@ -952,8 +1190,10 @@ def participant_form_page(participant_id, form_name):
       </style>
     </head>
     <body>
+
+
 <div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
+
 <a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
 <a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
@@ -970,28 +1210,161 @@ def participant_form_page(participant_id, form_name):
         </div>
 
         <div class="card">
-          <form method="POST">
+          <h3 style="margin-top:0;">PDF Form (Live View)
 
-            {% for field in form_def.fields %}
-              <div class="field">
-                <label for="{{ field.name }}">{{ field.label }}</label>
-                {% if field.type == "textarea" %}
-                  <textarea id="{{ field.name }}" name="{{ field.name }}">{{ values.get(field.name, "") }}</textarea>
-                {% else %}
-                  <input id="{{ field.name }}" name="{{ field.name }}" type="{{ field.type if field.type in ['text','date'] else 'text' }}" value="{{ values.get(field.name, "") }}">
-                {% endif %}
-              </div>
-            {% endfor %}
+<div id="pdf-viewer" style="position:relative;"></div>
 
-            <div class="btnrow">
-              <button class="btn" type="submit">Save Form</button>
-              <a class="btn alt" href="/participant-form-print/{{ pid }}/{{ quoted_form_name }}" target="_blank">Print</a>
-              <a class="btn alt" href="/participant-workflow/{{ pid }}">Back to Workflow</a>
-            </div>
-          </form>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(async function() {
+  const url = "{{ source_pdf_url }}";
+  const pdfjsLib = window['pdfjsLib'];
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+  const container = document.getElementById("pdf-viewer");
+  const pdf = await pdfjsLib.getDocument(url).promise;
+  const layout = {{ pdf_layout|tojson }};
+  const values = {{ values|tojson }};
+
+  function fieldValue(name, type) {
+    if (type === "checkbox") return values[name] === "yes";
+    return values[name] || "";
+  }
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 1.3 });
+
+    const wrap = document.createElement("div");
+    wrap.style.position = "relative";
+    wrap.style.marginBottom = "20px";
+
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.style.display = "block";
+
+    wrap.appendChild(canvas);
+    container.appendChild(wrap);
+
+    await page.render({
+      canvasContext: canvas.getContext("2d"),
+      viewport
+    }).promise;
+
+    const pageFields = layout.filter(f => Number(f.page || 1) === i);
+
+    for (const field of pageFields) {
+      const typeMap = {
+        name: "text",
+        date: "date",
+        checkbox: "checkbox",
+        signature: "text"
+      };
+      const nameMap = {
+        name: "legal_name",
+        date: "signature_date",
+        checkbox: "signature_ack",
+        signature: "signature_data"
+      };
+
+      const input = document.createElement("input");
+      input.type = typeMap[field.type] || "text";
+      input.name = field.field_name || nameMap[field.type] || field.type;
+
+      input.style.position = "absolute";
+      // Snap alignment logic
+const snap = 6; // pixels
+
+let x = posX;
+let y = posY;
+
+// Snap to grid
+x = Math.round(x / snap) * snap;
+y = Math.round(y / snap) * snap;
+
+input.style.left = x + "px";
+input.style.top = y + "px";
+((Number(field.y || 0)) * canvas.height) + "px";
+      input.style.zIndex = "9999";
+      input.style.background = "rgba(255,255,0,0.92)";
+      input.style.border = "3px solid red";
+      input.style.borderRadius = "8px";
+      input.style.boxSizing = "border-box";
+
+      if (field.type === "realcheckbox") {
+                const px = 12;
+
+                el.style.width = px + "px";
+                el.style.height = px + "px";
+                el.style.minWidth = px + "px";
+                el.style.minHeight = px + "px";
+                el.style.border = "1px solid #111";
+                el.style.borderRadius = "2px";
+                el.style.background = "#fff";
+                el.style.display = "block";
+                el.innerHTML = "";
+              } else if (field.type === "checkbox") {
+        input.style.width = "8px";
+        input.style.height = "8px";
+        input.style.minWidth = "8px";
+        input.style.minHeight = "8px";
+        input.style.padding = "0";
+        input.style.margin = "0";
+        input.style.border = "1px solid #111";
+        input.style.borderRadius = "2px";
+        input.style.boxSizing = "border-box";
+        input.style.background = "#fff";
+        input.checked = fieldValue(input.name, "checkbox");
+
+        input.style.cursor = "pointer";
+        input.style.accentColor = "#000";
+
+        input.addEventListener("change", () => {
+          if (input.checked) {
+            input.style.transform = "scale(1.2)";
+          } else {
+            input.style.transform = "scale(1)";
+          }
+        });
+        input.value = "yes";
+      } else if (field.type === "signature") {
+        input.style.width = Math.max(220, (Number(field.width || 0.22) * canvas.width)) + "px";
+        input.style.height = "42px";
+        input.placeholder = "Signature";
+        input.value = fieldValue(input.name, "text");
+      } else {
+        input.style.width = Math.max(140, (Number(field.width || 0.18) * canvas.width)) + "px";
+        input.style.height = "34px";
+        input.value = fieldValue(input.name, "text");
+      }
+
+      wrap.appendChild(input);
+    }
+  }
+})();
+</script>
         </div>
       </div>
-    </body>
+    
+<div style="
+margin-top:40px;
+padding-top:12px;
+border-top:1px solid #ddd;
+text-align:center;
+font-size:13px;
+color:#666;
+">
+<img src="/static/pearlzz-logo.png" style="height:28px;opacity:.9;"><br>Pearlzz
+© Pearlzz
+</div>
+
+        
+
+
+</body>
+
     </html>
     """,
     pid=pid,
@@ -999,13 +1372,29 @@ def participant_form_page(participant_id, form_name):
     display_name=display_name,
     form_def=form_def,
     values=values,
-    quoted_form_name=quote(form_name))
+    quoted_form_name=quote(form_name),
+    form_name=form_name,
+    source_pdf_url=get_source_pdf_url(form_name),
+    pdf_layout=pdf_layout)
 
 @app.route("/participant-form-print/<int:participant_id>/<path:form_name>")
 def participant_form_print(participant_id, form_name):
     form_name = unquote(form_name)
 
+    import re
     import sqlite3
+    from io import BytesIO
+    from flask import send_file
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.units import inch
+    from reportlab.lib.utils import simpleSplit
+    import json
+    import base64
+    from pathlib import Path
+    from reportlab.lib.utils import ImageReader
+    from pypdf import PdfReader, PdfWriter
+
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     participant = cur.execute(
@@ -1030,9 +1419,42 @@ def participant_form_print(participant_id, form_name):
         emergency_contact_name, emergency_contact_phone,
         move_in_date, room_unit, created_at
     ) = participant
+
     display_name = preferred_name or legal_name
     form_def = get_form_definition(form_name)
     values = get_participant_form_values(participant_id, form_name)
+
+    source_pdf_path = Path("static/documents") / form_name
+    original_pdf_exists = source_pdf_path.exists()
+
+    layout_dir = Path("form_builder_layouts")
+    layout_fields = []
+
+    direct_file = layout_dir / (Path(form_name).name + ".json")
+    if direct_file.exists():
+        try:
+            layout_fields = json.loads(direct_file.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    target_name = Path(form_name).name
+    target_stem = Path(form_name).stem
+
+    for f in layout_dir.glob("*.json"):
+        try:
+            json_name = f.name
+            json_stem = f.stem
+            if (
+                json_name == target_name + ".json"
+                or json_stem == target_name
+                or json_stem == target_stem
+                or json_stem.endswith("_" + target_name)
+                or json_stem.endswith("_" + target_stem)
+            ):
+                layout_fields = json.loads(f.read_text(encoding="utf-8"))
+                break
+        except Exception:
+            pass
 
     participant_demographics = {
         "legal_name": legal_name,
@@ -1057,73 +1479,255 @@ def participant_form_print(participant_id, form_name):
     if not values.get("legal_name"):
         values["legal_name"] = legal_name
 
-    return render_template_string("""
-    <!doctype html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>{{ form_def.title }} - Print</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 24px; color: #111; background:#fff; }
-        .sheet { max-width: 900px; margin: 0 auto; }
-        .head { border-bottom: 3px solid #111; padding-bottom: 12px; margin-bottom: 18px; }
-        h1 { margin: 0 0 6px 0; font-size: 28px; }
-        .sub { margin-bottom: 6px; color: #444; }
-        .meta { margin-top: 10px; font-size: 14px; color: #333; }
-        .line { margin-bottom: 16px; padding: 10px 0 12px 0; border-bottom: 1px solid #ccc; }
-        .label { font-weight: 700; margin-bottom: 6px; font-size: 15px; }
-        .value { white-space: pre-wrap; min-height: 22px; font-size: 15px; line-height: 1.4; }
-        .printbtn {
-          display: inline-block; border: 2px solid #111; background: #111; color: #fff;
-          padding: 10px 14px; border-radius: 999px; font-weight: 700; cursor: pointer;
-        }
-        .footnote { margin-top: 24px; font-size: 12px; color: #555; }
-        @media print {
-          .noprint { display: none; }
-          body { margin: 0.5in; }
-        }
-      </style>
-    </head>
-    <body>
-<div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
-<a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
-</div>
+    # --- Layout preview rendering ---
+    if original_pdf_exists and layout_fields:
+        try:
+            base_reader = PdfReader(str(source_pdf_path))
+            writer = PdfWriter()
 
-      <div class="sheet">
-        <div class="noprint" style="margin-bottom:16px;">
-          <button class="printbtn" onclick="window.print()">Print</button>
-        </div>
+            for page_index, page in enumerate(base_reader.pages, start=1):
+                packet = BytesIO()
+                c = canvas.Canvas(packet, pagesize=letter)
 
-        <div class="head">
-          <h1>{{ form_def.title }}</h1>
-          <div class="sub">Participant: {{ display_name }}{% if legal_name != display_name %} | Legal Name: {{ legal_name }}{% endif %}</div>
-          <div class="meta">Printable participant copy generated from the NILPF workflow.</div>
-        </div>
+                for field in layout_fields:
+                    if field.get("page") != page_index:
+                        continue
 
-        {% for field in form_def.fields %}
-          <div class="line">
-            <div class="label">{{ field.label }}</div>
-            <div class="value">{{ values.get(field.name, "") }}</div>
-          </div>
-        {% endfor %}
+                    x = field.get("x", 0.5) * 612
+                    y = (1 - field.get("y", 0.5)) * 792
 
-        <div class="footnote">
-          This copy reflects the information currently saved in the participant workflow for this form.
-        </div>
-      </div>
-    </body>
-    </html>
-    """,
-    form_def=form_def,
-    values=values,
-    display_name=display_name,
-    legal_name=legal_name)
+                    c.setFont("Helvetica", 10)
 
+                    field_type = field.get("type", "")
+                    field_name = field.get("field_name", "")
+                    val = values.get(field_name, "")
 
+                    if field_type in ("name", "text", "email", "phone", "address"):
+                        c.drawString(x, y, str(val or values.get("legal_name", "")))
 
+                    elif field_type == "date":
+                        c.drawString(x, y, str(val or values.get("signature_date", "")))
+
+                    elif field_type == "checkbox":
+                        checked = str(val).lower() in ("yes", "true", "1", "on", "checked")
+                        if checked:
+                            c.setFont("Helvetica-Bold", 12)
+                            c.drawString(x, y, "X")
+                            c.setFont("Helvetica", 10)
+
+                    elif field_type == "signature":
+                        signature_data = values.get(field_name, "") or values.get("signature_data", "")
+                        if isinstance(signature_data, str) and signature_data.startswith("data:image"):
+                            try:
+                                import base64
+                                from io import BytesIO as _BytesIO
+                                from reportlab.lib.utils import ImageReader
+
+                                header, encoded = signature_data.split(",", 1)
+                                img_bytes = base64.b64decode(encoded)
+                                sig_img = ImageReader(_BytesIO(img_bytes))
+
+                                sig_w = max(120, int(field.get("width", 0.42) * 612))
+                                sig_h = 36
+                                c.drawImage(
+                                    sig_img,
+                                    x,
+                                    y - 18,
+                                    width=sig_w,
+                                    height=sig_h,
+                                    preserveAspectRatio=True,
+                                    mask='auto'
+                                )
+                            except Exception:
+                                c.drawString(x, y, "[sig]")
+                        elif signature_data:
+                            c.drawString(x, y, "[sig]")
+
+                c.showPage()
+                c.save()
+                packet.seek(0)
+
+                overlay = PdfReader(packet)
+                if len(overlay.pages) > 0:
+                    page.merge_page(overlay.pages[0])
+                writer.add_page(page)
+
+            out = BytesIO()
+            writer.write(out)
+
+            return send_file(
+                BytesIO(out.getvalue()),
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name="layout_preview.pdf"
+            )
+        except Exception as e:
+            print("PDF OVERLAY ERROR:", repr(e))
+            raise
+
+    from pathlib import Path
+    from pypdf import PdfReader, PdfWriter
+
+    source_pdf_path = Path("static/documents") / form_name
+    original_pdf_exists = source_pdf_path.exists()
+
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=letter)
+    width, height = letter
+
+    left = 0.75 * inch
+    right = width - 0.75 * inch
+    top = height - 0.75 * inch
+    y = top
+
+    def new_page():
+        nonlocal y
+        c.showPage()
+        y = top
+        c.setFont("Helvetica", 11)
+
+    def draw_wrapped(label, value):
+        nonlocal y
+        label = str(label or "").strip()
+        value = str(value or "").strip()
+        if not value:
+            value = ""
+
+        label_lines = simpleSplit(label, "Helvetica-Bold", 11, right - left)
+        value_lines = simpleSplit(value, "Helvetica", 11, right - left)
+
+        needed = (len(label_lines) * 14) + (max(1, len(value_lines)) * 14) + 14
+        if y - needed < 0.75 * inch:
+            new_page()
+
+        c.setFont("Helvetica-Bold", 11)
+        for line in label_lines:
+            c.drawString(left, y, line)
+            y -= 14
+
+        c.setFont("Helvetica", 11)
+        if value_lines:
+            for line in value_lines:
+                c.drawString(left, y, line)
+                y -= 14
+        else:
+            c.drawString(left, y, "")
+            y -= 14
+
+        y -= 8
+        c.line(left, y, right, y)
+        y -= 14
+
+    c.setTitle(f"{form_def['title']} - {display_name}")
+
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(left, y, form_def["title"])
+    y -= 24
+
+    c.setFont("Helvetica", 11)
+    c.drawString(left, y, f"Participant: {display_name}")
+    y -= 16
+    if legal_name != display_name:
+        c.drawString(left, y, f"Legal Name: {legal_name}")
+        y -= 16
+
+    c.drawString(left, y, "Participant copy generated from the NILPF workflow.")
+    y -= 22
+    c.line(left, y, right, y)
+    y -= 18
+
+    for field in form_def.get("fields", []):
+        draw_wrapped(field.get("label", ""), values.get(field.get("name", ""), ""))
+
+    signer_ip = (
+        request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote_addr
+        or ""
+    )
+
+    if values.get("signature_name") or values.get("signature_date") or values.get("signed_at") or values.get("signature_data"):
+        if y - 220 < 0.75 * inch:
+            new_page()
+
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(left, y, "Participant Signature")
+        y -= 20
+        c.setFont("Helvetica", 11)
+
+        signature_data = values.get("signature_data", "") or ""
+        if signature_data.startswith("data:image"):
+            try:
+                import base64
+                from io import BytesIO as _BytesIO
+                from reportlab.lib.utils import ImageReader
+
+                header, encoded = signature_data.split(",", 1)
+                img_bytes = base64.b64decode(encoded)
+                sig_img = ImageReader(_BytesIO(img_bytes))
+
+                box_w = 4.8 * inch
+                box_h = 1.5 * inch
+
+                c.roundRect(left, y - box_h, box_w, box_h, 8, stroke=1, fill=0)
+                c.drawImage(sig_img, left + 6, y - box_h + 6, width=box_w - 12, height=box_h - 12, preserveAspectRatio=True, mask='auto')
+                y -= (box_h + 14)
+            except Exception:
+                draw_wrapped("Signature Image", "[Unable to render saved signature]")
+        else:
+            draw_wrapped("Signature Image", "[No handwritten signature captured]")
+
+        draw_wrapped("Signer Full Legal Name", values.get("signature_name", ""))
+        draw_wrapped("Signature Date", values.get("signature_date", ""))
+        draw_wrapped("Signed At", values.get("signed_at", ""))
+        draw_wrapped("IP Address", signer_ip)
+
+    if y - 40 < 0.75 * inch:
+        new_page()
+
+    c.setFont("Helvetica-Oblique", 9)
+    c.drawString(left, y, "This copy reflects the information currently saved in the participant workflow for this form.")
+
+    c.showPage(); c.save(); buf.seek(0)
+    overlay_bytes = buf.getvalue()
+
+    source_pdf_bytes = Path(form_def["file"]).read_bytes()
+
+    from pypdf import PdfReader, PdfWriter
+    import io
+
+    source_stream = io.BytesIO(source_pdf_bytes)
+    overlay_stream = io.BytesIO(overlay_bytes)
+
+    reader = PdfReader(source_stream)
+    overlay_reader = PdfReader(overlay_stream)
+    writer = PdfWriter()
+
+    for i, page in enumerate(reader.pages):
+        if i < len(overlay_reader.pages):
+            page.merge_page(overlay_reader.pages[i])
+        writer.add_page(page)
+
+    out = io.BytesIO()
+    writer.write(out)
+    out.seek(0)
+
+    final_bytes = out.getvalue()
+
+    safe_display = re.sub(r"[^A-Za-z0-9_-]+", "_", display_name or "participant").strip("_") or "participant"
+    safe_form = re.sub(r"[^A-Za-z0-9_-]+", "_", form_def["title"]).strip("_") or "form"
+    filename = f"{safe_display}_{safe_form}_signed_copy.pdf"
+
+    from pathlib import Path as _Path
+    signed_dir = _Path("signed_docs")
+    signed_dir.mkdir(parents=True, exist_ok=True)
+    (signed_dir / filename).write_bytes(final_bytes)
+
+    return send_file(
+        BytesIO(final_bytes),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename
+    )
 
 @app.route("/home")
 def app_home():
@@ -1207,14 +1811,32 @@ def app_home():
             color: #555;
             font-size: 14px;
           }
+          .home-float {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 9999;
+            display: inline-block;
+            text-decoration: none;
+            border: 2px solid #111;
+            background: #fff;
+            color: #111;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+          }
         </style>
       </head>
       <body>
+
+        
+
         <div class="topbar">
-          <a href="/home">Home</a>
-          <a href="/documents">Dashboard</a>
-          <a href="/participants">Add / View Participants</a>
-          <a href="/notes">Incident / Status Documentation</a>
+          <a href="/documents?tab=dashboard">Dashboard</a>
+          <a href="/participants">Participants</a>
+          <a href="/notes">Notes</a>
+          <a href="/logout">Logout</a>
         </div>
 
         <div class="wrap">
@@ -1233,7 +1855,7 @@ def app_home():
             <div class="card">
               <h2>Operational Framework</h2>
               <p>Return to the main framework and document workspace.</p>
-              <a class="btn" href="/documents">Open Framework</a>
+              <a class="btn" href="/documents?tab=dashboard">Open Framework</a>
             </div>
 
             <div class="card">
@@ -1241,15 +1863,22 @@ def app_home():
               <p>Record participant decline, incidents, concerns, and follow-up notes.</p>
               <a class="btn" href="/notes">Open Notes</a>
             </div>
+
+            <div class="card">
+              <h2>Program Essentials</h2>
+              <p>Quick access reminder for the core operator documents and licensed property details: Master License Agreement, Master Lease, property address, license key, buyer/operator, program standards, and Charter / Bill of Rights.</p>
+              <a class="btn" href="/documents?tab=dashboard">View Essentials</a>
+            </div>
           </div>
 
           <div class="footer-note">
-            Use this page as the central exit point for staff when they are finished or stepping away.
+            Protected workspace for licensed NILPF operators.
           </div>
         </div>
       </body>
     </html>
     """)
+
 
 
 @app.route("/participant-form-complete", methods=["POST"])
@@ -1285,6 +1914,20 @@ def participant_form_complete():
 
     if go_back:
         return redirect(go_back)
+
+    participant, grouped, progress = participant_workflow(int(participant_id))
+    next_form = None
+
+    for section, forms in grouped:
+        for form in forms:
+            if form.get("required") and not form.get("is_complete"):
+                next_form = form
+                break
+        if next_form:
+            break
+
+    if next_form:
+        return redirect(f"/participant-form/{participant_id}/{quote(next_form['name'])}")
 
     return redirect(f"/participant-workflow/{participant_id}")
 
@@ -1323,7 +1966,13 @@ def participant_workflow_page(participant_id):
           .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; }
           .card { background:#fff; border:2px solid #111; border-radius:18px; padding:16px; }
           .card h2 { margin:0 0 12px 0; font-size:20px; }
-          .row { border:1px solid #d7dbe7; border-radius:14px; padding:12px; margin-bottom:10px; background:#fafafa; }
+          .row {
+            border-left: 4px solid transparent;
+          }
+          .row.next-required {
+            border-left: 6px solid gold;
+            background: #fffbe6;
+          } border:1px solid #d7dbe7; border-radius:14px; padding:12px; margin-bottom:10px; background:#fafafa; }
           .row.done { background:#eefbf1; border-color:#b7e4c7; }
           .title { font-weight:700; font-size:16px; margin-bottom:10px; line-height:1.3; }
           .title a { color:#111; text-decoration:none; }
@@ -1336,15 +1985,69 @@ def participant_workflow_page(participant_id):
         </style>
       </head>
       <body>
+
+<div id="dignityScreen" onclick="hideDignityScreen()" style="
+display:none;
+position:fixed;
+inset:0;
+background:rgba(17,17,17,.96);
+color:#fff;
+z-index:99999;
+align-items:center;
+justify-content:center;
+text-align:center;
+padding:30px;
+font-family:Arial,sans-serif;
+">
+  <div>
+    <div style="font-size:34px;font-weight:700;margin-bottom:14px;">Dignity & Privacy Protected</div>
+    <div style="font-size:18px;max-width:700px;line-height:1.5;">
+      Participant information has been hidden due to inactivity.
+      Tap or click anywhere to continue.
+    </div>
+  </div>
+</div>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+
         <div class="wrap">
           <div class="top">
             <h1>Participant Workflow</h1>
             <div class="note"><strong>{{ display_name }}</strong> · Participant ID {{ pid }}</div>
             <div class="note">Created: {{ created_at }}</div>
 
+            <div style="margin-bottom:14px;padding:10px 14px;border-radius:12px;font-weight:700;
+              {% if progress.entry_ready %}
+              background:#d1fae5;border:2px solid #10b981;color:#065f46;
+              {% else %}
+              background:#fee2e2;border:2px solid #ef4444;color:#7f1d1d;
+              {% endif %}
+            ">
+              ENTRY STATUS:
+              {% if progress.entry_ready %}
+              READY
+              {% else %}
+              NOT READY
+              {% endif %}
+            </div>
+
             <div class="progressbox">
               <div class="progressmeta">
-                <span>{{ progress.completed }} / {{ progress.total_required }} required complete</span>
+                <span>Required Forms: {{ progress.completed }} / {{ progress.total_required }} Complete</span>
                 <span>{{ progress.percent }}%</span>
               </div>
               <div class="bar">
@@ -1353,8 +2056,7 @@ def participant_workflow_page(participant_id):
             </div>
 
             <div class="btnrow">
-              <a class="btn alt" href="/participant/{{ pid }}">Back to Participant</a>
-              <a class="btn alt" href="/participants">Participant Manager</a>
+                            <a class="btn alt" href="/participants">Participant Manager</a>
               <a class="btn alt" href="/home">Home</a>
             </div>
           </div>
@@ -1364,7 +2066,7 @@ def participant_workflow_page(participant_id):
               <div class="card">
                 <h2>{{ group_name }}</h2>
                 {% for item in items %}
-                  <div class="row {% if item.is_complete %}done{% endif %}">
+                  <div class="row {% if item.is_complete %}done{% elif item.is_required %}next-required{% endif %}">
                     <div class="title">
                       <a href="{{ item.href }}">{{ item.label }}</a>
                     </div>
@@ -1379,6 +2081,9 @@ def participant_workflow_page(participant_id):
                     {% endif %}
 
                     <div class="actions">
+                      <a class="btn alt" href="{{ item.href }}">Start Form</a>
+                      {% if item.pdf_url %}
+                      {% endif %}
                       {% if not item.is_complete %}
                       <form method="post" action="/participant-form-complete">
                         <input type="hidden" name="participant_id" value="{{ pid }}">
@@ -1396,6 +2101,39 @@ def participant_workflow_page(participant_id):
             {% endfor %}
           </div>
         </div>
+
+<script>
+let idleTimer;
+let logoutTimer;
+const idleTimeLimit = 60000;
+const logoutTimeLimit = 300000;
+
+function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    clearTimeout(logoutTimer);
+    idleTimer = setTimeout(showDignityScreen, idleTimeLimit);
+    logoutTimer = setTimeout(() => { window.location = "/logout"; }, logoutTimeLimit);
+}
+
+function showDignityScreen() {
+    const el = document.getElementById("dignityScreen");
+    if (el) el.style.display = "flex";
+    fetch('/log-dignity-screen', {method:'POST'});
+}
+
+function hideDignityScreen() {
+    const el = document.getElementById("dignityScreen");
+    if (el) el.style.display = "none";
+    resetIdleTimer();
+}
+
+window.addEventListener("load", resetIdleTimer);
+document.addEventListener("mousemove", resetIdleTimer);
+document.addEventListener("keypress", resetIdleTimer);
+document.addEventListener("click", resetIdleTimer);
+document.addEventListener("touchstart", resetIdleTimer);
+</script>
+
       </body>
     </html>
     """, pid=pid, display_name=display_name, created_at=created_at, grouped=grouped, progress=progress)
@@ -1447,14 +2185,21 @@ def login():
                 lic = get_license_by_session(session_id)
                 if lic:
                     payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
-                    session["session_id"] = session_id
+                    session["licensed_session_id"] = session_id
                     session["license_key"] = license_key
                     session["payer_email"] = payer_email or email
                     session["payer_name"] = payer_name or ""
-                    session["licensed_location"] = prop_addr or address
+                    session["licensed_location"] = {
+                        "email": payer_email or email,
+                        "business_name": payer_name or "",
+                        "street": prop_addr or address,
+                        "city": "",
+                        "state": prop_state or "",
+                        "zip": "",
+                    }
                     session["property_state"] = prop_state or ""
                     session["product_sku"] = product_sku or ""
-                    return redirect("/documents")
+                    return redirect(f"/documents?session_id={db_session_id}")
                 else:
                     error = "License found, but record could not be opened."
             else:
@@ -1473,9 +2218,26 @@ def login():
         </style>
       </head>
       <body>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+
 <div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+
+<a href="/documents?tab=dashboard" style="color:#fff;margin-right:20px;">Dashboard</a>
 <a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
 <a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
@@ -1681,21 +2443,16 @@ def certificate():
                         "© 2026 Pearlzz LLC. All Rights Reserved.")
 
     c.showPage()
-    c.save()
+    c.showPage(); c.save(); buf.seek(0)
 
     buf.seek(0)
     filename = f"certificate_{session_id}.pdf"
-    return send_file(buf, as_attachment=True, download_name=filename, mimetype="application/pdf")
+    return send_file(buf, as_attachment=False, download_name=filename, mimetype="application/pdf")
 
 
 
 @app.route("/")
 def home():
-    # Home always logs the user out
-    session.pop("licensed_session_id", None)
-    session.pop("licensed_location", None)
-    session.pop("product_sku", None)
-
     return render_template_string("""
     <!doctype html>
     <html>
@@ -1713,7 +2470,7 @@ def home():
           .wrap {
             max-width: 920px;
             margin: 0 auto;
-            padding: 32px 18px 60px;
+            padding: 24px 18px 40px;
           }
           .card {
             background: #fff;
@@ -1727,29 +2484,29 @@ def home():
             font-size: 32px;
           }
           .sub {
-            font-size: 18px;
-            margin-bottom: 18px;
+            font-size: 16px;
+            margin-bottom: 12px;
           }
           .note {
             background: #f2f4f8;
             border-left: 5px solid #111;
-            padding: 14px;
+            padding: 10px 12px;
             border-radius: 10px;
-            margin: 16px 0 22px;
+            margin: 12px 0 16px;
           }
           ul {
             line-height: 1.7;
             padding-left: 22px;
           }
           .actions {
-            margin-top: 24px;
+            margin-top: 16px;
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
           }
           .btn {
             display: inline-block;
-            padding: 14px 18px;
+            padding: 10px 14px;
             border: 2px solid #111;
             border-radius: 12px;
             text-decoration: none;
@@ -1764,9 +2521,26 @@ def home():
         </style>
       </head>
       <body>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+
 <div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+
+<a href="/documents?tab=dashboard" style="color:#fff;margin-right:20px;">Dashboard</a>
 <a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
 <a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
@@ -1783,7 +2557,6 @@ def home():
             <ul>
               <li>Operational Framework access</li>
               <li>Framework forms and internal documents</li>
-              <li>Certificate access</li>
               <li>Download tools inside the app</li>
               <li>Address-based activation flow</li>
             </ul>
@@ -1796,18 +2569,24 @@ def home():
               {% endif %}
             </div>
 
-            <div style="margin-top:24px;padding:18px;border:2px solid #111;border-radius:14px;">
-              <h3 style="margin-top:0;">Business Address Login</h3>
+            <div style="margin-top:16px;padding:14px;border:2px solid #111;border-radius:14px;">
+              <h3 style="margin-top:0;margin-bottom:8px;">Business Address Login</h3>
               <p class="note">Enter your licensed business address to restore access.</p>
               <form method="POST" action="/restore-access">
                 <input
                   name="business_address"
                   placeholder="Licensed Business Address"
                   required
-                  style="width:100%;padding:12px;border:2px solid #111;border-radius:10px;box-sizing:border-box;margin-bottom:12px;"
+                  style="width:100%;padding:10px;border:2px solid #111;border-radius:10px;box-sizing:border-box;margin-bottom:10px;"
                 >
                 <button class="btn primary" type="submit">Restore Access</button>
               </form>
+            </div>
+
+            <div style="margin-top:12px;padding:14px;border:2px solid #111;border-radius:14px;">
+              <h3 style="margin-top:0;margin-bottom:8px;">Custom Form App</h3>
+              <p class="note">Bonus operator tool for preparing your own PDFs with checkbox, date, time, and signature fields.</p>
+              <a class="btn primary" href="/form-builder">Open Form App</a>
             </div>
           </div>
         </div>
@@ -1820,24 +2599,48 @@ def home():
 
 def get_license_by_business_address(address: str):
     import sqlite3
-    addr = (address or "").strip()
+
+    def normalize(v: str) -> str:
+        v = (v or "").strip().lower()
+        v = v.replace(",", " ").replace(".", " ")
+        v = " ".join(v.split())
+        return v
+
+    addr = normalize(address)
     if not addr:
         return None
 
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    row = cur.execute(
+
+    best_row = None
+    best_rank = 999
+
+    for candidate in cur.execute(
         """
         SELECT session_id, payer_email, payer_name, property_address, property_state, license_key, created_at, product_sku
         FROM licenses
-        WHERE TRIM(LOWER(property_address)) = TRIM(LOWER(?))
         ORDER BY created_at DESC
-        LIMIT 1
-        """,
-        (addr,)
-    ).fetchone()
+        """
+    ).fetchall():
+        stored = normalize(candidate[3] or "")
+
+        rank = None
+        if stored == addr:
+            rank = 1
+        elif stored.startswith(addr):
+            rank = 2
+        elif addr in stored:
+            rank = 3
+
+        if rank is not None and rank < best_rank:
+            best_row = candidate
+            best_rank = rank
+            if rank == 1:
+                break
+
     conn.close()
-    return row
+    return best_row
 
 
 @app.route("/restore-access", methods=["POST"])
@@ -1862,6 +2665,23 @@ def restore_access():
             </style>
           </head>
           <body>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+
             <div class="card">
               <h1>Business Address Login</h1>
               <p>No paid record was found for that address.</p>
@@ -1874,8 +2694,8 @@ def restore_access():
 
     db_session_id, payer_email, payer_name, prop_addr, prop_state, license_key, created_at, product_sku = lic
 
-    session["license_session_id"] = db_session_id
-    session["product_sku"] = product_sku or "COMPLETE_SET"
+    session["licensed_session_id"] = db_session_id
+    session["product_sku"] = product_sku or "FIRST_PROPERTY"
     session["license_key"] = license_key
     session["licensed_location"] = {
         "business_name": (payer_name or "").strip(),
@@ -1892,7 +2712,7 @@ def restore_access():
 @app.route("/activate", methods=["GET", "POST"])
 def activate():
     if request.method == "POST":
-        session["product_sku"] = "COMPLETE_SET"
+        session["product_sku"] = "FIRST_PROPERTY"
         session["licensed_location"] = {
             "business_name": (request.form.get("business_name") or "").strip(),
             "email": (request.form.get("email") or "").strip(),
@@ -1918,7 +2738,7 @@ def activate():
           body{font-family:Arial,sans-serif;max-width:1200px;margin:40px auto;padding:0 16px;background:#f6f7fb}
           .card{background:#fff;border:2px solid #111;border-radius:16px;padding:24px}
           .activate-grid{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
-          .field{display:flex;flex-direction:column;min-width:140px;flex:1}
+          .field{display:flex;flex-direction:column;min-width:260px;flex:1}
           .field.street{min-width:260px;flex:2}
           label{display:block;margin:0 0 6px;font-weight:bold}
           input{width:100%;padding:12px;border:2px solid #111;border-radius:10px;box-sizing:border-box}
@@ -1926,9 +2746,26 @@ def activate():
         </style>
       </head>
       <body>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+
 <div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+
+<a href="/documents?tab=dashboard" style="color:#fff;margin-right:20px;">Dashboard</a>
 <a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
 <a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
@@ -1971,18 +2808,252 @@ def activate():
     </html>
     """)
 
+@app.route("/product", methods=["GET", "POST"])
+def product():
+    sku = (request.values.get("sku") or request.args.get("sku") or "FIRST_PROPERTY").strip()
+    if sku not in PRODUCTS:
+        abort(400, f"Unknown product sku: {sku}")
+
+    session["product_sku"] = sku
+
+    if sku == "ADDITIONAL_PROPERTY":
+        return redirect("/add-property")
+
+    return redirect(f"/buy?sku={sku}")
+
+
+@app.route("/add-property", methods=["GET", "POST"])
+def add_property():
+    if request.method == "POST":
+        session["product_sku"] = "ADDITIONAL_PROPERTY"
+        session["pending_required_monthly_for"] = "ADDITIONAL_PROPERTY"
+        session["licensed_location"] = {
+            "business_name": (request.form.get("business_name") or "").strip(),
+            "email": (request.form.get("email") or "").strip(),
+            "street": (request.form.get("street") or "").strip(),
+            "city": (request.form.get("city") or "").strip(),
+            "state": (request.form.get("state") or "").strip().upper(),
+            "zip": (request.form.get("zip") or "").strip(),
+        }
+
+        loc = session["licensed_location"]
+        required = ["business_name", "email", "street", "city", "state", "zip"]
+        if any(not loc.get(k) for k in required):
+            abort(400, "All address fields are required.")
+
+        return redirect("/buy?sku=ADDITIONAL_PROPERTY")
+
+    return render_template_string("""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Add Another Property</title>
+        <style>
+          body{font-family:Arial,sans-serif;max-width:1200px;margin:40px auto;padding:0 16px;background:#f6f7fb}
+          .card{background:#fff;border:2px solid #111;border-radius:16px;padding:24px}
+          .activate-grid{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+          .field{display:flex;flex-direction:column;min-width:260px;flex:1}
+          .field.street{min-width:260px;flex:2}
+          label{display:block;margin:0 0 6px;font-weight:bold}
+          input{width:100%;padding:12px;border:2px solid #111;border-radius:10px;box-sizing:border-box}
+          .btn{display:inline-block;padding:14px 18px;border:2px solid #111;border-radius:12px;background:#111;color:#fff;text-decoration:none;font-weight:bold;white-space:nowrap}
+          .note{background:#f2f4f8;border-left:5px solid #111;padding:14px;border-radius:10px;margin:16px 0 22px;line-height:1.6}
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>Add Another Property</h1>
+          <div class="note">
+            Each added property requires two parts together: the Additional Property Access purchase and the active Monthly Plan.
+            These are not sold separately. Both are required for the property to use the system.
+          </div>
+
+          <form method="POST" action="/add-property">
+            <div class="activate-grid">
+              <div class="field">
+                <label>Business Name</label>
+                <input name="business_name" required>
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <input name="email" type="email" required>
+              </div>
+              <div class="field street">
+                <label>Street</label>
+                <input name="street" required>
+              </div>
+              <div class="field">
+                <label>City</label>
+                <input name="city" required>
+              </div>
+              <div class="field" style="max-width:110px;">
+                <label>State</label>
+                <input name="state" required>
+              </div>
+              <div class="field" style="max-width:130px;">
+                <label>ZIP</label>
+                <input name="zip" required>
+              </div>
+              <div class="field" style="flex:0 0 auto;min-width:auto;">
+                <button class="btn" type="submit">Continue to Payment</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </body>
+    </html>
+    """)
+
 @app.route("/buy")
 def buy():
-    session["product_sku"] = "COMPLETE_SET"
-    product = PRODUCTS.get("COMPLETE_SET")
+    sku = (request.args.get("sku") or session.get("product_sku") or "FIRST_PROPERTY").strip()
+    if sku not in PRODUCTS:
+        abort(400, f"Unknown product sku: {sku}")
+
+    session["product_sku"] = sku
+    product = PRODUCTS.get(sku)
     if not product:
-        abort(500, "COMPLETE_SET product is missing.")
+        abort(500, f"{sku} product is missing.")
 
     if not session.get("licensed_location"):
         return redirect("/activate")
 
+    if sku in ("FIRST_PROPERTY", "ADDITIONAL_PROPERTY") and request.args.get("confirm") != "1":
+        loc = session.get("licensed_location", {}) or {}
+        return render_template_string("""
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Review Before Payment</title>
+            <style>
+              body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:0 16px;background:#f6f7fb}
+              .card{background:#fff;border:2px solid #111;border-radius:16px;padding:24px}
+              .note{background:#f2f4f8;border-left:5px solid #111;padding:14px;border-radius:10px;margin:16px 0 22px;line-height:1.6}
+              .mini{margin:10px 0;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}
+              .btn{display:inline-block;padding:14px 18px;border:2px solid #111;border-radius:12px;background:#111;color:#fff;text-decoration:none;font-weight:bold}
+              .btn.alt{background:#fff;color:#111}
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <h1>Review Before Payment</h1>
+
+              <div class="note">
+                <strong>Important:</strong> This system is sold as two required parts together:
+                <br>1. One-time Property Access
+                <br>2. Active Monthly Plan
+                <br><br>
+                Neither part is sold separately. Completing this payment is only the first part.
+                The monthly plan is also required for full system access.
+              </div>
+
+              <div class="mini"><strong>Selected product:</strong> {{ product_label }}</div>
+              <div class="mini"><strong>Price now:</strong> ${{ product_price }}</div>
+              <div class="mini"><strong>Property:</strong> {{ street }}, {{ city }}, {{ state }} {{ zip }}</div>
+
+              <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+                <a class="btn" href="/buy?sku={{ sku }}&confirm=1">Continue to First Payment</a>
+                <a class="btn alt" href="/">Go Back</a>
+              </div>
+            </div>
+          </body>
+        </html>
+        """,
+        sku=sku,
+        product_label=product.get("label", sku),
+        product_price=product.get("price", ""),
+        street=loc.get("street", ""),
+        city=loc.get("city", ""),
+        state=loc.get("state", ""),
+        zip=loc.get("zip", ""))
     access_token = get_paypal_access_token()
+
+    from urllib.parse import urlencode
+    loc = session.get("licensed_location", {}) or {}
+    return_params = urlencode({
+        "email": loc.get("email", ""),
+        "business_name": loc.get("business_name", ""),
+        "street": loc.get("street", ""),
+        "city": loc.get("city", ""),
+        "state": loc.get("state", ""),
+        "zip": loc.get("zip", ""),
+    })
+
+    if product.get("kind") == "subscription":
+        if sku == "PROPERTY_MONTHLY" and not session.get("pending_required_monthly_for"):
+            return render_template_string("""
+            <!doctype html>
+            <html>
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>Monthly Subscription Required</title>
+                <style>
+                  body { font-family: Arial, sans-serif; background:#f7f7f7; padding:40px; }
+                  .card { max-width:700px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:16px; padding:28px; }
+                  h1 { margin-top:0; }
+                  .btn {
+                    display:inline-block; margin-top:14px; padding:12px 18px; border-radius:12px;
+                    background:#111; color:#fff; text-decoration:none; font-weight:700;
+                  }
+                  .note { color:#444; line-height:1.6; }
+                </style>
+              </head>
+              <body>
+                <div class="card">
+                  <h1>Two required parts for activation</h1>
+                  <p class="note">Activation includes two required parts: a one-time Property Access purchase and an active Monthly Plan. Neither is sold separately. Both are required for access.</p>
+                  <a class="btn" href="/activate">Start Activation</a>
+                </div>
+              </body>
+            </html>
+            """)
+
+        if not product.get("plan_id"):
+            abort(500, f"Missing PayPal plan_id for {sku}.")
+
+        return_url = request.host_url.rstrip("/") + "/subscribe-success"
+        if return_params:
+            return_url = return_url + "?" + return_params
+        cancel_url = request.host_url.rstrip("/") + "/cancel"
+
+        sub_data = {
+            "plan_id": product["plan_id"],
+            "custom_id": sku,
+            "application_context": {
+                "brand_name": "NILPF",
+                "user_action": "SUBSCRIBE_NOW",
+                "return_url": return_url,
+                "cancel_url": cancel_url,
+            }
+        }
+
+        resp = requests.post(
+            f"{PAYPAL_BASE}/v1/billing/subscriptions",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/json",
+            },
+            json=sub_data,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        sub = resp.json()
+
+        for link in sub.get("links", []):
+            if link.get("rel") == "approve":
+                return redirect(link["href"])
+
+        abort(500, "No PayPal subscription approval link found")
+
     return_url = request.host_url.rstrip("/") + "/success"
+    if return_params:
+        return_url = return_url + "?" + return_params
     cancel_url = request.host_url.rstrip("/") + "/cancel"
 
     order_data = {
@@ -1990,8 +3061,8 @@ def buy():
         "purchase_units": [
             {
                 "amount": {"currency_code": "USD", "value": product["price"]},
-                "custom_id": "COMPLETE_SET",
-                "description": product.get("label", "COMPLETE_SET"),
+                "custom_id": sku,
+                "description": product.get("label", sku),
             }
         ],
         "application_context": {
@@ -2039,11 +3110,28 @@ def success():
     if capture_data.get("status") != "COMPLETED":
         abort(400, "Payment not completed.")
 
-    location = session.get("licensed_location")
-    if not location:
-        abort(400, "Missing licensed location in session.")
+    location = session.get("licensed_location") or {
+        "email": request.args.get("email", ""),
+        "business_name": request.args.get("business_name", ""),
+        "street": request.args.get("street", ""),
+        "city": request.args.get("city", ""),
+        "state": request.args.get("state", ""),
+        "zip": request.args.get("zip", ""),
+    }
+    if not location.get("street") or not location.get("city") or not location.get("state"):
+        abort(400, "Missing licensed location in session and return data.")
 
-    full_address = f"{location['street']}, {location['city']}, {location['state']} {location['zip']}"
+    full_address = f"{location['street']}, {location['city']}, {location['state']} {location.get('zip','')}".strip()
+
+    purchase_unit = (capture_data.get("purchase_units") or [{}])[0]
+    custom_id = purchase_unit.get("custom_id") or session.get("product_sku") or "FIRST_PROPERTY"
+    payments = purchase_unit.get("payments") or {}
+    captures = payments.get("captures") or []
+    capture = captures[0] if captures else {}
+
+    capture_id = capture.get("id") or order_id
+    amount_info = capture.get("amount") or {}
+    price_paid = amount_info.get("value") or ""
 
     upsert_license(
         order_id,
@@ -2051,27 +3139,87 @@ def success():
         location.get("business_name"),
         full_address,
         location.get("state"),
-        "COMPLETE_SET",
+        custom_id,
+        capture_id,
+        price_paid,
     )
 
     session["licensed_session_id"] = order_id
-    session.pop("licensed_location", None)
-    session["product_sku"] = "COMPLETE_SET"
+    session["licensed_location"] = {
+        "email": location.get("email", ""),
+        "business_name": location.get("business_name", ""),
+        "street": location.get("street", ""),
+        "city": location.get("city", ""),
+        "state": location.get("state", ""),
+        "zip": location.get("zip", ""),
+    }
+    session["product_sku"] = custom_id
+
+    if custom_id in ("FIRST_PROPERTY", "ADDITIONAL_PROPERTY"):
+        session["pending_required_monthly_for"] = custom_id
+        return redirect("/buy?sku=PROPERTY_MONTHLY")
+
     return redirect(f"/documents?session_id={order_id}")
+
+@app.route("/subscribe-success")
+def subscribe_success():
+    subscription_id = request.args.get("subscription_id") or request.args.get("token")
+    if not subscription_id:
+        abort(400, "Missing PayPal subscription id.")
+
+    sku = session.get("product_sku") or "PROPERTY_MONTHLY"
+    product = PRODUCTS.get(sku) or PRODUCTS.get("PROPERTY_MONTHLY") or {}
+
+    location = session.get("licensed_location") or {
+        "email": request.args.get("email", ""),
+        "business_name": request.args.get("business_name", ""),
+        "street": request.args.get("street", ""),
+        "city": request.args.get("city", ""),
+        "state": request.args.get("state", ""),
+        "zip": request.args.get("zip", ""),
+    }
+    if not location.get("street") or not location.get("city") or not location.get("state"):
+        abort(400, "Missing licensed location in session and return data.")
+
+    full_address = f"{location['street']}, {location['city']}, {location['state']} {location.get('zip','')}".strip()
+
+    upsert_license(
+        subscription_id,
+        location.get("email"),
+        location.get("business_name"),
+        full_address,
+        location.get("state"),
+        sku,
+        subscription_id,
+        product.get("price", ""),
+    )
+
+    parent_sku = session.pop("pending_required_monthly_for", None)
+
+    session["licensed_session_id"] = subscription_id
+    session["licensed_location"] = {
+        "email": location.get("email", ""),
+        "business_name": location.get("business_name", ""),
+        "street": location.get("street", ""),
+        "city": location.get("city", ""),
+        "state": location.get("state", ""),
+        "zip": location.get("zip", ""),
+    }
+    session["product_sku"] = parent_sku or sku
+    return redirect(f"/documents?session_id={subscription_id}")
 
 @app.route("/cancel")
 def cancel():
     return redirect("/activate")
 
-@app.route("/product", methods=["GET", "POST"])
-def product():
-    return redirect("/activate")
-
 @app.route("/documents")
 def documents():
-    session_id = request.args.get("session_id") or session.get("licensed_session_id")
+    # SaaS access gate
+    session_id = session.get("licensed_session_id") or request.args.get("session_id") or session.get("licensed_session_id") or request.args.get("session_id")
     if not session_id:
-        return redirect("/activate")
+        return redirect("/")
+
+    session["licensed_session_id"] = session_id
 
     lic = get_license_by_session(session_id)
     if not lic:
@@ -2113,7 +3261,7 @@ def documents():
           }
           .layout {
             display: grid;
-            grid-template-columns: 240px 1fr;
+            grid-template-columns: 1fr;
             min-height: calc(100vh - 82px);
           }
           .sidebar {
@@ -2191,9 +3339,26 @@ def documents():
         </style>
       </head>
       <body>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+
 <div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+
+<a href="/documents?tab=dashboard" style="color:#fff;margin-right:20px;">Dashboard</a>
 <a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
 <a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
@@ -2206,16 +3371,10 @@ def documents():
 
         </div>
 
-        <div class="layout">
-          <aside class="sidebar">
-            <a class="tablink {% if active_tab == 'dashboard' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=dashboard">Dashboard</a>
-            <a class="tablink {% if active_tab == 'participants' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=participants">Add / View Participants</a>
-            <a class="tablink {% if active_tab == 'operational' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=operational">Program Framework</a>
-            <a class="tablink {% if active_tab == 'master' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=master">Master Lease</a>
-            <a class="tablink {% if active_tab == 'client' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=client">Operations</a>
-            <a class="tablink {% if active_tab == 'notes' %}active{% endif %}" href="/documents?session_id={{ session_id }}&tab=notes">Incident / Status Documentation</a>
-          </aside>
-
+        <div style="padding:18px 20px 0 20px;">
+  <a href="/form-builder" style="display:inline-block;padding:10px 16px;background:#111;color:#fff;text-decoration:none;border-radius:10px;font-weight:bold;">⬅ Return to Form Builder</a>
+</div>
+<div class="layout">
           <main class="main">
             {% if active_tab == 'dashboard' %}
               <div class="card">
@@ -2233,7 +3392,7 @@ def documents():
                     <h3>Buyer</h3>
                     <div>{{ payer_name or 'N/A' }}</div>
                     <div style="margin-top:10px;">
-                      <a class="btn" href="/product">Add Another Property</a>
+                      <a class="btn" href="/product?sku=ADDITIONAL_PROPERTY">Add Another Property</a>
                     </div>
                   </div>
                   <div class="mini">
@@ -2259,7 +3418,7 @@ def documents():
                 <details style="margin-top:12px;">
                   <summary style="cursor:pointer; font-weight:700;">ENTRY</summary>
                   <div style="padding:10px 0 0 14px;">
-                    <p><a class="btn" href="/static/documents/18_Entry_Screening_v2.1.pdf" target="participant_viewer">ENTRY SCREENING</a></p>
+                    <p><a class="btn" href="/static/documents/18_Entry_Screening_v2.2.pdf" target="participant_viewer">ENTRY SCREENING</a></p>
                   </div>
                 </details>
 
@@ -2289,7 +3448,7 @@ def documents():
                   </div>
                 </details>
 
-                <iframe class="viewer" name="participant_viewer" src="/static/documents/18_Entry_Screening_v2.1.pdf" style="margin-top:16px;"></iframe>
+                <iframe class="viewer" name="participant_viewer" src="/static/documents/18_Entry_Screening_v2.2.pdf" style="margin-top:16px;"></iframe>
               </div>
                         {% elif active_tab == 'operational' %}
               <div class="card">
@@ -2307,56 +3466,11 @@ def documents():
                   </div>
                 {% endfor %}
               </div>
-            {% elif active_tab == 'client' %}
-              <div class="card">
-                <h2>Operations</h2>
-                <p class="note">Operational forms open inside the workspace below.</p>
-                <div class="btnrow" style="margin-bottom:12px;gap:8px;flex-wrap:wrap;">
-                  <a class="btn" href="/static/documents/README_ESSENTIAL_FORMS_v2.1.pdf" target="operations_viewer">Essential Forms Guide</a>
-                  
-                  <a class="btn" href="/static/documents/15_IMPORTANT_NOTICE_AND_DISCLAIMER_v2.1.pdf" target="operations_viewer">Important Notice</a>
-                  
-                  <a class="btn" href="/static/documents/064_Owner_Acknowledgment_and_Program_Boundary_Handbook_v2.1.pdf" target="operations_viewer">Owner Handbook</a>
-                </div>
-                <iframe class="viewer" name="operations_viewer" src="/static/documents/README_ESSENTIAL_FORMS_v2.1.pdf"></iframe>
-              </div>
-            {% elif active_tab == 'master' %}
+            
               <div class="card">
                 <h2>Master Lease</h2>
                 <p class="note">Master Lease opens inside the workspace below.</p>
                 <iframe class="viewer" src="/static/documents/Master_Lease_v2.1.pdf"></iframe>
-              </div>
-            {% elif active_tab == 'notes' %}
-              <div class="card">
-                <h2>Incident / Status Documentation</h2>
-                <div style="background:#fff8e1;border:2px solid #111;padding:12px;border-radius:10px;margin-bottom:15px;">
-                <b>Adverse Occurrence Log Notice</b><br><br>
-                This log records events that may affect <b>program participation, housing safety, or property operations</b>.<br><br>
-                Entries should document only occurrences relevant to:<br>
-                • Program participation<br>
-                • Property safety<br>
-                • Rule compliance<br>
-                • Housing environment concerns<br><br>
-                This log is <b>not a medical or clinical record</b> and must not include healthcare information, diagnoses, treatment notes, or personal health data.
-                </div>
-                <p class="note">Narrative charting belongs here. Use the participant notes area from the participant workspace.</p>
-                <div style="background:#fff;border:2px solid #111;padding:12px;border-radius:10px;margin-bottom:15px;">
-                <b>Quick Entry</b><br><br>
-                <form>
-                Date:<br>
-                <input type="date" value="2026-03-10" style="width:200px;"><br><br>
-                Reporter:<br>
-                <input type="text" placeholder="Your name" style="width:250px;"><br><br>
-                Participant:<br>
-                <input type="text" placeholder="Participant name (if applicable)" style="width:250px;"><br><br>
-                Note:<br>
-                <textarea rows="4" style="width:100%;" placeholder="Describe the occurrence affecting program participation..."></textarea><br><br>
-                <button type="submit">Save Note</button>
-                </form>
-                </div>
-                <div class="btnrow">
-                  <a href="/participants">Go to Incident / Status Documentation</a>
-                </div>
               </div>
             {% endif %}
           </main>
@@ -2371,42 +3485,59 @@ def documents():
 <div id="dignityScreen" onclick="hideDignityScreen()" style="
 display:none;
 position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:black;
-color:white;
-justify-content:center;
+inset:0;
+background:rgba(17,17,17,.96);
+color:#fff;
+z-index:99999;
 align-items:center;
-flex-direction:column;
+justify-content:center;
 text-align:center;
-z-index:9999;
-padding:40px;
+padding:30px;
+font-family:Arial,sans-serif;
 ">
-<h1>Member Bill of Dignity</h1>
-<p style="max-width:700px;font-size:18px;line-height:1.6;">
-Every participant is entitled to dignity, independence, and respect.
-This program exists to protect safe housing, responsible participation,
-and the preservation of human dignity.
-</p>
-<p style="margin-top:30px;font-size:14px;color:#ccc;">
-Click anywhere to return to workspace
-</p>
+  <div>
+    <div style="font-size:34px;font-weight:700;margin-bottom:14px;">Dignity & Privacy Protected</div>
+    <div style="font-size:18px;max-width:700px;line-height:1.5;">
+      Participant information has been hidden due to inactivity.
+      Tap or click anywhere to continue.
+    </div>
+  </div>
 </div>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+<a href="/home" class="home-icon">🏠</a>
 
 <script>
 let idleTimer;
+let logoutTimer;
 const idleTimeLimit = 60000;
+const logoutTimeLimit = 300000;
 
 function resetIdleTimer() {
     clearTimeout(idleTimer);
+    clearTimeout(logoutTimer);
     idleTimer = setTimeout(showDignityScreen, idleTimeLimit);
+    logoutTimer = setTimeout(() => { window.location = "/logout"; }, logoutTimeLimit);
 }
 
 function showDignityScreen() {
     const el = document.getElementById("dignityScreen");
     if (el) el.style.display = "flex";
+    fetch('/log-dignity-screen', {method:'POST'});
 }
 
 function hideDignityScreen() {
@@ -2419,13 +3550,19 @@ window.addEventListener("load", resetIdleTimer);
 document.addEventListener("mousemove", resetIdleTimer);
 document.addEventListener("keypress", resetIdleTimer);
 document.addEventListener("click", resetIdleTimer);
+document.addEventListener("touchstart", resetIdleTimer);
 </script>
 
-</body>
+      </body>
     </html>
-    """, session_id=session_id, prop_addr=prop_addr, license_key=license_key,
-        framework_groups=framework_groups,
-       payer_email=payer_email, payer_name=payer_name, active_tab=active_tab)
+    """,
+    active_tab=active_tab,
+    prop_addr=prop_addr,
+    license_key=license_key,
+    payer_name=payer_name,
+    payer_email=payer_email,
+    framework_groups=globals().get("FRAMEWORK_GROUPS", globals().get("framework_groups", {}))
+    )
 
 
 
@@ -2534,6 +3671,7 @@ def participants():
         rows = cur.execute(q).fetchall()
 
     alerts_by_pid = {}
+    notes_by_pid = {}
     if "id" in select_cols and rows:
         pid_index = select_cols.index("id")
         for row in rows:
@@ -2547,15 +3685,21 @@ def participants():
                     "SELECT COUNT(*) FROM participant_forms WHERE participant_id = ? AND COALESCE(is_complete, 0) = 0",
                     (str(pid),)
                 ).fetchone()[0]
+                note_count = cur.execute(
+                    "SELECT COUNT(*) FROM participant_notes WHERE TRIM(COALESCE(participant_id, '')) = TRIM(?)",
+                    (str(pid),)
+                ).fetchone()[0]
                 alerts_by_pid[str(pid)] = {
                     "total": total_forms,
                     "incomplete": incomplete_forms
                 }
+                notes_by_pid[str(pid)] = note_count
             except:
                 alerts_by_pid[str(row[pid_index])] = {
                     "total": 0,
                     "incomplete": 0
                 }
+                notes_by_pid[str(row[pid_index])] = 0
 
     conn.close()
 
@@ -2580,9 +3724,26 @@ def participants():
       </style>
     </head>
     <body>
+
+<style>
+.home-icon{
+    position:fixed;
+    top:60px;
+    right:22px;
+    font-size:22px;
+    text-decoration:none;
+    color:#111;
+    font-weight:600;
+}
+.home-icon:hover{
+    text-decoration:underline;
+}
+</style>
+
+
 <div style="background:#111;color:#fff;padding:10px;">
-<a href="/" style="color:#fff;margin-right:20px;">Home</a>
-<a href="/documents" style="color:#fff;margin-right:20px;">Dashboard</a>
+
+<a href="/documents?tab=dashboard" style="color:#fff;margin-right:20px;">Dashboard</a>
 <a href="/participants" style="color:#fff;margin-right:20px;">Add / View Participants</a>
 <a href="/notes" style="color:#fff;">Incident / Status Documentation</a>
 </div>
@@ -2604,7 +3765,7 @@ def participants():
             </div>
             <div>
               <label>Date of Birth</label>
-              <input type="date" value="2026-03-10" name="dob">
+              <input type="date" name="dob" value="">
             </div>
             <div>
               <label>Gender</label>
@@ -2644,7 +3805,7 @@ def participants():
             </div>
             <div>
               <label>Move In Date</label>
-              <input type="date" value="2026-03-10" name="move_in_date">
+              <input type="date" name="move_in_date" value="">
             </div>
             <div>
               <label>Room / Unit</label>
@@ -2674,6 +3835,10 @@ def participants():
                     <a href="/participant/{{ row[0] }}">
                       {{ row[1] if row|length > 1 else row[0] }}
                     </a>
+                    {% set note_count = notes_by_pid.get(row[0]|string, 0) %}
+                    {% if note_count > 0 %}
+                      <a href="/notes?participant_id={{ row[0] }}" title="View notes" style="text-decoration:none;margin-left:8px;font-size:18px;">📝</a>
+                    {% endif %}
                   </td>
                   {% for item in row[2:] %}
                   <td>{{ item }}</td>
@@ -2699,7 +3864,7 @@ def participants():
       </div>
     </body>
     </html>
-    """, rows=rows, select_cols=select_cols, message=message, alerts_by_pid=alerts_by_pid)
+    """, rows=rows, select_cols=select_cols, message=message, alerts_by_pid=alerts_by_pid, notes_by_pid=notes_by_pid)
 
 
 
@@ -2720,41 +3885,299 @@ def stamped_master_lease():
 # -------------------------
 
 
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
 # -------------------------
 # NOTES PAGE
 # -------------------------
-@app.route("/notes")
+@app.route("/notes", methods=["GET", "POST"])
 def notes():
-    session_id = session.get("session_id")
-    license_key = session.get("license_key")
-    if not session_id or not license_key:
-        return redirect("/product")
+    session_id = session.get("licensed_session_id") or request.args.get("session_id") or session.get("licensed_session_id") or request.args.get("session_id")
+    if not session_id:
+        return redirect("/")
+
+    session["licensed_session_id"] = session_id
 
     lic = get_license_by_session(session_id)
     if not lic:
         session.clear()
-        return redirect("/product")
+        return redirect("/")
 
-    payer_email, payer_name, prop_addr, prop_state, db_license_key, created_at, product_sku = lic
-    if product_sku != "COMPLETE_SET":
-        session.clear()
-        return redirect("/product")
     import sqlite3
-    conn=sqlite3.connect("licenses.db")
-    cur=conn.cursor()
-    cur.execute("SELECT participant_name,staff_name,note_text,created_at FROM participant_notes ORDER BY id DESC")
-    rows=cur.fetchall()
+    from datetime import datetime
+
+    incident_types = [
+        "General Status",
+        "Behavioral Concern",
+        "Mental Status Observation",
+        "Fighting / Aggression",
+        "Verbal Conflict",
+        "Intoxication / Suspected Alcohol",
+        "Fall / Found Down",
+        "Missing / Elopement",
+        "Noncompliance with Program Rules",
+        "Property Damage",
+        "Visitor Issue",
+        "Other"
+    ]
+
+    conn = sqlite3.connect("licenses.db")
+    cur = conn.cursor()
+
+    participants = cur.execute("""
+        SELECT id, legal_name, preferred_name
+        FROM participants
+        ORDER BY COALESCE(NULLIF(TRIM(preferred_name), ''), TRIM(legal_name)) COLLATE NOCASE
+    """).fetchall()
+
+    selected_pid = (request.args.get("participant_id") or request.form.get("participant_id") or "").strip()
+
+    if request.method == "POST":
+        participant_id = (request.form.get("participant_id") or "").strip()
+        staff_name = (request.form.get("staff_name") or "").strip()
+        incident_type = (request.form.get("incident_type") or "").strip()
+        note_text = (request.form.get("note_text") or "").strip()
+
+        participant_name = ""
+        if participant_id:
+            row = cur.execute("""
+                SELECT id, legal_name, preferred_name
+                FROM participants
+                WHERE id = ?
+            """, (participant_id,)).fetchone()
+            if row:
+                pid, legal_name, preferred_name = row
+                participant_name = (preferred_name or "").strip() or (legal_name or "").strip() or f"Participant {pid}"
+
+        if participant_id and participant_name and staff_name and incident_type and note_text:
+            created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cur.execute("""
+                INSERT INTO participant_notes
+                (participant_name, staff_name, note_text, created_at, participant_id, incident_type)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (participant_name, staff_name, note_text, created_at, participant_id, incident_type))
+            conn.commit()
+            selected_pid = participant_id
+
+    if selected_pid:
+        rows = cur.execute("""
+            SELECT participant_name, staff_name, incident_type, note_text, created_at, participant_id
+            FROM participant_notes
+            WHERE TRIM(COALESCE(participant_id, '')) = TRIM(?)
+            ORDER BY id DESC
+        """, (selected_pid,)).fetchall()
+    else:
+        rows = cur.execute("""
+            SELECT participant_name, staff_name, incident_type, note_text, created_at, participant_id
+            FROM participant_notes
+            ORDER BY id DESC
+        """).fetchall()
+
     conn.close()
 
-    html="<h1>Incident / Status Documentation</h1><a href='/home'>Home</a><hr>"
-    for r in rows:
-        html+=f"<p><b>{r[0]}</b> | {r[1]} | {r[3]}<br>{r[2]}</p><hr>"
-    return html
+    options_html = ""
+    selected_name = ""
+    for pid, legal_name, preferred_name in participants:
+        display_name = (preferred_name or "").strip() or (legal_name or "").strip() or f"Participant {pid}"
+        selected_attr = ' selected' if str(pid) == str(selected_pid) else ''
+        if str(pid) == str(selected_pid):
+            selected_name = display_name
+        options_html += f'<option value="{pid}"{selected_attr}>{display_name} (ID {pid})</option>'
 
+    incident_options_html = ""
+    for item in incident_types:
+        incident_options_html += f"<option value=\"{item}\">{item}</option>"
 
+    rows_html = ""
+    for participant_name, staff_name, incident_type, note_text, created_at, participant_id in rows:
+        rows_html += f"""
+        <div class="entry">
+          <div class="entry-head">
+            <strong>{participant_name}</strong>
+            <span class="pill">{incident_type}</span>
+            <span class="pill">ID {participant_id or "-"}</span>
+          </div>
+          <div class="meta">Staff: {staff_name} | {created_at}</div>
+          <div class="body">{note_text}</div>
+        </div>
+        """
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000, debug=False)
+    participant_context = f"Participant Focus: {selected_name} (ID {selected_pid})" if selected_pid and selected_name else "All participants"
+
+    back_link_html = f'<a href="/participant-workflow/{selected_pid}">Back to Participant Workflow</a>' if selected_pid else ""
+
+    return f"""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Incident / Status Documentation</title>
+        <style>
+          body {{
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f6f7fb;
+            color: #111;
+          }}
+          .topbar {{
+            background: #111;
+            color: #fff;
+            padding: 10px 16px;
+          }}
+          .topbar a {{
+            color: #fff;
+            margin-right: 20px;
+            text-decoration: none;
+            font-weight: 700;
+          }}
+          .wrap {{
+            max-width: 1050px;
+            margin: 0 auto;
+            padding: 24px;
+          }}
+          .card {{
+            background: #fff;
+            border: 2px solid #111;
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 18px;
+          }}
+          h1 {{
+            margin: 0 0 8px 0;
+            font-size: 30px;
+          }}
+          .sub {{
+            color: #444;
+            margin-bottom: 18px;
+          }}
+          .grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+          }}
+          label {{
+            display: block;
+            font-weight: 700;
+            margin-bottom: 6px;
+          }}
+          select, input, textarea {{
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #111;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #fff;
+          }}
+          textarea {{
+            min-height: 150px;
+            resize: vertical;
+          }}
+          .btn {{
+            display: inline-block;
+            text-decoration: none;
+            border: 2px solid #111;
+            background: #111;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+          }}
+          .entry {{
+            border: 2px solid #111;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+            background: #fff;
+          }}
+          .entry-head {{
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+          }}
+          .pill {{
+            display: inline-block;
+            border: 2px solid #111;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #f3f3f3;
+          }}
+          .meta {{
+            color: #444;
+            font-size: 14px;
+            margin-bottom: 10px;
+          }}
+          .body {{
+            white-space: pre-wrap;
+            line-height: 1.45;
+          }}
+        </style>
+      </head>
+      <body>
+        <div class="topbar">
+          <a href="/home">Home</a>
+          <a href="/participants">Add / View Participants</a>
+          <a href="/documents?tab=dashboard">Dashboard</a>
+          {back_link_html}
+        </div>
+
+        <div class="wrap">
+          <div class="card">
+            <h1>Incident / Status Documentation</h1>
+            <div class="sub">Document observations noticed during normal routine house checks and participant-related events.</div>
+            <div class="sub"><strong>{participant_context}</strong></div>
+
+            <form method="post">
+              <div class="grid">
+                <div>
+                  <label>Participant</label>
+                  <select name="participant_id" required>
+                    <option value="">Select participant</option>
+                    {options_html}
+                  </select>
+                </div>
+                <div>
+                  <label>Incident Type</label>
+                  <select name="incident_type" required>
+                    <option value="">Select incident type</option>
+                    {incident_options_html}
+                  </select>
+                </div>
+                <div>
+                  <label>Staff / Composer</label>
+                  <input name="staff_name" required>
+                </div>
+              </div>
+
+              <div style="margin-top:14px;">
+                <label>Incident / Status Details</label>
+                <textarea name="note_text" required></textarea>
+              </div>
+
+              <div style="margin-top:14px;">
+                <button class="btn" type="submit">Save Incident Note</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-top:0;">Timeline</h2>
+            {rows_html if rows_html else "<div class='sub'>No incident or status notes saved yet.</div>"}
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
 
 
 # -------------------------
@@ -2805,3 +4228,763 @@ def seed_forms_for_participant(pid):
 
     conn.commit()
     conn.close()
+
+
+@app.route("/form-builder", methods=["GET", "POST"])
+def form_builder():
+    import json
+    import re
+    from pathlib import Path
+
+    session_id = session.get("licensed_session_id") or request.args.get("session_id") or "public_builder"
+
+    image_dir = Path("static/uploads/images")
+    doc_dir = Path("static/uploads/documents")
+
+    image_dir.mkdir(parents=True, exist_ok=True)
+    doc_dir.mkdir(parents=True, exist_ok=True)
+
+    layout_dir = Path("form_builder_layouts")
+    layout_dir.mkdir(parents=True, exist_ok=True)
+
+    if request.method == "POST":
+        return redirect("/documents?tab=builder")
+
+    current_doc_value = request.args.get("pdf", "").strip()
+    current_source = ""
+    current_image = ""
+    if current_doc_value:
+        if "|" in current_doc_value:
+            current_source, current_image = current_doc_value.split("|", 1)
+            current_source = Path(current_source).name.strip()
+            current_image = Path(current_image).name.strip()
+            current_doc_value = f"{current_source}|{current_image}"
+        else:
+            current_image = Path(current_doc_value).name
+            current_doc_value = current_image
+
+    source_pdf_url = get_source_pdf_url(current_doc_value) if current_doc_value else ""
+    current_path = None
+    current_image_url = source_pdf_url
+    current_ext = Path(current_image).suffix.lower() if current_image else ""
+    current_is_image = False
+    current_is_pdf = current_ext == ".pdf"
+
+    initial_fields = []
+    if current_image:
+        layout_path = resolve_layout_path(layout_dir, current_image)
+        if layout_path.exists():
+            try:
+                initial_fields = json.loads(layout_path.read_text())
+            except Exception:
+                initial_fields = []
+
+    form_options = []
+    seen = set()
+
+    source_groups = [
+        ("Essential Forms (EF v2.2)", Path("EF_v2.2")),
+        ("Core Docs (Core v2.1)", Path("Core-v2.1")),
+    ]
+
+    def pretty_label(filename: str) -> str:
+        import re as _re
+        name = Path(filename).stem
+        name = _re.sub(r"[\ud800-\udfff]", "", name)
+        name = "".join(ch for ch in name if ch.isprintable())
+        name = name.replace("_", " ").replace("-", " ")
+        name = _re.sub(r"^\d+[ ._-]*", "", name)
+        name = _re.sub(r"\bv\d+(?:\.\d+)?\b", "", name, flags=_re.I)
+        name = _re.sub(r"\s+", " ", name).strip()
+        return name or "Unnamed Form"
+
+    for group_label, folder in source_groups:
+        items = []
+        if folder.exists():
+            for fp in sorted(folder.glob("*.pdf")):
+                fname = fp.name
+                if fname in seen:
+                    continue
+                seen.add(fname)
+                items.append({
+                    "value": f"{folder.name}|{fname}",
+                    "label": pretty_label(fname),
+                })
+        if items:
+            form_options.append({
+                "group": group_label,
+                "items": items,
+            })
+
+    return render_template_string("""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Custom Form App</title>
+        <style>
+          * { box-sizing: border-box; }
+          body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f8; color: #111; }
+          .wrap { max-width: 1180px; margin: 0 auto; padding: 20px; }
+          .card { background: #fff; border: 2px solid #111; border-radius: 18px; padding: 18px; margin-bottom: 16px; }
+          .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+          .toolbtn, .btn {
+            display: inline-block;
+            text-decoration: none;
+            border: 2px solid #111;
+            background: #fff;
+            color: #111;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+          .toolbtn.active, .btn.primary { background: #111; color: #fff; }
+          .note { font-size: 14px; color: #444; margin: 8px 0 0 0; }
+          .stage-wrap {
+            background: #fff;
+            border: 2px solid #111;
+            border-radius: 18px;
+            padding: 14px;
+            overflow: auto;
+          }
+          .stage {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            border: 1px solid #ccc;
+            background: #fafafa;
+            min-height: 300px;
+          }
+          .stage img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+          }
+          .placeholder {
+            width: 800px;
+            max-width: 100%;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+          }
+          .pdf-pages {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+          }
+          .pdf-page-wrap {
+            position: relative;
+            width: fit-content;
+            margin: 0 auto 22px auto;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,.08);
+          }
+          .pdf-page-wrap.active-tool {
+            outline: 3px solid #111;
+            outline-offset: 4px;
+            cursor: crosshair;
+          }
+          .pdf-page-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #333;
+            margin: 0 0 6px 0;
+          }
+          .pdf-canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            background: #fff;
+          }
+          .marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,.92);
+            border: 2px solid #111;
+            border-radius: 10px;
+            padding: 4px 8px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            z-index: 20;
+          }
+          .marker small {
+            font-size: 11px;
+            font-weight: 700;
+            color: #444;
+            margin-left: 6px;
+          }
+          .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+          input[type=file] { padding: 10px; border: 2px solid #111; border-radius: 12px; background: #fff; }
+          .status { margin-top: 10px; font-size: 14px; font-weight: 700; }
+        </style>
+      </head>
+      <body>
+        <div class="wrap">
+          <div class="card">
+            <h1 style="margin:0 0 8px 0;">Custom Form App</h1>
+            <p style="margin:0 0 10px 0;">Simple version: upload a page image, click a tool, then click the image to place the field.</p>
+
+<div style="margin:12px 0;">
+  <select id="doc-selector" style="width:100%;padding:10px;border:2px solid #111;border-radius:10px;">
+    <option value="">Select Form</option>
+    {% for section in form_options %}
+      <optgroup label="{{ section.group }}">
+        {% for item in section["items"] %}
+          <option value="{{ item.value }}" {% if current_doc_value == item.value %}selected{% endif %}>{{ item.label }}</option>
+        {% endfor %}
+      </optgroup>
+    {% endfor %}
+  </select>
+</div>
+
+<script>
+const d = document.getElementById("doc-selector");
+if (d) {
+  d.addEventListener("change", () => {
+    if (d.value) {
+      window.location = "/form-builder?pdf=" + encodeURIComponent(d.value);
+    }
+  });
+}
+</script>
+
+            <form method="POST" enctype="multipart/form-data" class="row">
+              <input type="file" name="form_image" accept=".png,.jpg,.jpeg,.webp,.pdf" disabled style="display:none;">
+              <button class="btn primary" type="submit">Upload Page Image</button>
+              <a class="btn" href="/documents?tab=dashboard">Back to Dashboard</a>
+            </form>
+
+            <div class="toolbar">
+              <button type="button" class="toolbtn" data-tool="name">Text</button>
+              <button type="button" class="toolbtn" data-tool="checkbox">Checkmark</button>
+              <button type="button" class="toolbtn" data-tool="realcheckbox">Checkbox</button>
+                            <button type="button" class="toolbtn" data-tool="date">Date</button>
+              <button type="button" class="toolbtn" data-tool="signature">Signature</button>
+              <button type="button" class="toolbtn" id="snapToggle">Snap: OFF</button>
+              <button type="button" class="toolbtn" id="clearLast">Delete Last</button>
+              <button type="button" class="btn primary" id="saveLayout">Save Layout</button>
+<button type="button" class="btn" id="autoSuggest">Auto-Suggest Fields</button>
+            </div>
+
+            <p class="note">Images place directly on the builder. PDFs now render page-by-page inside the app so fields can save with the correct page number. Only images and PDFs are supported. PDFs render page-by-page for accurate field placement.</p>
+            <div class="status" id="status"></div>
+          </div>
+
+          <div class="stage-wrap">
+            <div class="stage" id="stage">
+              {% if current_image_url and current_is_image %}
+                <img id="docImage" src="{{ current_image_url }}" alt="Uploaded form page">
+              {% elif current_image_url and current_is_pdf %}
+                <div id="pdfPages" class="pdf-pages"></div>
+              {% elif current_image_url %}
+                <div class="placeholder" id="docImage">Unsupported file type. Please upload a PNG, JPG, WEBP, or PDF.</div>
+              {% else %}
+                <div class="placeholder" id="docImage">Upload a page image, PDF, or document first, then choose Checkbox, Date, or Signature.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if current_is_pdf and current_image_url %}
+        <script type="module">
+          import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.530/build/pdf.min.mjs";
+
+          pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs";
+
+          const stage = document.getElementById("stage");
+          const pdfPages = document.getElementById("pdfPages");
+          const statusEl = document.getElementById("status");
+          const toolButtons = document.querySelectorAll(".toolbtn[data-tool]");
+          const clearLastBtn = document.getElementById("clearLast");
+          const saveBtn = document.getElementById("saveLayout");
+
+const autoBtn = document.getElementById("autoSuggest");
+
+function detectFieldType(text) {
+  const t = text.toLowerCase();
+
+  if (t.includes("signature")) return "signature";
+  if (t.includes("date")) return "date";
+  if (t.includes("name")) return "name";
+  if (t.includes("phone")) return "phone";
+  if (t.includes("email")) return "email";
+  if (t.includes("address")) return "address";
+
+  return null;
+}
+
+async function autoSuggestFields(pdf) {
+  setStatus("Scanning PDF for fields...");
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const textContent = await page.getTextContent();
+
+    const viewport = page.getViewport({ scale: 1.35 });
+
+    textContent.items.forEach(item => {
+      const rawText = item.str.trim();
+      if (rawText.length > 10) return;
+
+      const fieldType = detectFieldType(rawText);
+      if (!fieldType) return;
+
+      const tx = item.transform[4];
+      const ty = item.transform[5];
+
+      const x = (tx + 35) / viewport.width;
+      const y = 1 - (ty / viewport.height);
+
+      fields.push({
+        page: pageNum,
+        type: fieldType,
+        x: Number(x.toFixed(6)),
+        y: Number(y.toFixed(6)),
+        width: 0.2
+      });
+    });
+  }
+
+  renderFields();
+  setStatus("Auto-suggest complete. Adjust fields if needed.");
+}
+
+if (autoBtn) {
+  autoBtn.addEventListener("click", async () => {
+    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+    const pdf = await loadingTask.promise;
+    await autoSuggestFields(pdf);
+  });
+}
+
+
+          let selectedTool = "";
+          let snapEnabled = false;
+          let fields = {{ initial_fields|tojson }};
+          const pdfUrl = {{ current_image_url|tojson }};
+
+          function markerText(type) {
+            if (type === "name" || type === "text") return "Text";
+            if (type === "email") return "Email";
+            if (type === "phone") return "Phone";
+            if (type === "address") return "Address";
+            if (type === "checkbox") return "✓";
+            if (type === "date") return "Date";
+            if (type === "signature") return "Signature";
+            return type;
+          }
+
+          function setStatus(msg) {
+            statusEl.textContent = msg || "";
+          }
+
+          function renderFields() {
+            document.querySelectorAll(".marker").forEach(el => el.remove());
+
+            fields.forEach((field, index) => {
+              const wrap = document.querySelector('.pdf-page-wrap[data-page="' + field.page + '"]');
+              if (!wrap) return;
+
+              const el = document.createElement("div");
+              el.className = "marker";
+              el.style.left = (field.x * 100) + "%";
+              el.style.top = (field.y * 100) + "%";
+              if (field.type === "checkbox") {
+                el.style.width = "18px";
+                el.style.minWidth = "18px";
+                el.style.padding = "1px 3px";
+                el.style.borderRadius = "999px";
+                el.style.fontSize = "12px";
+                el.style.lineHeight = "12px";
+                el.innerHTML = "✓";
+              } else {
+                el.style.width = ((field.width || 0.18) * 100) + "%";
+                el.innerHTML = markerText(field.type) + '<small>P' + field.page + '</small>';
+              }
+              el.title = "Double-click to delete";
+              el.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              };
+              el.ondblclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fields.splice(index, 1);
+                renderFields();
+                setStatus("Field removed.");
+              };
+              wrap.appendChild(el);
+            });
+          }
+
+          function syncActiveToolView() {
+            document.querySelectorAll(".pdf-page-wrap").forEach(el => {
+              if (selectedTool) el.classList.add("active-tool");
+              else el.classList.remove("active-tool");
+            });
+          }
+
+          async function renderPdf() {
+            pdfPages.innerHTML = "";
+            setStatus("Rendering PDF pages...");
+
+            const loadingTask = pdfjsLib.getDocument(pdfUrl);
+            const pdf = await loadingTask.promise;
+
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              const page = await pdf.getPage(pageNum);
+              const viewport = page.getViewport({ scale: 1.35 });
+
+              const wrap = document.createElement("div");
+              wrap.className = "pdf-page-wrap";
+              wrap.dataset.page = String(pageNum);
+
+              const label = document.createElement("div");
+              label.className = "pdf-page-label";
+              label.textContent = "Page " + pageNum + " of " + pdf.numPages;
+
+              const canvas = document.createElement("canvas");
+              canvas.className = "pdf-canvas";
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              canvas.dataset.page = String(pageNum);
+
+              wrap.appendChild(label);
+              wrap.appendChild(canvas);
+              pdfPages.appendChild(wrap);
+
+              await page.render({
+                canvasContext: canvas.getContext("2d"),
+                viewport
+              }).promise;
+
+              let clickLocked = false;
+let toolTimeout = null;
+
+              wrap.addEventListener("click", (e) => {
+                if (clickLocked) return;
+                clickLocked = true;
+
+                // 1 second click delay
+                setTimeout(() => { clickLocked = false; }, 1000);
+
+                // reset 5-second tool auto-off timer
+                if (toolTimeout) clearTimeout(toolTimeout);
+                toolTimeout = setTimeout(() => {
+                  selectedTool = "";
+                  toolButtons.forEach(b => b.classList.remove("active"));
+                  syncActiveToolView();
+                  setStatus("Tool auto-turned off.");
+                }, 5000);
+                if (!selectedTool) {
+                  setStatus("Choose Checkbox, Date, or Signature first.");
+                  return;
+                }
+
+                const rect = canvas.getBoundingClientRect();
+                if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+                  return;
+                }
+
+                let x = (e.clientX - rect.left) / rect.width;
+                let y = (e.clientY - rect.top) / rect.height;
+
+                if (selectedTool === "checkbox") {
+                  x = x - 0.005;
+                  y = y + 0.010;
+
+                  // snap to consistent rows
+                  if (snapEnabled) {
+                  y = Math.round(y * 28) / 28;
+                }
+                }
+
+                const defaultFieldName =
+                  selectedTool === "name" ? "legal_name" :
+                  selectedTool === "date" ? "signature_date" :
+                  selectedTool === "signature" ? "signature_data" :
+                  selectedTool === "checkbox" ? "signature_ack" :
+                  selectedTool;
+
+                const defaultWidth =
+                  selectedTool === "signature" ? 0.55 :
+                  selectedTool === "name" ? 0.45 :
+                  selectedTool === "date" ? 0.28 :
+                  selectedTool === "checkbox" ? 0.08 :
+                  0.30;
+
+                fields.push({
+                  page: pageNum,
+                  type: selectedTool,
+                  field_name: defaultFieldName + "_" + fields.length,
+                  x: Number(x.toFixed(6)),
+                  y: Number(y.toFixed(6)),
+                  width: Number(defaultWidth.toFixed(6))
+                });
+
+                renderFields();
+                selectedTool = "";
+                toolButtons.forEach(b => b.classList.remove("active"));
+                syncActiveToolView();
+                setStatus("Field placed on page " + pageNum + ".");
+              });
+            }
+
+            renderFields();
+            syncActiveToolView();
+            setStatus("PDF ready. Choose a tool, then click the correct page.");
+          }
+
+          
+          const snapBtn = document.getElementById("snapToggle");
+          if (snapBtn) {
+            snapBtn.addEventListener("click", () => {
+              snapEnabled = !snapEnabled;
+              snapBtn.textContent = snapEnabled ? "Snap: ON" : "Snap: OFF";
+              setStatus("Snap " + (snapEnabled ? "enabled." : "disabled."));
+            });
+          }
+toolButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+              selectedTool = btn.dataset.tool;
+              toolButtons.forEach(b => b.classList.remove("active"));
+              btn.classList.add("active");
+              syncActiveToolView();
+              setStatus(selectedTool + " selected. Click the correct PDF page.");
+            });
+          });
+
+          clearLastBtn.addEventListener("click", () => {
+            if (!fields.length) {
+              setStatus("No fields to remove.");
+              return;
+            }
+            fields.pop();
+            renderFields();
+            setStatus("Last field removed.");
+          });
+
+          saveBtn.addEventListener("click", async () => {
+            const img = {{ current_image|tojson }} || "";
+            if (!img) {
+              setStatus("Upload a page, PDF, or document first.");
+              return;
+            }
+
+            const res = await fetch("/form-builder/save", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ img, fields })
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+              setStatus(data.message || "Layout saved.");
+
+              // AUTO LOAD NEXT FORM
+              const selector = document.getElementById("doc-selector");
+              if (selector && selector.selectedIndex >= 0) {
+                const nextIndex = selector.selectedIndex + 1;
+                if (nextIndex < selector.options.length) {
+                  const nextValue = selector.options[nextIndex].value;
+                  if (nextValue) {
+                    setTimeout(() => {
+                      window.location = "/form-builder?pdf=" + encodeURIComponent(nextValue);
+                    }, 600);
+                  }
+                } else {
+                  setStatus("All forms completed.");
+                }
+              }
+
+            } else {
+              setStatus(data.error || "Save failed.");
+            }
+          });
+
+          renderPdf().catch(err => {
+            console.error(err);
+            setStatus("PDF render failed: " + (err && err.message ? err.message : String(err)));
+          });
+        </script>
+        {% else %}
+        <script>
+          const stage = document.getElementById("stage");
+          const docImage = document.getElementById("docImage");
+          const statusEl = document.getElementById("status");
+          const toolButtons = document.querySelectorAll(".toolbtn[data-tool]");
+          const clearLastBtn = document.getElementById("clearLast");
+          const saveBtn = document.getElementById("saveLayout");
+
+          let selectedTool = "";
+          let snapEnabled = false;
+          let fields = {{ initial_fields|tojson }};
+
+          function markerText(type) {
+            if (type === "name" || type === "text") return "Text";\n            if (type === "email") return "Email";\n            if (type === "phone") return "Phone";\n            if (type === "address") return "Address";\n            if (type === "checkbox") return "✓";
+            if (type === "date") return "Date";
+            if (type === "signature") return "Signature";
+            return type;
+          }
+
+          function setStatus(msg) {
+            statusEl.textContent = msg || "";
+          }
+
+          function renderFields() {
+            document.querySelectorAll(".marker").forEach(el => el.remove());
+
+            fields.forEach((field, index) => {
+              const el = document.createElement("div");
+              el.className = "marker";
+              el.style.left = (field.x * 100) + "%";
+              el.style.top = (field.y * 100) + "%";
+              el.textContent = markerText(field.type);
+              el.title = "Double-click to delete";
+              el.ondblclick = () => {
+                fields.splice(index, 1);
+                renderFields();
+                setStatus("Field removed.");
+              };
+              stage.appendChild(el);
+            });
+          }
+
+          
+          const snapBtn = document.getElementById("snapToggle");
+          if (snapBtn) {
+            snapBtn.addEventListener("click", () => {
+              snapEnabled = !snapEnabled;
+              snapBtn.textContent = snapEnabled ? "Snap: ON" : "Snap: OFF";
+              setStatus("Snap " + (snapEnabled ? "enabled." : "disabled."));
+            });
+          }
+toolButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+              selectedTool = btn.dataset.tool;
+              toolButtons.forEach(b => b.classList.remove("active"));
+              btn.classList.add("active");
+              setStatus(selectedTool + " selected. Now click the page.");
+            });
+          });
+
+          clearLastBtn.addEventListener("click", () => {
+            if (!fields.length) {
+              setStatus("No fields to remove.");
+              return;
+            }
+            fields.pop();
+            renderFields();
+            setStatus("Last field removed.");
+          });
+
+          stage.addEventListener("click", (e) => {
+            if (!selectedTool) {
+              setStatus("Choose Checkbox, Date, or Signature first.");
+              return;
+            }
+
+            if (!docImage || !docImage.getBoundingClientRect) {
+              setStatus("Upload a page, PDF, or document first.");
+              return;
+            }
+
+            const rect = docImage.getBoundingClientRect();
+            if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+              return;
+            }
+
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+
+            fields.push({
+              page: 1,
+              type: selectedTool,
+              x: Number(x.toFixed(6)),
+              y: Number(y.toFixed(6))
+            });
+
+            renderFields();
+            toolButtons.forEach(b => b.classList.remove("active"));
+            setStatus("Field placed.");
+          });
+
+          saveBtn.addEventListener("click", async () => {
+            const img = {{ current_image|tojson }} || "";
+            if (!img) {
+              setStatus("Upload a page, PDF, or document first.");
+              return;
+            }
+
+            const res = await fetch("/form-builder/save", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ img, fields })
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+              setStatus(data.message || "Layout saved.");
+            } else {
+              setStatus(data.error || "Save failed.");
+            }
+          });
+
+          renderFields();
+        </script>
+        {% endif %}
+      </body>
+    </html>
+    """, current_image=current_image, current_doc_value=current_doc_value, current_image_url=current_image_url, current_is_image=current_is_image, current_is_pdf=current_is_pdf, initial_fields=initial_fields, form_options=form_options)
+
+
+@app.route("/form-builder/save", methods=["POST"])
+def form_builder_save():
+    import json
+    from pathlib import Path
+
+    session_id = session.get("licensed_session_id") or request.args.get("session_id")
+
+    payload = request.get_json(silent=True) or {}
+    img = (payload.get("img") or "").strip()
+    fields = payload.get("fields") or []
+
+    if not img:
+        return {"error": "Missing image name."}, 400
+
+    if not isinstance(fields, list):
+        return {"error": "Fields must be a list."}, 400
+
+    clean_fields = []
+    for f in fields:
+        try:
+            clean_fields.append({
+                "page": int(f.get("page", 1)),
+                "type": str(f.get("type", "")).strip(),
+                "field_name": str(f.get("field_name", "")).strip(),
+                "x": float(f.get("x", 0)),
+                "y": float(f.get("y", 0)),
+                "width": float(f.get("width", 0.18)),
+            })
+        except Exception:
+            continue
+
+    layout_dir = Path("form_builder_layouts")
+    layout_dir.mkdir(parents=True, exist_ok=True)
+
+    clean_name = Path(img).name
+    out = layout_dir / f"{clean_name}.json"
+    out.write_text(json.dumps(clean_fields, indent=2))
+    return {"ok": True, "message": f"Layout saved to {out.name}."}
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000, debug=False)
