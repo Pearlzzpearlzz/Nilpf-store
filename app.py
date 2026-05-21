@@ -1395,12 +1395,12 @@ def download_packet(id):
     merger.write(output_path)
     merger.close()
 
-    return redirect("/" + output_path)
-
-    merger.write(output_path)
-    merger.close()
-
-    return redirect("/" + output_path)
+    from flask import send_file
+    return send_file(
+        output_path,
+        as_attachment=True,
+        download_name=f"participant_{id}_{safe_program}_CLEAN_PACKET.pdf"
+    )
 
 
 
