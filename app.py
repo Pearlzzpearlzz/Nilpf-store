@@ -1293,6 +1293,62 @@ def bill_of_dignity_final(id):
 # =========================
 # BAD UNIVERSAL FORM SYSTEM REMOVED — true-to-sight routes preserved
 
+
+@app.route("/render-pdf-diagnostic")
+def render_pdf_diagnostic():
+    import os
+    from pathlib import Path
+
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as e:
+        return f"PLAYWRIGHT IMPORT FAILED: {e}", 500
+
+    port = os.environ.get("PORT", "5000")
+    test_urls = [
+        f"http://127.0.0.1:{port}/",
+        request.url_root.rstrip("/") + "/"
+    ]
+
+    results = []
+    out_dir = Path("static/filled")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+            page = browser.new_page()
+
+            results.append("CHROMIUM LAUNCHED: YES")
+
+            for url in test_urls:
+                try:
+                    page.goto(url, wait_until="domcontentloaded", timeout=20000)
+                    title = page.title()
+                    test_pdf = out_dir / "RENDER_DIAGNOSTIC_TEST.pdf"
+                    page.pdf(
+                        path=str(test_pdf),
+                        format="Letter",
+                        print_background=True
+                    )
+                    results.append(f"URL OK: {url}")
+                    results.append(f"PAGE TITLE: {title}")
+                    results.append(f"PDF EXISTS: {test_pdf.exists()} | SIZE: {test_pdf.stat().st_size if test_pdf.exists() else 0}")
+                except Exception as e:
+                    results.append(f"URL FAILED: {url}")
+                    results.append(f"ERROR: {e}")
+
+            browser.close()
+
+    except Exception as e:
+        results.append(f"CHROMIUM / PDF TEST FAILED: {e}")
+
+    return "<pre>" + "\n".join(results) + "</pre>"
+
+
 @app.route("/download-packet/<int:id>")
 def download_packet(id):
     activated_system = load_activation()
