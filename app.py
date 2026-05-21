@@ -88,18 +88,69 @@ def fill_pdf_fields(src, out, data):
 # =========================
 # TRUE-TO-SIGHT HTML PRINT PAGE → PDF EXPORT HELPER
 def generate_true_to_sight_pdf(pid, route_template, filename):
+    """
+    Future-ready PDF engine.
+
+    Keeps the old call pattern:
+        generate_true_to_sight_pdf(id, "/some-print/{id}", "some_form_true_to_sight.pdf")
+
+    But avoids Playwright visiting Flask routes by URL.
+    This prevents login/session redirects from being printed into the PDF.
+    """
     from pathlib import Path
     from playwright.sync_api import sync_playwright
+    from flask import render_template
 
-    url = f"http://127.0.0.1:5000{route_template.format(id=pid)}"
+    if pid < 0 or pid >= len(participants):
+        raise ValueError(f"Participant not found for PDF export: {pid}")
+
+    participant = participants[pid]
+
+    # Derive form_key from the PDF filename.
+    # Example: bill_of_dignity_true_to_sight.pdf -> bill_of_dignity
+    form_key = filename
+    if form_key.endswith("_true_to_sight.pdf"):
+        form_key = form_key.replace("_true_to_sight.pdf", "")
+    elif form_key.endswith(".pdf"):
+        form_key = form_key.replace(".pdf", "")
+
+    form_state = participant.get("forms", {}).get(form_key, {})
+    d = form_state.get("data", {})
+    locked = form_state.get("locked", False)
+
+    # Most true-to-sight print templates follow this naming pattern:
+    # bill_of_dignity -> bill_of_dignity_print.html
+    # Some forms use special template names, so they need overrides.
+    PDF_TEMPLATE_OVERRIDES = {
+        "mla": "mla_transitional_print.html",
+    }
+
+    template_name = PDF_TEMPLATE_OVERRIDES.get(form_key, f"{form_key}_print.html")
+
+    activation = {}
+    try:
+        activation = load_activation()
+    except Exception:
+        activation = {}
+
+    html_content = render_template(
+        template_name,
+        id=pid,
+        participant=participant,
+        d=d,
+        locked=locked,
+        activation=activation,
+        program_type=participant.get("program_type") or activation.get("program_type", "")
+    )
+
     folder = Path(f"static/filled/participant_{pid}")
     folder.mkdir(parents=True, exist_ok=True)
     output = folder / filename
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
         page = browser.new_page()
-        page.goto(url, wait_until="domcontentloaded", timeout=15000)
+        page.set_content(html_content, wait_until="load")
         page.pdf(
             path=str(output),
             format="Letter",
@@ -1378,8 +1429,60 @@ def download_packet(id):
     from reportlab.pdfgen import canvas
     from reportlab.lib.units import inch
 
+    if id < 0 or id >= len(participants):
+        return "Participant not found for packet download", 404
+
     participant = participants[id]
     forms = participant.get("forms", {})
+
+    # Generate true-to-sight PDFs during Download Packet.
+    # This makes Packet Builder create the real form PDFs instead of only making a summary list.
+    FORM_PDF_EXPORTS = {
+        "intake_assessment": ("/intake-assessment-print/{id}", "intake_assessment_true_to_sight.pdf"),
+        "mla": ("/mla-print/{id}", "mla_true_to_sight.pdf"),
+        "program_compliance_addendum": ("/program-compliance-addendum-print/{id}", "program_compliance_addendum_true_to_sight.pdf"),
+        "program_participation_agreement": ("/program-participation-agreement-print/{id}", "program_participation_agreement_true_to_sight.pdf"),
+        "house_rules": ("/house-rules-print/{id}", "house_rules_true_to_sight.pdf"),
+        "fire_safety": ("/fire-safety-print/{id}", "fire_safety_true_to_sight.pdf"),
+        "emergency_contact": ("/emergency-contact-print/{id}", "emergency_contact_true_to_sight.pdf"),
+        "emergency_evacuation": ("/emergency-evacuation-print/{id}", "emergency_evacuation_true_to_sight.pdf"),
+        "guest_addendum": ("/guest-addendum-print/{id}", "guest_addendum_true_to_sight.pdf"),
+        "common_area_security": ("/common-area-security-print/{id}", "common_area_security_true_to_sight.pdf"),
+        "personal_belongings": ("/personal-belongings-print/{id}", "personal_belongings_true_to_sight.pdf"),
+        "property_belongings": ("/property-belongings-print/{id}", "property_belongings_true_to_sight.pdf"),
+        "pet_animal": ("/pet-animal-print/{id}", "pet_animal_true_to_sight.pdf"),
+        "privacy_acknowledgment": ("/privacy-acknowledgment-print/{id}", "privacy_acknowledgment_true_to_sight.pdf"),
+        "privacy_noncommercial": ("/privacy-noncommercial-print/{id}", "privacy_noncommercial_true_to_sight.pdf"),
+        "vehicle_parking": ("/vehicle-parking-print/{id}", "vehicle_parking_true_to_sight.pdf"),
+        "transfer": ("/transfer-print/{id}", "transfer_true_to_sight.pdf"),
+        "security_camera": ("/security-camera-print/{id}", "security_camera_true_to_sight.pdf"),
+        "voluntary_participation": ("/voluntary-participation-print/{id}", "voluntary_participation_true_to_sight.pdf"),
+        "incident_report": ("/incident-report-print/{id}", "incident_report_true_to_sight.pdf"),
+        "bill_of_dignity": ("/bill-of-dignity-print/{id}", "bill_of_dignity_true_to_sight.pdf"),
+    }
+
+    for form_key, form_record in forms.items():
+        if not (form_record.get("completed") or form_record.get("locked")):
+            continue
+
+        export_info = FORM_PDF_EXPORTS.get(form_key)
+        if not export_info:
+            print(f"No PDF export route mapped for completed form: {form_key}")
+            continue
+
+        route_template, pdf_name = export_info
+        pdf_path = os.path.join(folder, pdf_name)
+
+        if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
+            print(f"True-to-sight PDF already exists: {pdf_path}")
+            continue
+
+        try:
+            created_pdf = generate_true_to_sight_pdf(id, route_template, pdf_name)
+            print(f"Download Packet generated true-to-sight PDF: {created_pdf}")
+        except Exception as e:
+            print(f"Download Packet could not generate PDF for {form_key}: {e}")
+
     summary_pdf = os.path.join(folder, "00_COMPLETED_PACKET_SUMMARY.pdf")
 
     c = canvas.Canvas(summary_pdf, pagesize=letter)
@@ -1427,40 +1530,25 @@ def download_packet(id):
         merger.append(summary_pdf)
         added += 1
 
-    # Merge true-to-sight PDFs generated from HTML print pages.
-    # These are now the real packet files for completed HTML forms.
-    true_pdf_paths = sorted(Path(folder).glob("*_true_to_sight.pdf"))
-    for true_pdf in true_pdf_paths:
-        try:
-            merger.append(str(true_pdf))
-            added += 1
-            print(f"Added true-to-sight packet PDF: {true_pdf}")
-        except Exception as e:
-            print(f"Could not add true-to-sight PDF {true_pdf}: {e}")
+    # Merge true-to-sight PDFs in FORM_PDF_EXPORTS order.
+    # This avoids alphabetical scrambling and prevents duplicate appending.
+    for form_key, export_info in FORM_PDF_EXPORTS.items():
+        form_record = forms.get(form_key, {})
+        if not (form_record.get("completed") or form_record.get("locked")):
+            continue
 
-    for doc in docs:
-        filename = doc.get("completed_file") or doc.get("file")
-        possible_paths = [
-            os.path.join(folder, filename),
-            os.path.join(folder, os.path.basename(filename)),
-        ]
+        route_template, pdf_name = export_info
+        true_pdf_path = os.path.join(folder, pdf_name)
 
-        found_path = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                found_path = path
-                break
-
-        if found_path:
-            merger.append(found_path)
-            added += 1
+        if os.path.exists(true_pdf_path) and os.path.getsize(true_pdf_path) > 0:
+            try:
+                merger.append(true_pdf_path)
+                added += 1
+                print(f"Added ordered true-to-sight packet PDF: {true_pdf_path}")
+            except Exception as e:
+                print(f"Could not add ordered true-to-sight PDF {true_pdf_path}: {e}")
         else:
-            # Skip old manifest files/routes that do not exist as physical PDFs yet.
-            # The completed packet summary PDF already proves the completed data.
-            if filename and str(filename).startswith("/"):
-                print(f"Skipping route-based packet item not exportable yet: {filename}")
-            else:
-                print(f"Skipping missing physical packet file not generated yet: {filename}")
+            print(f"Completed form missing generated true-to-sight PDF: {form_key} -> {true_pdf_path}")
 
     if added == 0:
         return "No completed PDFs found for this program packet", 404
