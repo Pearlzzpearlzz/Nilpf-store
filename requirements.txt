@@ -1,0 +1,7 @@
+Flask
+gunicorn
+reportlab
+PyMuPDF
+pypdf
+PyPDF2
+playwright
