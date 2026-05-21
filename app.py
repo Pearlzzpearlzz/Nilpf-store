@@ -1461,6 +1461,9 @@ def download_packet(id):
         "bill_of_dignity": ("/bill-of-dignity-print/{id}", "bill_of_dignity_true_to_sight.pdf"),
     }
 
+    generation_errors = []
+    missing_generated_pdfs = []
+
     for form_key, form_record in forms.items():
         if not (form_record.get("completed") or form_record.get("locked")):
             continue
@@ -1481,6 +1484,8 @@ def download_packet(id):
             created_pdf = generate_true_to_sight_pdf(id, route_template, pdf_name)
             print(f"Download Packet generated true-to-sight PDF: {created_pdf}")
         except Exception as e:
+            error_msg = f"{form_key}: {type(e).__name__}: {e}"
+            generation_errors.append(error_msg)
             print(f"Download Packet could not generate PDF for {form_key}: {e}")
 
     summary_pdf = os.path.join(folder, "00_COMPLETED_PACKET_SUMMARY.pdf")
@@ -1548,7 +1553,25 @@ def download_packet(id):
             except Exception as e:
                 print(f"Could not add ordered true-to-sight PDF {true_pdf_path}: {e}")
         else:
+            missing_generated_pdfs.append(f"{form_key} -> {true_pdf_path}")
             print(f"Completed form missing generated true-to-sight PDF: {form_key} -> {true_pdf_path}")
+
+    true_pdf_count = added - 1 if os.path.exists(summary_pdf) else added
+
+    if true_pdf_count <= 0:
+        report = [
+            "TRUE-TO-SIGHT PDF GENERATION FAILED",
+            "",
+            "The app did NOT create any real form PDFs.",
+            "The summary PDF is being blocked from pretending to be a completed packet.",
+            "",
+            "Generation errors:"
+        ]
+        report.extend(generation_errors or ["No Python exception was captured."])
+        report.append("")
+        report.append("Missing generated PDFs:")
+        report.extend(missing_generated_pdfs or ["No missing PDF list was captured."])
+        return "<pre>" + "\n".join(report) + "</pre>", 500
 
     if added == 0:
         return "No completed PDFs found for this program packet", 404
