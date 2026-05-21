@@ -76,7 +76,7 @@ button{
 <h3>PARTICIPANT INFORMATION</h3>
 
 <p>Participant Name:
-<input type="text" name="participant_name" value="{{ d.get('participant_name','') }}">
+<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
 </p>
 
 <p>Date of Birth:
@@ -88,7 +88,7 @@ button{
 </p>
 
 <p>Date:
-<input class="short-input" type="text" name="document_date" value="{{ d.get('document_date','') }}">
+<input class="short-input" type="text" name="document_date" value="{{ d.get('document_date', today) }}">
 </p>
 </div>
 
@@ -273,15 +273,15 @@ treatment, or supervised living relationship.
 <h4>Participant</h4>
 
 <p>Name:
-<input type="text" name="participant_signature_name" value="{{ d.get('participant_signature_name','') }}">
+<input type="text" name="participant_signature_name" value="{{ d.get('participant_signature_name', participant.get('name', '')) }}">
 </p>
 
 <p>Signature:
-<input type="text" name="participant_signature" value="{{ d.get('participant_signature','') }}">
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
 </p>
 
 <p>Date:
-<input class="short-input" type="text" name="participant_signature_date" value="{{ d.get('participant_signature_date','') }}">
+<input class="short-input" type="text" name="participant_signature_date" value="{{ d.get('participant_signature_date', today) }}">
 </p>
 
 <h4>Program Operator (501(c)(3)) – If Applicable</h4>

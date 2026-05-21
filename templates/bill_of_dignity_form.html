@@ -110,13 +110,13 @@ button, .button { padding:10px 18px; margin-top:20px; font-weight:bold; }
 </ul>
 
 <label>Member Name (Print):</label>
-<input name="member_name" value="{{ d.get('member_name','') }}">
+<input name="member_name" value="{{ d.get('member_name', participant.get('name', '')) }}">
 
 <label>Member Signature:</label>
 <input name="member_signature" value="{{ d.get('member_signature','') }}">
 
 <label>Date:</label>
-<input name="member_date" value="{{ d.get('member_date','') }}">
+<input name="member_date" value="{{ d.get('member_date', today) }}">
 
 <label>Program Name:</label>
 <input name="program_name" value="{{ d.get('program_name','Independent Living Program') }}">

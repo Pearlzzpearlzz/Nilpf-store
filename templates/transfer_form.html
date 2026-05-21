@@ -30,7 +30,7 @@ This form is for informational purposes only and does not create an obligation t
 <h3>PARTICIPANT INFORMATION</h3>
 
 <p>Participant Name:</p>
-<input type="text" {% if locked %}readonly{% endif %} name="participant_name" value="{{ d.participant_name }}"><br><br>
+<input type="text" {% if locked %}readonly{% endif %} name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"><br><br>
 
 <p>Current Address / Unit (if applicable):</p>
 <input type="text" {% if locked %}readonly{% endif %} name="current_address_unit" value="{{ d.current_address_unit }}"><br><br>
@@ -141,7 +141,7 @@ The housing provider assumes no responsibility for relocation outcomes.
 <input type="text" {% if locked %}readonly{% endif %} name="participant_signature" value="{{ d.participant_signature }}"><br><br>
 
 <p>Date:</p>
-<input type="text" {% if locked %}readonly{% endif %} name="signature_date" value="{{ d.signature_date }}"><br><br>
+<input type="text" {% if locked %}readonly{% endif %} name="signature_date" value="{{ d.get('signature_date', today) }}"><br><br>
 
 <hr>
 

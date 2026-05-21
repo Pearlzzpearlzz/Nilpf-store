@@ -76,9 +76,9 @@ button { padding: 12px 25px; font-size: 18px; font-weight: bold; margin-top: 25p
 <h3>ACKNOWLEDGEMENT</h3>
 <p>By signing below, the participant acknowledges understanding of and agreement to these House Rules and Community Standards as a condition of shared housing participation.</p>
 
-<p>Participant Name: <input class="line-input" name="participant_name" value="{{ d.get('participant_name','') }}"></p>
+<p>Participant Name: <input class="line-input" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"></p>
 <p>Signature: <input class="line-input" name="signature" value="{{ d.get('signature','') }}"></p>
-<p>Date: <input class="line-input" name="date" value="{{ d.get('date','') }}"></p>
+<p>Date: <input class="line-input" name="date" value="{{ d.get('date', today) }}"></p>
 
 {% if not review %}
 {% if not locked and not review_mode|default(false) %}<button type="submit">Save</button>{% endif %}

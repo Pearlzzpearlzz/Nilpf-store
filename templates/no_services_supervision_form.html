@@ -106,12 +106,12 @@ button { padding:14px 24px; font-size:18px; font-weight:bold; }
 
 <div class="field">
 <label>Participant Signature</label>
-<input type="text" name="participant_signature" value="{{ d.get('participant_signature','') }}">
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
 </div>
 
 <div class="field">
 <label>Date</label>
-<input type="date" name="signature_date" value="{{ d.get('signature_date','') }}">
+<input type="date" name="signature_date" value="{{ d.get('signature_date', today) }}">
 </div>
 
 <h2>End of Acknowledgement</h2>

@@ -31,13 +31,13 @@
 <form method="POST" action="/property-belongings/{{ id }}">
 
 <p><strong>Participant Name:</strong><br>
-<input type="text" name="participant_name" value="{{ d.participant_name }}"></p>
+<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"></p>
 
 <p><strong>Participant Signature:</strong><br>
 <input type="text" name="participant_signature" value="{{ d.participant_signature }}"></p>
 
 <p><strong>Date:</strong><br>
-<input type="text" name="signature_date" value="{{ d.signature_date }}"></p>
+<input type="text" name="signature_date" value="{{ d.get('signature_date', today) }}"></p>
 
 <p><strong>Operator Representative:</strong><br>
 <input type="text" name="operator_name" value="{{ d.operator_name }}"></p>

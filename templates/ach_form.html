@@ -89,7 +89,7 @@ button, a.button {
     <h1>DIRECT DEPOSIT / ACH AUTHORIZATION</h1>
     <div class="subtitle">Independent Living Program</div>
 
-    <p>Participant Name: <input class="field" name="participant_name" value="{{ d.get('participant_name','') }}"></p>
+    <p>Participant Name: <input class="field" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"></p>
 
     <p>Financial Institution Name: <input class="field" name="bank_name" value="{{ d.get('bank_name','') }}"></p>
 
@@ -117,9 +117,9 @@ button, a.button {
     <p>In that situation, the participant remains responsible for making their agreed housing participation payments by another accepted method, such as cash, money order, Cash App, or another payment method approved by the housing provider.</p>
 
 
-    <p>Participant Signature: <input class="field" name="participant_signature" value="{{ d.get('participant_signature','') }}"></p>
+    <p>Participant Signature: <input class="field" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}"></p>
 
-    <p>Date: <input class="field short" name="signature_date" value="{{ d.get('signature_date','') }}"></p>
+    <p>Date: <input class="field short" name="signature_date" value="{{ d.get('signature_date', today) }}"></p>
 
     <p>Bank Account Holder (if different): <input class="field" name="account_holder" value="{{ d.get('account_holder','') }}"></p>
 </div>

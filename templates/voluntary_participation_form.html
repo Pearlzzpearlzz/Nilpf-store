@@ -131,17 +131,17 @@
 
     <div class="field-row">
         Participant Name:
-        <input name="participant_name" value="{{ d.get('participant_name','') }}">
+        <input name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
     </div>
 
     <div class="field-row">
         Signature:
-        <input name="participant_signature" value="{{ d.get('participant_signature','') }}">
+        <input name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
     </div>
 
     <div class="field-row">
         Date:
-        <input class="date-input" name="signature_date" value="{{ d.get('signature_date','') }}">
+        <input class="date-input" name="signature_date" value="{{ d.get('signature_date', today) }}">
     </div>
 </div>
 

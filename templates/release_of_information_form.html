@@ -54,10 +54,10 @@ button { margin-top:25px; padding:12px 18px; font-size:16px; font-weight:bold; }
 <input name="expiration_date" value="{{ d.get('expiration_date','') }}">
 
 <label>Participant Signature</label>
-<input name="participant_signature" value="{{ d.get('participant_signature','') }}">
+<input name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
 
 <label>Signature Date</label>
-<input name="signature_date" value="{{ d.get('signature_date','') }}">
+<input name="signature_date" value="{{ d.get('signature_date', today) }}">
 
 <hr>
 <pre>RELEASE OF INFORMATION / AUTHORIZATION TO COMMUNICATE

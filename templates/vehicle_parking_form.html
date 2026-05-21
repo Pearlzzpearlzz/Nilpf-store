@@ -18,7 +18,7 @@ input { border: none; border-bottom: 1px solid black; width: 300px; }
 
 <div class="section">
 <p><strong>1. Participant Information</strong></p>
-<div class="line">Participant Name: <input type="text" name="participant_name" value="{{ d.participant_name }}"></div>
+<div class="line">Participant Name: <input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"></div>
 <div class="line">Room/Unit: <input type="text" name="room_unit" value="{{ d.room_unit }}"></div>
 </div>
 
@@ -54,7 +54,7 @@ input { border: none; border-bottom: 1px solid black; width: 300px; }
 <div class="section">
 <p><strong>5. Acknowledgment</strong></p>
 <div class="line">Resident Signature: <input type="text" name="participant_signature" value="{{ d.participant_signature }}"></div>
-<div class="line">Date: <input type="text" name="signature_date" value="{{ d.signature_date }}"></div>
+<div class="line">Date: <input type="text" name="signature_date" value="{{ d.get('signature_date', today) }}"></div>
 <div class="line">Operator Signature: <input type="text" name="operator_signature" value="{{ d.operator_signature }}"></div>
 <div class="line">Date: <input type="text" name="operator_signature_date" value="{{ d.operator_signature_date }}"></div>
 </div>

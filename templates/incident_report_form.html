@@ -83,7 +83,7 @@ Completion of this form does not constitute:
 <input type="text" name="signature" value="{{ d.signature }}"></p>
 
 <p>Date:<br>
-<input type="date" name="date" value="{{ d.date }}"></p>
+<input type="date" name="date" value="{{ d.get('date', today) }}"></p>
 
 <br><br>
 <button type="submit">Save</button>

@@ -30,13 +30,13 @@
 <form method="POST" action="/security-camera/{{ id }}">
 
 <p>Participant Name:</p>
-<input type="text" name="participant_name" value="{{ d.participant_name }}"><br><br>
+<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"><br><br>
 
 <p>Participant Signature:</p>
 <input type="text" name="participant_signature" value="{{ d.participant_signature }}"><br><br>
 
 <p>Date:</p>
-<input type="text" name="signature_date" value="{{ d.signature_date }}"><br><br>
+<input type="text" name="signature_date" value="{{ d.get('signature_date', today) }}"><br><br>
 
 <p>Operator Representative:</p>
 <input type="text" name="operator_rep" value="{{ d.operator_rep }}"><br><br>

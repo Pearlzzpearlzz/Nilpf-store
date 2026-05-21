@@ -271,13 +271,13 @@ button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
 <p>By signing below, Participant acknowledges understanding that this is not a lease, not a tenancy, and not supervised or assisted housing.</p>
 
 <p>Participant Name:
-<input name="participant_name" value="{{ d.get('participant_name','') }}"></p>
+<input name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"></p>
 
 <p>Signature:
-<input name="participant_signature" value="{{ d.get('participant_signature','') }}"></p>
+<input name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}"></p>
 
 <p>Date:
-<input name="participant_date" value="{{ d.get('participant_date','') }}"></p>
+<input name="participant_date" value="{{ d.get('participant_date', today) }}"></p>
 
 <p>Operator Representative:
 <input name="operator_signature" value="{{ d.get('operator_signature','') }}"></p>

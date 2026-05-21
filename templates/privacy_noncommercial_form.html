@@ -34,13 +34,13 @@
 <form method="POST" action="/privacy-noncommercial/{{ id }}">
 
 <p><strong>Participant Name:</strong></p>
-<input type="text" name="participant_name" value="{{ d.participant_name }}">
+<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
 
 <p><strong>Participant Signature:</strong></p>
 <input type="text" name="participant_signature" value="{{ d.participant_signature }}">
 
 <p><strong>Date:</strong></p>
-<input class="small" type="text" name="signature_date" value="{{ d.signature_date }}">
+<input class="small" type="text" name="signature_date" value="{{ d.get('signature_date', today) }}">
 
 <div class="footer">
 <p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>

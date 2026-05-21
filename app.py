@@ -12,6 +12,48 @@ app = Flask(__name__)
 def inject_today():
     return {"today": date.today().isoformat()}
 
+
+@app.after_request
+def add_idle_logout_script(response):
+    try:
+        if response.direct_passthrough:
+            return response
+
+        if response.content_type and "text/html" in response.content_type:
+            skip_paths = ["/login", "/logout", "/activate", "/static"]
+            if any(request.path.startswith(path) for path in skip_paths):
+                return response
+
+            html = response.get_data(as_text=True)
+            if "</body>" in html and "NILPF_IDLE_LOGOUT_TIMER" not in html:
+                idle_script = """
+<script id="NILPF_IDLE_LOGOUT_TIMER">
+(function () {
+  var idleTimer;
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () {
+      window.location.href = "/logout";
+    }, 120000);
+  }
+
+  ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(function (eventName) {
+    document.addEventListener(eventName, resetIdleTimer, true);
+  });
+
+  resetIdleTimer();
+})();
+</script>
+"""
+                html = html.replace("</body>", idle_script + "</body>")
+                response.set_data(html)
+                response.headers["Content-Length"] = len(response.get_data())
+    except Exception as e:
+        print(f"IDLE LOGOUT SCRIPT ERROR: {e}")
+
+    return response
+
 from pypdf import PdfReader, PdfWriter
 from PyPDF2 import PdfMerger
 from pypdf.generic import NameObject

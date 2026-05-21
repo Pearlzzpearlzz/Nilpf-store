@@ -57,7 +57,7 @@ button { padding: 10px 18px; font-weight: bold; }
 <input name="authorized_signature" value="{{ d.get('authorized_signature','') }}"><br><br>
 
 <label>Date:</label><br>
-<input name="date" value="{{ d.get('date','') }}"><br><br>
+<input name="date" value="{{ d.get('date', today) }}"><br><br>
 
 <button type="submit">Save / Review</button>
 </form>

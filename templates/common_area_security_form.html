@@ -30,16 +30,16 @@ button { padding: 10px 18px; font-weight: bold; }
 
 <h3>PARTICIPANT INFORMATION</h3>
 <label>Participant Name:</label><br>
-<input name="participant_name" value="{{ d.get('participant_name','') }}"><br><br>
+<input name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"><br><br>
 
 <label>Property Address:</label><br>
 <input name="property_address" value="{{ d.get('property_address','') }}"><br><br>
 
 <label>Participant Signature:</label><br>
-<input name="participant_signature" value="{{ d.get('participant_signature','') }}"><br><br>
+<input name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}"><br><br>
 
 <label>Date:</label><br>
-<input name="date" value="{{ d.get('date','') }}"><br><br>
+<input name="date" value="{{ d.get('date', today) }}"><br><br>
 
 <button type="submit">Save / Review</button>
 </form>

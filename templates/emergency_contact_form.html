@@ -69,7 +69,7 @@
 <h3>PARTICIPANT INFORMATION</h3>
 
 <label>Participant Name:</label>
-<input type="text" name="participant_name" value="{{ d.participant_name }}">
+<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
 
 <label>Address (if applicable):</label>
 <input type="text" name="address" value="{{ d.address }}">
@@ -112,7 +112,7 @@
 <input type="text" name="participant_signature" value="{{ d.participant_signature }}">
 
 <label>Date:</label>
-<input class="small-input" type="text" name="signature_date" value="{{ d.signature_date }}">
+<input class="small-input" type="text" name="signature_date" value="{{ d.get('signature_date', today) }}">
 
 <p><strong>End of Form</strong></p>
 
