@@ -4,4 +4,4 @@ reportlab
 PyMuPDF
 pypdf
 PyPDF2
-playwright
+playwright==1.60.0
