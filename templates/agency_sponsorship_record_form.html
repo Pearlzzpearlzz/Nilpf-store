@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Agency Sponsorship Record</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; background:#f5f5f5; color:#000; }
+.page { background:#fff; padding:30px; border:2px solid #111; max-width:950px; margin:auto; }
+h1,h2,h3 { text-align:center; margin-bottom:8px; }
+.section { border:1px solid #111; padding:15px; margin-top:18px; }
+label { display:block; font-weight:bold; margin-top:12px; }
+input, select, textarea { width:100%; padding:9px; margin-top:5px; font-size:15px; box-sizing:border-box; }
+textarea { min-height:80px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>AGENCY SPONSORSHIP RECORD</h1>
+<h2>Shared Admin Record / PID-Link Capable</h2>
+<p style="text-align:center;">NILPF Framework 2026</p>
+
+<p style="font-size:14px; line-height:1.5;">
+This administrative record documents the agency, sponsor, backing organization, payment-support connection, and program relationship tied to a participant or housing pathway.
+</p>
+
+<form method="POST" action="/agency-sponsorship-record/{{ id }}">
+<div class="section">
+<h3>1. Participant / PID Link</h3>
+
+<label>Participant Name</label>
+<input type="text" name="participant_name" value="{{ data.get('participant_name', participant.get('name', '')) }}">
+
+<label>Participant ID / PID</label>
+<input type="text" name="participant_pid" value="{{ data.get('participant_pid', participant.get('pid', '')) }}">
+
+<label>Housing Pathway / Program Type</label>
+<input type="text" name="housing_pathway" value="{{ data.get('housing_pathway', program_type) }}">
+
+<label>Record Applies To</label>
+<select name="record_applies_to">
+<option value="">Select one</option>
+<option value="Participant-specific">Participant-specific</option>
+<option value="Property-level">Property-level</option>
+<option value="Program-level">Program-level</option>
+<option value="Agency relationship">Agency relationship</option>
+</select>
+</div>
+<div class="section">
+<h3>2. Agency / Sponsor Identification</h3>
+
+<label>Agency / Sponsor Name</label>
+<input type="text" name="agency_sponsor_name" value="{{ data.get('agency_sponsor_name', '' ) }}">
+
+<label>Agency Type</label>
+<select name="agency_type">
+<option value="">Select one</option>
+<option value="Referral agency">Referral agency</option>
+<option value="Sponsoring agency">Sponsoring agency</option>
+<option value="Funding agency">Funding agency</option>
+<option value="Case management agency">Case management agency</option>
+<option value="Veteran service organization">Veteran service organization</option>
+<option value="Reentry / justice partner">Reentry / justice partner</option>
+<option value="Nonprofit partner">Nonprofit partner</option>
+<option value="Government agency">Government agency</option>
+<option value="Other">Other</option>
+</select>
+
+<label>Primary Contact Person</label>
+<input type="text" name="primary_contact_person" value="{{ data.get('primary_contact_person', '' ) }}">
+
+<label>Contact Title / Role</label>
+<input type="text" name="contact_title_role" value="{{ data.get('contact_title_role', '' ) }}">
+
+<label>Phone Number</label>
+<input type="text" name="agency_phone" value="{{ data.get('agency_phone', '' ) }}">
+
+<label>Email Address</label>
+<input type="email" name="agency_email" value="{{ data.get('agency_email', '' ) }}">
+
+<label>Mailing Address</label>
+<textarea name="agency_mailing_address">{{ data.get('agency_mailing_address', '' ) }}</textarea>
+</div>
+<div class="section">
+<h3>3. Sponsorship / Support Relationship</h3>
+
+<label>Type of Support Provided</label>
+<select name="support_type">
+<option value="">Select one</option>
+<option value="Referral only">Referral only</option>
+<option value="Payment support">Payment support</option>
+<option value="Case management support">Case management support</option>
+<option value="Program sponsorship">Program sponsorship</option>
+<option value="Housing placement support">Housing placement support</option>
+<option value="Documentation / eligibility support">Documentation / eligibility support</option>
+<option value="Other">Other</option>
+</select>
+
+<label>Describe the Support Relationship</label>
+<textarea name="support_relationship_description">{{ data.get('support_relationship_description', '' ) }}</textarea>
+
+<label>Is this agency responsible for payment, reimbursement, or funding communication?</label>
+<select name="payment_responsibility">
+<option value="">Select one</option>
+<option value="Yes">Yes</option>
+<option value="No">No</option>
+<option value="Partial / shared responsibility">Partial / shared responsibility</option>
+<option value="To be determined">To be determined</option>
+</select>
+</div>
+<div class="section">
+<h3>4. Program / Pathway Connection</h3>
+
+<label>Connected Program / Housing Pathway</label>
+<select name="connected_program_pathway">
+<option value="">Select one</option>
+<option value="Independent Living Housing">Independent Living Housing</option>
+<option value="Senior Shared Housing">Senior Shared Housing</option>
+<option value="Transitional Housing">Transitional Housing</option>
+<option value="Veteran-aligned Housing">Veteran-aligned Housing</option>
+<option value="Reentry Housing">Reentry Housing</option>
+<option value="PSH-style Housing">PSH-style Housing</option>
+<option value="Other">Other</option>
+</select>
+
+<label>Agency Relationship to Housing Pathway</label>
+<select name="agency_relationship_to_pathway">
+<option value="">Select one</option>
+<option value="Referral source">Referral source</option>
+<option value="Sponsor / backing entity">Sponsor / backing entity</option>
+<option value="Payment contact">Payment contact</option>
+<option value="Case management partner">Case management partner</option>
+<option value="Eligibility / documentation partner">Eligibility / documentation partner</option>
+<option value="Community coordination partner">Community coordination partner</option>
+<option value="Other">Other</option>
+</select>
+
+<label>Program Notes</label>
+<textarea name="program_notes">{{ data.get('program_notes', '' ) }}</textarea>
+</div>
+<div class="section">
+<h3>5. Payment / Funding Connection</h3>
+
+<label>Is there a payment or funding connection?</label>
+<select name="funding_connection">
+<option value="">Select one</option>
+<option value="Yes">Yes</option>
+<option value="No">No</option>
+<option value="Possible / pending confirmation">Possible / pending confirmation</option>
+<option value="Unknown at this time">Unknown at this time</option>
+</select>
+
+<label>Funding / Payment Source Name</label>
+<input type="text" name="funding_source_name" value="{{ data.get('funding_source_name', '' ) }}">
+
+<label>Payment Contact Person</label>
+<input type="text" name="payment_contact_person" value="{{ data.get('payment_contact_person', '' ) }}">
+
+<label>Payment Contact Email</label>
+<input type="email" name="payment_contact_email" value="{{ data.get('payment_contact_email', '' ) }}">
+
+<label>Funding / Payment Notes</label>
+<textarea name="funding_payment_notes">{{ data.get('funding_payment_notes', '' ) }}</textarea>
+</div>
+<div class="section">
+<h3>6. Documentation / Eligibility Support</h3>
+
+<label>Does this agency assist with eligibility documentation?</label>
+<select name="eligibility_documentation_support">
+<option value="">Select one</option>
+<option value="Yes">Yes</option>
+<option value="No">No</option>
+<option value="Sometimes">Sometimes</option>
+<option value="Unknown">Unknown</option>
+</select>
+
+<label>Documents or Eligibility Items Supported</label>
+<textarea name="eligibility_items_supported">{{ data.get('eligibility_items_supported', '' ) }}</textarea>
+
+<label>Verification Notes</label>
+<textarea name="verification_notes">{{ data.get('verification_notes', '' ) }}</textarea>
+</div>
+<div class="section">
+<h3>7. Communication / Follow-Up Tracking</h3>
+
+<label>Date of Last Contact</label>
+<input type="date" name="date_of_last_contact" value="{{ data.get('date_of_last_contact', '' ) }}">
+
+<label>Preferred Communication Method</label>
+<select name="preferred_communication_method">
+<option value="">Select one</option>
+<option value="Phone">Phone</option>
+<option value="Email">Email</option>
+<option value="Text">Text</option>
+<option value="In-person meeting">In-person meeting</option>
+<option value="Portal / system message">Portal / system message</option>
+<option value="Other">Other</option>
+</select>
+
+<label>Follow-Up Needed?</label>
+<select name="follow_up_needed">
+<option value="">Select one</option>
+<option value="Yes">Yes</option>
+<option value="No">No</option>
+<option value="Pending">Pending</option>
+</select>
+
+<label>Follow-Up Notes</label>
+<textarea name="follow_up_notes">{{ data.get('follow_up_notes', '' ) }}</textarea>
+</div>
+<div class="section">
+<h3>8. Administrative Notes / Status</h3>
+
+<label>Agency / Sponsor Status</label>
+<select name="agency_sponsor_status">
+<option value="">Select one</option>
+<option value="Active">Active</option>
+<option value="Pending confirmation">Pending confirmation</option>
+<option value="Inactive">Inactive</option>
+<option value="Do not use">Do not use</option>
+<option value="Needs review">Needs review</option>
+</select>
+
+<label>Internal Administrative Notes</label>
+<textarea name="internal_admin_notes">{{ data.get('internal_admin_notes', '' ) }}</textarea>
+
+<label>Staff Completing Record</label>
+<input type="text" name="staff_completing_record" value="{{ data.get('staff_completing_record', '' ) }}">
+
+<label>Date Completed / Updated</label>
+<input type="date" name="date_completed_updated" value="{{ data.get('date_completed_updated', '' ) }}">
+</div>
+<div style="margin-top:25px; display:flex; gap:12px; justify-content:center;">
+<button type="submit" style="padding:12px 20px; font-size:16px;">Save / Review</button>
+</div>
+
+</form>
+</div>
+</body>
+</html>

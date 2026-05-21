@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>No Services / No Supervision Acknowledgement</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f4f4f4; padding:30px; }
+.page { background:white; padding:40px; margin:0 auto 30px auto; max-width:850px; min-height:900px; border:1px solid #ccc; box-shadow:0 0 8px #999; }
+h1, h2 { text-align:center; }
+p, li, label { font-size:18px; line-height:1.6; }
+.field { margin-top:20px; }
+input[type="text"], input[type="date"] { width:100%; padding:10px; font-size:18px; }
+button { padding:14px 24px; font-size:18px; font-weight:bold; }
+.center { text-align:center; }
+</style>
+</head>
+<body>
+
+<form method="POST" action="/no-services-supervision/{{ id }}">
+
+<div class="page">
+<h1>02 – No Services / No Supervision Acknowledgement</h1>
+<h2>Independent Living Housing | Universal Use</h2>
+
+<h2>PURPOSE OF THIS ACKNOWLEDGEMENT</h2>
+<p>This document confirms the participant’s understanding that the Independent Living housing model is housing-only and does not include services, supervision, or care of any kind.</p>
+<p>This acknowledgement applies universally and is not specific to any state or jurisdiction.</p>
+
+<h2>NO SERVICES PROVIDED</h2>
+<p>The Independent Living Program Owner and/or Housing Provider does not provide, arrange, coordinate, or oversee any of the following:</p>
+<ul>
+<li>Medical services</li>
+<li>Behavioral health services</li>
+<li>Mental health services</li>
+<li>Substance use treatment or recovery services</li>
+<li>Personal care or assistance</li>
+<li>Case management or support services</li>
+</ul>
+</div>
+
+<div class="page">
+<ul>
+<li>Transportation, medication management, or daily living assistance</li>
+</ul>
+<p>Any services an individual may choose to obtain are arranged independently and are not affiliated with the housing provider.</p>
+
+<h2>NO SUPERVISION OR MONITORING</h2>
+<p>The housing provider does not:</p>
+<ul>
+<li>Supervise residents or participants</li>
+<li>Monitor behavior, activities, or compliance</li>
+<li>Enforce treatment plans or recovery programs</li>
+<li>Assign duties or manage daily schedules</li>
+<li>Intervene in personal or interpersonal matters</li>
+</ul>
+<p>Participants are responsible for managing their own conduct and decisions as independent adults.</p>
+
+<h2>NOT A CARE OR TREATMENT SETTING</h2>
+<p>This Independent Living housing arrangement is not:</p>
+<ul>
+<li>A treatment facility</li>
+<li>A recovery or rehabilitation program</li>
+</ul>
+</div>
+
+<div class="page">
+<ul>
+<li>A group home or supervised living environment</li>
+<li>A licensed service provider</li>
+<li>An institutional or clinical setting</li>
+</ul>
+
+<p>Participation does not constitute enrollment in any care, treatment, or service program.</p>
+
+<h2>PERSONAL RESPONSIBILITY</h2>
+<p>Each participant acknowledges that they:</p>
+<ul>
+<li>Are responsible for their own personal, medical, and daily living needs</li>
+<li>Must arrange any desired services independently</li>
+<li>Are not relying on the housing provider for care, supervision, or assistance</li>
+</ul>
+
+<p>The housing provider assumes no responsibility for individual outcomes or personal circumstances.</p>
+
+<h2>ACKNOWLEDGEMENT</h2>
+<p>By signing associated documentation, the participant acknowledges and agrees that:</p>
+<ul>
+<li>No services or supervision are provided</li>
+<li>The housing arrangement is independent and voluntary</li>
+</ul>
+</div>
+
+<div class="page">
+<ul>
+<li>The housing provider does not assume a caregiving or supervisory role</li>
+</ul>
+
+<div class="field">
+<label><input type="checkbox" name="acknowledge_no_services" value="yes" {% if d.get('acknowledge_no_services') == 'yes' %}checked{% endif %}> I acknowledge that no services or supervision are provided.</label>
+</div>
+
+<div class="field">
+<label>Participant Name</label>
+<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}">
+</div>
+
+<div class="field">
+<label>Participant Signature</label>
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature','') }}">
+</div>
+
+<div class="field">
+<label>Date</label>
+<input type="date" name="signature_date" value="{{ d.get('signature_date','') }}">
+</div>
+
+<h2>End of Acknowledgement</h2>
+</div>
+
+<div class="center">
+<button type="submit">Save</button>
+</div>
+
+</form>
+
+</body>
+</html>

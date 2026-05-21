@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fire Safety - Review</title>
+</head>
+<body>
+
+{% set review_mode = True %}
+{% include "fire_safety_form.html" %}
+
+<hr>
+
+<div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
+
+{% if locked %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+<p><a href="/emergency-contact/{{ id }}">Continue to Next Form</a></p>
+
+{% else %}
+<p><a href="/fire-safety-unlock/{{ id }}">Edit</a></p>
+
+<form method="POST" action="/fire-safety-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+</body>
+</html>

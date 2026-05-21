@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Master Lease Agreement - Transitional Housing Program</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 30px auto;
+            line-height: 1.55;
+            font-size: 16px;
+        }
+        h1, h2, h3 {
+            text-align: center;
+        }
+        h1 {
+            font-size: 26px;
+            margin-bottom: 5px;
+        }
+        h2 {
+            font-size: 20px;
+            margin: 5px 0;
+        }
+        h3 {
+            font-size: 17px;
+            margin: 4px 0 25px 0;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 26px;
+            text-transform: uppercase;
+        }
+        input[type=text], input[type=date], input[type=number] {
+            border: none;
+            border-bottom: 1px solid #000;
+            padding: 4px;
+            font-size: 16px;
+            min-width: 260px;
+        }
+        .short {
+            min-width: 90px;
+        }
+        .money {
+            min-width: 120px;
+        }
+        .line {
+            margin: 10px 0;
+        }
+        ul {
+            margin-top: 6px;
+        }
+        .checkbox-line {
+            margin: 8px 0;
+        }
+        .signature-block {
+            margin-top: 25px;
+        }
+        .footer {
+            margin-top: 35px;
+            text-align: center;
+            font-size: 14px;
+        }
+        button {
+            margin-top: 30px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        a {
+            display: inline-block;
+            margin-top: 25px;
+        }
+    
+.footer-watermark{
+    position:fixed;
+    bottom:8px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    opacity:0.65;
+    pointer-events:none;
+}
+
+</style>
+</head>
+<body>
+
+<h1>MASTER LEASE AGREEMENT</h1>
+<h2>Transitional Housing Program</h2>
+<h2>(Reentry, VA &amp; Program-Aligned)</h2>
+<h2>GPD-Aligned Edition</h2>
+<h3>NILPF Framework (2026)</h3>
+
+<form method="POST" action="/master-lease-transitional/{{ id }}">
+
+<p class="section-title">1. PARTIES</p>
+<p>This Master Lease Agreement (“Agreement”) is entered into between:</p>
+
+<div class="line"><strong>Property Owner (LLC):</strong>
+<input type="text" name="property_owner_llc" value="{{ d.get('property_owner_llc', '') }}">
+</div>
+
+<div class="line"><strong>Address:</strong>
+<input type="text" name="owner_address" value="{{ d.get('owner_address', '') }}">
+</div>
+
+<p><strong>AND</strong></p>
+
+<div class="line"><strong>Program Operator (Nonprofit 501(c)(3)):</strong>
+<input type="text" name="program_operator_nonprofit" value="{{ d.get('program_operator_nonprofit', '') }}">
+</div>
+
+<div class="line"><strong>Address:</strong>
+<input type="text" name="operator_address" value="{{ d.get('operator_address', '') }}">
+</div>
+
+<p class="section-title">2. PURPOSE</p>
+<p>Owner leases the Property to Operator for use as a transitional housing program designed to support individuals returning to the community and working toward independent living.</p>
+<p>This Agreement governs the real property relationship only.</p>
+<p>This Agreement is executed pursuant to the authority granted by the Organization’s Board Resolution.</p>
+<p>Participant occupancy, program structure, and operations shall be managed solely by the Operator under separate agreements.</p>
+
+<p class="section-title">3. PROPERTY</p>
+<p>The Property subject to this Agreement is located at:</p>
+<div class="line"><strong>Address:</strong>
+<input type="text" name="property_address" value="{{ d.get('property_address', '') }}">
+</div>
+<p>The Property is a residential dwelling intended for shared occupancy.</p>
+
+<p class="section-title">4. TERM</p>
+<div class="line">Lease Start Date:
+<input type="text" name="lease_start_date" value="{{ d.get('lease_start_date', '') }}">
+</div>
+<div class="line">Lease End Date:
+<input type="text" name="lease_end_date" value="{{ d.get('lease_end_date', '') }}">
+</div>
+
+<div class="checkbox-line">
+<input type="checkbox" name="month_to_month" value="yes" {% if d.get('month_to_month') == "yes" %}checked{% endif %}>
+Month-to-Month after initial term
+</div>
+
+<div class="checkbox-line">
+<input type="checkbox" name="renewal_terms_checked" value="yes" {% if d.get('renewal_terms_checked') == "yes" %}checked{% endif %}>
+Renewal terms:
+<input type="text" name="renewal_terms" value="{{ d.get('renewal_terms', '') }}">
+</div>
+
+<p class="section-title">5. RENT</p>
+<div class="line">Monthly Rent: $
+<input class="money" type="text" name="monthly_rent" value="{{ d.get('monthly_rent', '') }}">
+</div>
+<div class="line">Due Date:
+<input class="short" type="text" name="rent_due_day" value="{{ d.get('rent_due_day', '') }}"> day of each month
+</div>
+
+<p>Rent:</p>
+<ul>
+<li>Reflects fair market rental value</li>
+<li>Is fixed and not based on number of occupants</li>
+<li>Is not tied to funding, grants, or program income</li>
+</ul>
+
+<p class="section-title">6. SECURITY DEPOSIT (OPTIONAL)</p>
+<div class="line">Security Deposit: $
+<input class="money" type="text" name="security_deposit" value="{{ d.get('security_deposit', '') }}">
+</div>
+<p>To be held and returned in accordance with applicable law.</p>
+
+<p class="section-title">7. USE OF PROPERTY</p>
+<p>Operator shall use the Property exclusively for:</p>
+<ul>
+<li>Transitional housing</li>
+<li>Independent living housing</li>
+</ul>
+
+<p>The Property shall not be used for:</p>
+<ul>
+<li>Medical care</li>
+<li>Assisted living</li>
+<li>Residential treatment</li>
+<li>Custodial or supervised care</li>
+</ul>
+
+<p class="section-title">8. OCCUPANCY STRUCTURE</p>
+<p>Operator may implement a shared housing model within the Property. Operator shall:</p>
+<ul>
+<li>Determine sleeping arrangements</li>
+<li>Manage all occupancy, program structure, and operational responsibilities under separate program agreements</li>
+<li>Ensure compliance with local occupancy limits</li>
+</ul>
+
+<p>Owner:</p>
+<ul>
+<li>Has no role in program placement decisions</li>
+<li>Has no involvement in daily operations</li>
+<li>Does not supervise or manage occupants</li>
+</ul>
+
+<p class="section-title">9. EXCLUSIVE POSSESSION</p>
+<p>Operator is granted exclusive possession of the Property during the lease term. Owner retains no control over:</p>
+<ul>
+<li>Program operations</li>
+<li>Participant agreements</li>
+<li>Day-to-day management</li>
+</ul>
+
+<p class="section-title">10. MAINTENANCE AND REPAIRS</p>
+<p><strong>Operator Responsibilities:</strong></p>
+<ul>
+<li>Routine maintenance</li>
+<li>Interior upkeep</li>
+<li>Cleanliness and minor repairs</li>
+</ul>
+
+<p><strong>Owner Responsibilities:</strong></p>
+<ul>
+<li>Structural components</li>
+<li>Roof</li>
+<li>Foundation</li>
+<li>Major systems (HVAC, plumbing, electrical)</li>
+</ul>
+
+<p class="section-title">11. UTILITIES</p>
+<p>Utilities shall be paid by:</p>
+<div class="checkbox-line"><input type="checkbox" name="utilities_operator" value="yes" {% if d.get('utilities_operator') == "yes" %}checked{% endif %}> Operator</div>
+<div class="checkbox-line"><input type="checkbox" name="utilities_owner" value="yes" {% if d.get('utilities_owner') == "yes" %}checked{% endif %}> Owner</div>
+<div class="checkbox-line"><input type="checkbox" name="utilities_split_checked" value="yes" {% if d.get('utilities_split_checked') == "yes" %}checked{% endif %}> Split as follows:
+<input type="text" name="utilities_split" value="{{ d.get('utilities_split', '') }}">
+</div>
+
+<p class="section-title">12. INSURANCE</p>
+<p>Operator shall maintain general liability insurance and list Owner as:</p>
+<div class="checkbox-line"><input type="checkbox" name="additional_insured" value="yes" {% if d.get('additional_insured') == "yes" %}checked{% endif %}> Additional Insured</div>
+<div class="checkbox-line"><input type="checkbox" name="additional_interest" value="yes" {% if d.get('additional_interest') == "yes" %}checked{% endif %}> Additional Interest</div>
+<p>Owner shall maintain hazard insurance on the Property.</p>
+
+<p class="section-title">13. LIABILITY</p>
+<p>Each party is responsible for its own acts and omissions. Owner is not responsible for:</p>
+<ul>
+<li>Program activities</li>
+<li>Participant conduct</li>
+<li>Operational decisions</li>
+</ul>
+<p>All occupancy, program structure, and operational responsibilities are managed solely by the Operator under separate program agreements.</p>
+
+<p class="section-title">14. REGULATORY COMPLIANCE</p>
+<p>Operator shall be solely responsible for:</p>
+<ul>
+<li>Program compliance</li>
+<li>Licensing requirements (if applicable)</li>
+<li>Adherence to all applicable laws and regulations</li>
+</ul>
+<p>Nothing in this Agreement authorizes unlawful use of the Property.</p>
+
+<p class="section-title">15. INDEPENDENT ENTITIES</p>
+<p>The parties are independent entities.</p>
+<p>This Agreement does not create:</p>
+<ul>
+<li>Partnership</li>
+<li>Joint venture</li>
+<li>Agency relationship</li>
+</ul>
+
+<p class="section-title">16. INDEMNIFICATION</p>
+<p>Operator agrees to indemnify and hold harmless Owner from claims arising from program operations, except where caused by Owner’s gross negligence or willful misconduct.</p>
+
+<p class="section-title">17. ACCESS</p>
+<p>Owner may enter the Property with
+<input class="short" type="text" name="owner_access_hours" value="{{ d.get('owner_access_hours', '') }}">
+hours’ notice for inspection or repair. Immediate entry is permitted in emergencies.</p>
+
+<p class="section-title">18. TERMINATION</p>
+<p>Either party may terminate this Agreement with
+<input class="short" type="text" name="termination_notice_days" value="{{ d.get('termination_notice_days', '') }}">
+days written notice.</p>
+
+<p class="section-title">19. ENTIRE AGREEMENT</p>
+<p>This Agreement represents the full understanding between the parties. If any provision is found unenforceable, the remainder shall remain in effect.</p>
+
+<p class="section-title">20. SIGNATURES</p>
+
+<div class="signature-block">
+<p><strong>PROPERTY OWNER (LLC):</strong></p>
+<div class="line">Name:
+<input type="text" name="owner_signer_name" value="{{ d.get('owner_signer_name', '') }}">
+</div>
+<div class="line">Signature:
+<input type="text" name="owner_signature" value="{{ d.get('owner_signature', '') }}">
+</div>
+<div class="line">Date:
+<input type="text" name="owner_signature_date" value="{{ d.get('owner_signature_date', '') }}">
+</div>
+</div>
+
+<div class="signature-block">
+<p><strong>PROGRAM OPERATOR (NONPROFIT):</strong></p>
+<div class="line">Name:
+<input type="text" name="operator_signer_name" value="{{ d.get('operator_signer_name', '') }}">
+</div>
+<div class="line">Signature:
+<input type="text" name="operator_signature" value="{{ d.get('operator_signature', '') }}">
+</div>
+<div class="line">Date:
+<input type="text" name="operator_signature_date" value="{{ d.get('operator_signature_date', '') }}">
+</div>
+</div>
+
+<p><em>“This document supersedes all prior versions.”</em></p>
+
+<div class="footer">
+<p>© 2026 Pearlzz LLC – NILPF Framework</p>
+</div>
+
+<button type="submit">Save</button>
+
+</form>
+
+<br>
+<a href="/packet-builder/{{ id }}">Back to Packet Builder</a>
+
+
+
+
+<div class="footer-watermark">
+© Pearlzz LLC 2026 • Transitional Housing Program Documents • All Rights Reserved
+</div>
+
+</body>
+</html>

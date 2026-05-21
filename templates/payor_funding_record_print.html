@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payor / Funding Responsibility Record</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background:#fff; color:#000; }
+    h1, h2 { text-align:center; }
+    .section { border:1px solid #000; padding:18px; margin:18px 0; }
+    label { display:block; margin-top:12px; font-weight:bold; }
+    input, select, textarea { width:100%; padding:10px; margin-top:5px; font-size:16px; }
+    textarea { min-height:80px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .buttons { margin-top:24px; display:flex; gap:12px; }
+    button, a.button { padding:12px 18px; background:#D4AF37; color:#000; border:0; text-decoration:none; font-weight:bold; cursor:pointer; }
+  @media print { .buttons { display:none; } body { background:#fff; } }
+</style>
+</head>
+<body>
+
+<h1>Payor / Funding Responsibility Record</h1>
+<h2>NILPF Universal Housing Billing Record</h2>
+
+
+  <div class="section">
+    <h3>Participant Information</h3>
+
+    <label>Participant Name</label>
+    <input name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}">
+
+    <label>Program / Housing Type</label>
+    <input name="program_type" value="{{ d.get('program_type', participant.get('program_type','')) }}">
+
+    <label>Participant ID</label>
+    <input name="participant_id" value="{{ d.get('participant_id', id) }}">
+  </div>
+
+  <div class="section">
+    <h3>Payor Type</h3>
+
+    <label>Payor Type</label>
+    <select name="payor_type">
+      {% set payor_type = d.get('payor_type','') %}
+      <option value="">Choose Payor Type</option>
+      <option value="Self Pay" {% if payor_type == 'Self Pay' %}selected{% endif %}>Self Pay</option>
+      <option value="Family Payor" {% if payor_type == 'Family Payor' %}selected{% endif %}>Family Payor</option>
+      <option value="County Agency" {% if payor_type == 'County Agency' %}selected{% endif %}>County Agency</option>
+      <option value="Reentry Agency" {% if payor_type == 'Reentry Agency' %}selected{% endif %}>Reentry Agency</option>
+      <option value="VA Related Payor" {% if payor_type == 'VA Related Payor' %}selected{% endif %}>VA Related Payor</option>
+      <option value="DOC Related Payor" {% if payor_type == 'DOC Related Payor' %}selected{% endif %}>DOC Related Payor</option>
+      <option value="Organization / Subsidy Program" {% if payor_type == 'Organization / Subsidy Program' %}selected{% endif %}>Organization / Subsidy Program</option>
+      <option value="Nonprofit Sponsor" {% if payor_type == 'Nonprofit Sponsor' %}selected{% endif %}>Nonprofit Sponsor</option>
+      <option value="Grant Funded Source" {% if payor_type == 'Grant Funded Source' %}selected{% endif %}>Grant Funded Source</option>
+      <option value="Private Organization" {% if payor_type == 'Private Organization' %}selected{% endif %}>Private Organization</option>
+      <option value="Other Third Party Payor" {% if payor_type == 'Other Third Party Payor' %}selected{% endif %}>Other Third Party Payor</option>
+      <option value="Split Payment" {% if payor_type == 'Split Payment' %}selected{% endif %}>Split Payment</option>
+    </select>
+
+    <label>Payor / Organization Name</label>
+    <input name="payor_name" value="{{ d.get('payor_name','') }}">
+
+    <label>Funding Authorization Number / Contract Number</label>
+    <input name="authorization_number" value="{{ d.get('authorization_number','') }}">
+  </div>
+
+  <div class="section">
+    <h3>Billing Contact</h3>
+
+    <div class="row">
+      <div>
+        <label>Billing Contact Name</label>
+        <input name="billing_contact_name" value="{{ d.get('billing_contact_name','') }}">
+      </div>
+      <div>
+        <label>Billing Contact Title</label>
+        <input name="billing_contact_title" value="{{ d.get('billing_contact_title','') }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Billing Phone</label>
+        <input name="billing_phone" value="{{ d.get('billing_phone','') }}">
+      </div>
+      <div>
+        <label>Billing Email</label>
+        <input name="billing_email" value="{{ d.get('billing_email','') }}">
+      </div>
+    </div>
+
+    <label>Billing Address</label>
+    <textarea name="billing_address">{{ d.get('billing_address','') }}</textarea>
+  </div>
+
+  <div class="section">
+    <h3>Payment Responsibility</h3>
+
+    <label>Responsible Party for Payment</label>
+    <input name="responsible_party" value="{{ d.get('responsible_party','') }}">
+
+    <label>Payment Model</label>
+    <select name="payment_model">
+      {% set payment_model = d.get('payment_model','') %}
+      <option value="">Choose Payment Model</option>
+      <option value="Monthly Fixed" {% if payment_model == 'Monthly Fixed' %}selected{% endif %}>Monthly Fixed</option>
+      <option value="Rolling 30 Day" {% if payment_model == 'Rolling 30 Day' %}selected{% endif %}>Rolling 30 Day</option>
+      <option value="Authorization Period" {% if payment_model == 'Authorization Period' %}selected{% endif %}>Authorization Period</option>
+      <option value="Subsidy / Voucher Style" {% if payment_model == 'Subsidy / Voucher Style' %}selected{% endif %}>Subsidy / Voucher Style</option>
+      <option value="Split Payment" {% if payment_model == 'Split Payment' %}selected{% endif %}>Split Payment</option>
+      <option value="Other" {% if payment_model == 'Other' %}selected{% endif %}>Other</option>
+    </select>
+
+    <label>Payment Frequency</label>
+    <select name="payment_frequency">
+      {% set payment_frequency = d.get('payment_frequency','') %}
+      <option value="">Choose Frequency</option>
+      <option value="Weekly" {% if payment_frequency == 'Weekly' %}selected{% endif %}>Weekly</option>
+      <option value="Biweekly" {% if payment_frequency == 'Biweekly' %}selected{% endif %}>Biweekly</option>
+      <option value="Monthly" {% if payment_frequency == 'Monthly' %}selected{% endif %}>Monthly</option>
+      <option value="Per Placement" {% if payment_frequency == 'Per Placement' %}selected{% endif %}>Per Placement</option>
+      <option value="Per Authorized Period" {% if payment_frequency == 'Per Authorized Period' %}selected{% endif %}>Per Authorized Period</option>
+      <option value="Other" {% if payment_frequency == 'Other' %}selected{% endif %}>Other</option>
+    </select>
+
+    <label>Approved Rate / Total Housing Amount</label>
+    <input name="approved_rate" value="{{ d.get('approved_rate','') }}">
+
+    <label>Organization / Subsidy Portion</label>
+    <input name="organization_portion" value="{{ d.get('organization_portion','') }}">
+
+    <label>Participant Portion</label>
+    <input name="participant_portion" value="{{ d.get('participant_portion','') }}">
+
+    <label>Other Payor Portion</label>
+    <input name="other_payor_portion" value="{{ d.get('other_payor_portion','') }}">
+
+    <label>Payment Terms / Notes</label>
+    <textarea name="payment_terms">{{ d.get('payment_terms','') }}</textarea>
+  </div>
+
+  <div class="section">
+    <h3>Authorization / Review Dates</h3>
+
+    <div class="row">
+      <div>
+        <label>Program Entry Date</label>
+        <input type="date" name="program_entry_date" value="{{ d.get('program_entry_date','') }}">
+      </div>
+      <div>
+        <label>Billing Start Date</label>
+        <input type="date" name="billing_start_date" value="{{ d.get('billing_start_date','') }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Authorization Start Date</label>
+        <input type="date" name="authorization_start_date" value="{{ d.get('authorization_start_date','') }}">
+      </div>
+      <div>
+        <label>Authorization End Date</label>
+        <input type="date" name="authorization_end_date" value="{{ d.get('authorization_end_date','') }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Regular Due Day</label>
+        <input name="regular_due_day" placeholder="Example: 1st of each month" value="{{ d.get('regular_due_day','') }}">
+      </div>
+      <div>
+        <label>Recertification / Review Date</label>
+        <input type="date" name="recertification_review_date" value="{{ d.get('recertification_review_date','') }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Internal Review</h3>
+
+    <label>Reviewed By</label>
+    <input name="reviewed_by" value="{{ d.get('reviewed_by','') }}">
+
+    <label>Review Date</label>
+    <input type="date" name="review_date" value="{{ d.get('review_date','') }}">
+
+    <label>Funding Status</label>
+    <select name="funding_status">
+      {% set funding_status = d.get('funding_status','') %}
+      <option value="">Choose Status</option>
+      <option value="Pending" {% if funding_status == 'Pending' %}selected{% endif %}>Pending</option>
+      <option value="Approved" {% if funding_status == 'Approved' %}selected{% endif %}>Approved</option>
+      <option value="Denied" {% if funding_status == 'Denied' %}selected{% endif %}>Denied</option>
+      <option value="More Information Needed" {% if funding_status == 'More Information Needed' %}selected{% endif %}>More Information Needed</option>
+      <option value="Active Billing" {% if funding_status == 'Active Billing' %}selected{% endif %}>Active Billing</option>
+      <option value="Closed" {% if funding_status == 'Closed' %}selected{% endif %}>Closed</option>
+    </select>
+  </div>
+
+  <div class="buttons">
+  <button type="button" onclick="window.print()">Print This Form</button>
+  <form method="POST" action="/payor-funding-record-final/{{ id }}" style="display:inline;">
+    <button type="submit">Next Form</button>
+  </form>
+</div>
+
+</body>
+</html>

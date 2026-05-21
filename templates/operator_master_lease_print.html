@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+@media print { .buttons { display:none; } body { background:#fff; } }
+</style>
+    <title>Master Lease Review</title>
+    <style>
+        body { background:#111; color:#111; font-family: Georgia, serif; padding:30px; }
+        .page { background:white; max-width:850px; margin:auto; padding:55px; border:4px solid #c9a227; }
+        h1 { text-align:center; font-size:26px; margin-bottom:5px; }
+        h2 { text-align:center; font-size:16px; margin-top:0; }
+        .line { border-bottom:1px solid #111; min-height:28px; padding:5px; margin-bottom:12px; }
+        .label { font-weight:bold; margin-top:16px; }
+        .actions { margin-top:30px; display:flex; gap:12px; }
+        button, a { padding:12px 18px; background:#c9a227; color:#111; border:none; text-decoration:none; font-weight:bold; }
+        .locked { color:#8b0000; font-weight:bold; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <h1>MASTER LEASE AGREEMENT</h1>
+    <h2>Operator / Property Use Document</h2>
+
+    {% if locked %}
+        <p class="locked">LOCKED FINAL DOCUMENT</p>
+    {% endif %}
+
+    <div class="label">Effective Date</div><div class="line">{{ d.get('effective_date','') }}</div>
+    <div class="label">Property Owner / LLC Name</div><div class="line">{{ d.get('owner_llc','') }}</div>
+    <div class="label">Program Operator / Nonprofit Name</div><div class="line">{{ d.get('operator_nonprofit','') }}</div>
+    <div class="label">Property Address</div><div class="line">{{ d.get('property_address','') }}</div>
+    <div class="label">Lease Term</div><div class="line">{{ d.get('lease_term','') }}</div>
+    <div class="label">Monthly Lease Amount</div><div class="line">{{ d.get('monthly_amount','') }}</div>
+    <div class="label">Security Deposit / Required Reserve</div><div class="line">{{ d.get('deposit','') }}</div>
+    <div class="label">Approved Program Use</div><div class="line">{{ d.get('approved_use','') }}</div>
+    <div class="label">Special Terms</div><div class="line">{{ d.get('special_terms','') }}</div>
+    <div class="label">Owner / LLC Authorized Representative</div><div class="line">{{ d.get('owner_rep','') }}</div>
+    <div class="label">Operator / Nonprofit Authorized Representative</div><div class="line">{{ d.get('operator_rep','') }}</div>
+
+    <div class="actions">
+        {% if not locked %}
+            <a href="/operator/master-lease">Edit</a>
+            <form method="POST" action="/operator/master-lease/lock">
+                <button type="submit">Finalize / Lock</button>
+            </form>
+        {% endif %}
+        <a href="/operations">Back to Operations</a>
+    </div>
+</div>
+
+<form method="POST" action="/operator-master-lease-final/{{ id }}">
+<button type="submit">Lock</button>
+</form>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+<div class="buttons">
+  <button type="button" onclick="window.print()">Print This Form</button>
+  <form method="POST" action="/operator-master-lease-final/{{ id }}" style="display:inline;">
+    <button type="submit">Next Property Paper</button>
+  </form>
+</div>
+</body>
+</html>
+
+
+<hr>
+

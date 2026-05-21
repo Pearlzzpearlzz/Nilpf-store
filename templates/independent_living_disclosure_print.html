@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+</style>
+    <title>Independent Living Disclosure Review</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f4f4f4; padding:30px; }
+        .page { background:white; padding:40px; margin:0 auto 30px auto; max-width:850px; min-height:900px; border:1px solid #ccc; box-shadow:0 0 8px #999; }
+        h1, h2 { text-align:center; }
+        p, li { font-size:18px; line-height:1.6; }
+        .actions { text-align:center; margin:30px; }
+        button, a { padding:14px 24px; font-size:18px; font-weight:bold; display:inline-block; margin:10px; }
+    </style>
+</head>
+<body>
+
+{% if locked %}
+{% if locked %}<h1>FINAL LOCKED DOCUMENT</h1>{% endif %}
+<p style="text-align:center;">This document is locked and cannot be edited.</p>
+{% endif %}
+
+<div class="page">
+<h1>01 – Independent Living Program Disclosure</h1>
+<h2>Version 2.1 — Revised February 2026</h2>
+<h2>Housing-Only Model | Universal Use</h2>
+
+<h2>PURPOSE OF THIS DISCLOSURE</h2>
+<p>This document provides a clear explanation of the nature and scope of the Independent Living housing model. It is intended to ensure informed participation and to establish boundaries between housing access and services.</p>
+<p>This disclosure applies universally and is not specific to any state or jurisdiction.</p>
+
+<h2>NATURE OF THE INDEPENDENT LIVING MODEL</h2>
+<p>The Independent Living model is a housing-only arrangement that provides shared living access to adults who manage their own daily lives.</p>
+<p>Participation in this model does not include services, care, supervision, treatment, or programmatic oversight.</p>
+
+<h2>NO SERVICES / NO SUPERVISION</h2>
+<p>The Independent Living Program Owner and/or Housing Provider:</p>
+<ul>
+<li>Does not provide medical, behavioral, clinical, or therapeutic services</li>
+</ul>
+</div>
+
+<div class="page">
+<ul>
+<li>Does not provide personal care, assistance, or supervision</li>
+<li>Does not manage daily schedules, medications, finances, or activities</li>
+<li>Does not assign duties, enforce treatment plans, or monitor behavior</li>
+<li>Does not act as a caregiver, case manager, sponsor, or provider</li>
+</ul>
+
+<p>All participants are responsible for their own needs, decisions, and arrangements.</p>
+
+<h2>NOT A CARE, TREATMENT, OR PLACEMENT PROGRAM</h2>
+<ul>
+<li>A treatment program</li>
+<li>A recovery or rehabilitation program</li>
+<li>A group home, facility, or institution</li>
+<li>A placement or referral service</li>
+<li>A licensed service provider</li>
+</ul>
+
+<p>Participation does not constitute enrollment in any program of care or services.</p>
+
+<h2>VOLUNTARY PARTICIPATION</h2>
+<p>Participation in Independent Living housing is voluntary.</p>
+</div>
+
+<div class="page">
+<p>Individuals choose to participate based on their own assessment of suitability and compatibility with a shared living environment. No guarantees of outcomes, success, or duration are made or implied.</p>
+
+<h2>PERSONAL RESPONSIBILITY</h2>
+<ul>
+<li>Manage their own personal, medical, financial, and daily living needs</li>
+<li>Arrange their own services, supports, or assistance if desired</li>
+<li>Comply with applicable laws and shared housing standards</li>
+</ul>
+
+<p>The housing provider does not assume responsibility for personal outcomes or individual circumstances.</p>
+
+<h2>NO LEGAL OR PROFESSIONAL ADVICE</h2>
+<p>This disclosure is informational only and does not constitute legal, medical, or professional advice.</p>
+
+<h2>ACKNOWLEDGEMENT</h2>
+<p>By reviewing and signing associated documentation, the participant acknowledges understanding of:</p>
+<ul>
+<li>The housing-only nature of the Independent Living model</li>
+</ul>
+</div>
+
+<div class="page">
+<ul>
+<li>The absence of services, care, or supervision</li>
+<li>Their personal responsibility for independent living decisions</li>
+</ul>
+
+<h2>End of Disclosure</h2>
+
+<p><b>Acknowledged:</b> {{ "Yes" if d.get("acknowledge_disclosure") == "yes" else "No" }}</p>
+<p><b>Participant Name:</b> {{ d.get("participant_name","") }}</p>
+<p><b>Participant Signature:</b> {{ d.get("participant_signature","") }}</p>
+<p><b>Date:</b> {{ d.get("signature_date","") }}</p>
+
+<p style="margin-top:80px;">© 2026 Pearlzz LLC. All Rights Reserved Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
+</div>
+
+<div class="page">
+<h2>Page 5</h2>
+<p>This page is intentionally blank.</p>
+</div>
+
+<div class="actions">
+{% if not locked %}
+<a href="/independent-living-disclosure/{{ id }}">Correct Independent Living Disclosure</a>
+
+{% endif %}
+
+</div>
+
+
+
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+<hr>
+{% if not locked %}
+<a href="/independent-living-disclosure-unlock/{{ id }}">Edit / Unlock</a>
+<br><br>
+<form method="POST" action="/independent-living-disclosure-final/{{ id }}">
+<button type="submit">Finalize and Lock</button>
+</form>
+{% else %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+{% endif %}
+
+
+
+</body>
+</html>

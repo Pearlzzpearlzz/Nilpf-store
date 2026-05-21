@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Security Camera Disclosure - Review</title>
+<style>
+body { font-family: Arial; max-width: 850px; margin: 30px auto; line-height: 1.45; }
+h2 { margin-bottom: 5px; }
+h3 { margin-top: 24px; }
+.line { border-bottom: 1px solid #000; display: inline-block; min-width: 360px; padding-left: 8px; }
+.small-line { border-bottom: 1px solid #000; display: inline-block; min-width: 180px; padding-left: 8px; }
+.footer { margin-top: 35px; font-size: 14px; }
+.review-actions { margin-top:25px; padding-top:15px; border-top:2px solid #ccc; }
+button { padding:10px 18px; font-size:16px; cursor:pointer; }
+a { display:inline-block; margin:8px 0; }
+.locked-banner { font-weight:bold; padding:12px; border:2px solid #111; background:#eee; margin-top:20px; }
+</style>
+</head>
+<body>
+
+<h2>COMMON AREA SECURITY CAMERA DISCLOSURE</h2>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<p>Security cameras may be present in designated common areas of the property for general safety and property protection purposes.</p>
+
+<h3>Cameras are NOT installed in:</h3>
+<p>● Bedrooms</p>
+<p>● Bathrooms</p>
+<p>● Private sleeping areas</p>
+<p>● Any space designated as private personal use</p>
+
+<h3>Camera use is limited to:</h3>
+<p>● General safety review</p>
+<p>● Incident documentation</p>
+<p>● Property protection</p>
+
+<p>Cameras are not used for behavioral supervision, programmatic oversight, or individualized monitoring.</p>
+
+<p>By signing below, the Participant acknowledges awareness of the presence of security cameras in designated common areas.</p>
+
+<h3>ACKNOWLEDGEMENT</h3>
+
+<p><strong>Participant Name:</strong> <span class="line">{{ d.participant_name }}</span></p>
+<p><strong>Participant Signature:</strong> <span class="line">{{ d.participant_signature }}</span></p>
+<p><strong>Date:</strong> <span class="small-line">{{ d.signature_date }}</span></p>
+<p><strong>Operator Representative:</strong> <span class="line">{{ d.operator_rep }}</span></p>
+<p><strong>Date:</strong> <span class="small-line">{{ d.operator_date }}</span></p>
+
+<p><strong>End of Form</strong></p>
+
+<div class="footer">
+<p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
+<p>Version 2.1 — Revised February 2026</p>
+</div>
+
+<div class="review-actions">
+{% if locked %}
+<p class="locked-banner">FINAL LOCKED DOCUMENT</p>
+<p><a href="/voluntary-participation/{{ id }}">Continue to Next Form</a></p>
+{% else %}
+<p><a href="/security-camera-unlock/{{ id }}">Edit</a></p>
+<form method="POST" action="/security-camera-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+</div>
+
+</body>
+</html>

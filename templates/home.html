@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NILPF Home</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #fff;
+      padding: 40px 20px 90px;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #050505;
+      border: 1px solid #d4af37;
+      border-radius: 18px;
+      padding: 32px 28px;
+      box-shadow: 0 0 24px rgba(212,175,55,.22);
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 24px;
+      color: #d4af37;
+      font-size: 30px;
+    }
+    .row {
+      margin: 20px 0;
+    }
+    .label {
+      display: block;
+      color: #d4af37;
+      font-weight: 700;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .value {
+      font-size: 18px;
+    }
+    select {
+      width: 100%;
+      max-width: 360px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid #d4af37;
+      background: #111;
+      color: #fff;
+      font-size: 18px;
+      outline: none;
+    }
+    .actions {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      min-width: 180px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      background: #d4af37;
+      color: #000;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .btn-dark {
+      background: #222;
+      color: #fff;
+      border: 1px solid #d4af37;
+    }
+    .footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      text-align: center;
+      color: #d4af37;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>NILPF SYSTEM ACTIVE</h1>
+
+      <div class="row">
+        <span class="label">Current Property</span>
+        <div class="value">{{ activation.property_name }}</div>
+      </div>
+
+      <div class="row">
+        <span class="label">License Number</span>
+        <div class="value">{{ activation.license_number }}</div>
+      </div>
+      <div class="row">
+        <span class="label">Program Type</span>
+        <select onchange="if (this.value) window.location.href='/switch-program/' + this.value;">
+          <option value="">-- Select Program --</option>
+          <option value="ILH" {% if activation.program_type == "ILH" %}selected{% endif %}>ILH</option>
+          <option value="Transitional" {% if activation.program_type == "Transitional" %}selected{% endif %}>Transitional</option>
+          <option value="VA_GPD_Aligned" {% if activation.program_type == "VA_GPD_Aligned" %}selected{% endif %}>VA GPD</option>
+          <option value="DOC_Reentry_Aligned" {% if activation.program_type == "DOC_Reentry_Aligned" %}selected{% endif %}>DOC Reentry</option>
+        </select>
+      </div>
+
+
+      <div class="row">
+        <span class="label">Properties</span>
+        <select>
+          <option selected>{{ activation.property_name }}</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <a class="btn" href="{{ url_for('screening') }}">Add Participant</a>
+        <a class="btn" href="{{ url_for('operations') }}">Operations</a>
+        <a class="btn btn-dark" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">NILPF-OS 2026</div>
+</body>
+</html>

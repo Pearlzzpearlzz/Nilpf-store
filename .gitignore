@@ -1,0 +1,96 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Local/private data
+data/activation.json
+data/participants.json
+data/audit_log.json
+data/*.backup
+data/*BACKUP*
+data/*WORKING*
+
+# Filled/generated documents
+static/filled/
+static/mapper/
+
+# Backups and snapshots
+app_*BACKUP*.py
+app_*BEFORE*.py
+app_*WORKING*.py
+app_*SNAPSHOT*.py
+app_*FINAL*.py
+app_READY_FOR_GIT_*.py
+app_AUDIT_FOUNDATION_WORKING_*.py
+app_SECURITY_ACCESS_ID_GUARD_WORKING.py
+app_before_*.py
+app_backup_*.py
+app.py.before_*
+app.py.packet_builder_backup_*
+app_5_*.py
+app_BROKEN*.py
+app_CORRUPTED*.py
+app_CLEAN_REBUILD_MASTER.py
+app_*SAFE.py
+app_*LOCKED.py
+app_*VERIFIED*.py
+
+# Old rebuild/backup folders
+SYSTEM_AUDIT/
+backups/
+rebuild_sources/
+records/
+trashed_mixed_mla/
+templates_*BACKUP*/
+templates_BACKUP*/
+templates_BEFORE*/
+templates_before*/
+templates_TEMPLATE_CLEANUP_CHECKPOINT/
+
+# Old test/generated PDFs and mapper files
+filled_ach.pdf
+filled_ach_clean.pdf
+overlay.pdf
+mapping.csv
+mapping (1).csv
+
+# Local route/audit notes
+ROUTE_INVENTORY_AFTER_SHARED_PICKUP.txt
+
+# Secret/Internal Repairman private workspace
+secret_brain/BACKUPS/
+secret_brain/REPORTS/
+
+# OS/editor
+.DS_Store
+*.swp
+
+# Environment/secrets
+.env
+.env.*
+
+# Ignore all real local JSON data
+data/*.json
+!data/.gitkeep
+
+# Ignore remaining app backup/helper scripts
+app_*.py
+batch_clean_review_buttons.py
+
+# Template backup/working files
+templates/*BEFORE*
+templates/*WORKING*
+templates/*BACKUP*
+templates/*SNAPSHOT*
+templates/*FINAL*
+
+# Generated mapper previews and test packets
+static/mapper_previews/
+static/packets/
+
+# Template helper/backup files
+templates/*.py
+templates/*SAFE*

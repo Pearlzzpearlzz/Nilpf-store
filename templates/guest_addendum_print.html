@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Guest Addendum - Review</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f1ea;
+            padding: 30px;
+        }
+        .page {
+            background: white;
+            max-width: 850px;
+            margin: auto;
+            padding: 45px;
+            border: 1px solid #bbb;
+        }
+        h1, h2, h3 {
+            text-align: center;
+        }
+        h3 {
+            text-align: left;
+            border-bottom: 1px solid #222;
+            padding-bottom: 4px;
+            margin-top: 28px;
+        }
+        p, li {
+            font-size: 16px;
+            line-height: 1.55;
+        }
+        .locked {
+            background: #111;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .field {
+            border-bottom: 1px solid #000;
+            padding: 6px;
+            min-height: 20px;
+        }
+        a.button {
+            display: inline-block;
+            margin-top: 25px;
+            background: #111;
+            color: white;
+            padding: 12px 18px;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+{% if locked %}
+<div class="locked">LOCKED FINAL DOCUMENT</div>
+{% endif %}
+
+<h1>09 – Guest Addendum</h1>
+<h2>Independent Living Housing</h2>
+<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This Guest Addendum outlines expectations and responsibilities related to guests within Independent Living housing.</p>
+<p>This document applies to shared housing only and does not create supervision, services, or program oversight.</p>
+
+<h3>GUEST DEFINITION</h3>
+<p>A guest is any individual invited onto the premises by a participant who is not an approved participant of the housing.</p>
+
+<h3>PARTICIPANT RESPONSIBILITY FOR GUESTS</h3>
+<p>☐ Guest behavior and conduct {% if d.get('guest_behavior') %}✓{% endif %}</p>
+<p>☐ Compliance with house rules and community standards {% if d.get('house_rules') %}✓{% endif %}</p>
+<p>☐ Any damage caused by the guest {% if d.get('guest_damage') %}✓{% endif %}</p>
+<p>☐ Ensuring guests do not interfere with the rights of others {% if d.get('rights_of_others') %}✓{% endif %}</p>
+
+<h3>GUEST LIMITATIONS</h3>
+<p>☐ Guests may not live in the residence without written approval {% if d.get('no_live_in') %}✓{% endif %}</p>
+<p>☐ Guests may not receive mail at the property {% if d.get('no_receive_mail') %}✓{% endif %}</p>
+<p>☐ Guests may not receive keys, access codes, or entry devices {% if d.get('no_keys') %}✓{% endif %}</p>
+<p>☐ Guests may not create disruption, unsafe conditions, or conflict {% if d.get('no_disruption') %}✓{% endif %}</p>
+
+<h3>OVERNIGHT GUESTS</h3>
+<p>Overnight guests are not automatically permitted. Any overnight guest must be approved according to house rules and property expectations.</p>
+<p><strong>Notes:</strong></p>
+<div class="field">{{ d.get('overnight_guest_notes','') }}</div>
+
+<h3>NO TENANCY OR OCCUPANCY RIGHTS</h3>
+<p>Guests do not obtain tenancy, residency, program participation, or occupancy rights by visiting the property.</p>
+
+<h3>PROPERTY OWNER / HOUSING PROVIDER RIGHTS</h3>
+<p>The housing provider may restrict or prohibit guests who violate house rules, create disruption, damage property, threaten safety, or interfere with the rights of other participants.</p>
+
+<h3>PARTICIPANT ACKNOWLEDGEMENT</h3>
+
+<p><strong>Participant Name:</strong></p>
+<div class="field">{{ d.get('participant_name','') }}</div>
+
+<p><strong>Participant Signature:</strong></p>
+<div class="field">{{ d.get('participant_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="field">{{ d.get('signature_date','') }}</div>
+
+<p><strong>Operator / Housing Provider Name:</strong></p>
+<div class="field">{{ d.get('operator_name','') }}</div>
+
+<p><strong>Operator Signature:</strong></p>
+<div class="field">{{ d.get('operator_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="field">{{ d.get('operator_date','') }}</div>
+
+{% if locked %}
+<div class="locked">FINAL LOCKED DOCUMENT</div>
+<p><a class="button" href="/packet-builder/{{ id }}">Return to Packet Builder</a></p>
+{% else %}
+<p><a class="button" href="/guest-addendum-unlock/{{ id }}">Edit</a></p>
+<form method="POST" action="/guest-addendum-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+</body>
+</html>

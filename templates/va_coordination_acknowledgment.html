@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VA Coordination Acknowledgment</title>
+</head>
+<body>
+
+<h2>VA COORDINATION ACKNOWLEDGMENT</h2>
+<p><strong>Transitional Housing Program – NILPF Framework (2026)</strong></p>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<hr>
+
+<h3>PARTICIPANT INFORMATION</h3>
+
+<form method="POST">
+
+<p>Participant Name:<br>
+<input type="text" name="participant_name" value="{{ d.participant_name }}"></p>
+
+<p>Date of Birth:<br>
+<input type="text" name="date_of_birth" value="{{ d.date_of_birth }}"></p>
+
+<p>Program Address:<br>
+<input type="text" name="program_address" value="{{ d.program_address }}"></p>
+
+<p>Date:<br>
+<input type="text" name="form_date" value="{{ d.form_date }}"></p>
+
+<hr>
+
+<h3>PURPOSE</h3>
+
+<p>This document confirms the participant’s understanding of how housing and external program coordination may occur within a transitional housing environment.</p>
+
+<p>This housing setting may coordinate, when applicable, with:</p>
+<ul>
+    <li>U.S. Department of Veterans Affairs</li>
+    <li>Grant and Per Diem Program</li>
+    <li>Reentry or community-based programs</li>
+</ul>
+
+<p>This acknowledgment is informational only and does not establish a service, supervisory, or program relationship with the housing provider.</p>
+
+<hr>
+
+<h3>STRUCTURE OF HOUSING AND PROGRAMS</h3>
+
+<p>The participant understands that this environment may involve a dual-entity structure:</p>
+<ul>
+    <li>The Housing Provider (LLC) is responsible for the physical residence and property operations</li>
+    <li>A Program Operator (501(c)(3)), if applicable, may provide supportive services separately</li>
+</ul>
+
+<p>These entities operate independently, even when coordination occurs.</p>
+
+<hr>
+
+<h3>PROGRAM PARTICIPATION</h3>
+
+<p>The participant understands:</p>
+<ul>
+    <li>Participation in any external program is voluntary and independent</li>
+    <li>Any case management, services, or program requirements are provided and enforced solely by the program operator or external agency</li>
+    <li>The housing provider does not require, manage, supervise, or enforce participation in any external program</li>
+</ul>
+
+<hr>
+
+<h3>ACCESS TO SERVICES WITHIN HOUSING</h3>
+
+<p>The participant acknowledges that:</p>
+<ul>
+    <li>External service providers, including those affiliated with the U.S. Department of Veterans Affairs or programs such as the Grant and Per Diem Program, may interact with the participant within or in connection to the housing environment</li>
+    <li>Such interactions may include case management visits, program check-ins, or other supportive services provided by external entities</li>
+</ul>
+
+<p>The participant understands that:</p>
+<ul>
+    <li>All services are provided independently by external providers</li>
+    <li>The housing provider does not deliver, supervise, coordinate, or control these services</li>
+    <li>The housing provider does not enforce program participation or compliance</li>
+</ul>
+
+<p>Access to services within the housing does not create a service relationship with the housing provider.</p>
+
+<hr>
+
+<h3>ROLE OF THE HOUSING PROVIDER (LLC)</h3>
+
+<p>The participant acknowledges that the housing provider:</p>
+<ul>
+    <li>Provides housing only</li>
+    <li>Maintains property standards and general safety expectations</li>
+</ul>
+
+<p>The housing provider does not provide:</p>
+<ul>
+    <li>Case management</li>
+    <li>Clinical, medical, or treatment services</li>
+    <li>Supervision or monitoring</li>
+    <li>Program oversight or compliance tracking</li>
+</ul>
+
+<p>The housing provider does not function as a service provider.</p>
+
+<hr>
+
+<h3>INFORMATION SHARING &amp; COORDINATION</h3>
+
+<p>The participant may authorize limited coordination between:</p>
+<ul>
+    <li>Program Operator (if applicable)</li>
+    <li>VA or affiliated programs</li>
+    <li>Housing Provider</li>
+</ul>
+
+<p>If authorized, coordination is limited to:</p>
+<ul>
+    <li>Housing verification</li>
+    <li>Residency confirmation</li>
+    <li>Basic communication necessary for housing stability</li>
+</ul>
+
+<p>The housing provider does not provide ongoing reports, behavioral updates, or program compliance information.</p>
+
+<hr>
+
+<h3>FINANCIAL UNDERSTANDING</h3>
+
+<p>The participant understands:</p>
+<ul>
+    <li>Housing costs may be supported through external program funding, including VA-related funding</li>
+    <li>Participant contributions may apply depending on program structure</li>
+    <li>The housing provider does not manage, control, or oversee participant finances</li>
+</ul>
+
+<hr>
+
+<h3>INDEPENDENCE &amp; RESPONSIBILITY</h3>
+
+<p>The participant remains fully responsible for:</p>
+<ul>
+    <li>Personal decisions</li>
+    <li>Healthcare</li>
+    <li>Finances</li>
+    <li>Daily living activities</li>
+</ul>
+
+<p>This housing environment does not create a custodial, clinical, or institutional relationship.</p>
+
+<hr>
+
+<h3>ACKNOWLEDGMENT</h3>
+
+<p>By signing below, the participant confirms:</p>
+
+<p><input type="checkbox" name="ack_roles" {% if d.ack_roles %}checked{% endif %}> Understanding of the separate roles of the Housing Provider and any external program or service provider</p>
+
+<p><input type="checkbox" name="ack_no_services" {% if d.ack_no_services %}checked{% endif %}> Awareness that the Housing Provider does not deliver, supervise, manage, or control case management, clinical services, or program activities</p>
+
+<p><input type="checkbox" name="ack_services_inside" {% if d.ack_services_inside %}checked{% endif %}> Acknowledgment that external services may occur within or in connection to the housing environment</p>
+
+<p><input type="checkbox" name="ack_external_services" {% if d.ack_external_services %}checked{% endif %}> Understanding that all services are provided independently by external entities and are not the responsibility of the Housing Provider</p>
+
+<p><input type="checkbox" name="ack_voluntary" {% if d.ack_voluntary %}checked{% endif %}> Acknowledgment that participation in external programs is voluntary and managed solely by the program provider</p>
+
+<p><input type="checkbox" name="ack_optional_coordination" {% if d.ack_optional_coordination %}checked{% endif %}> Acknowledgment of optional coordination between the Housing Provider and external programs only when authorized</p>
+
+<hr>
+
+<h3>SIGNATURES</h3>
+
+<h4>Participant</h4>
+
+<p>Name:<br>
+<input type="text" name="participant_signature_name" value="{{ d.participant_signature_name }}"></p>
+
+<p>Signature:<br>
+<input type="text" name="participant_signature" value="{{ d.participant_signature }}"></p>
+
+<p>Date:<br>
+<input type="text" name="participant_signature_date" value="{{ d.participant_signature_date }}"></p>
+
+<h4>Program Operator (501(c)(3)) – If Applicable</h4>
+
+<p>Name:<br>
+<input type="text" name="program_operator_name" value="{{ d.program_operator_name }}"></p>
+
+<p>Signature:<br>
+<input type="text" name="program_operator_signature" value="{{ d.program_operator_signature }}"></p>
+
+<p>Date:<br>
+<input type="text" name="program_operator_date" value="{{ d.program_operator_date }}"></p>
+
+<h4>Housing Provider (LLC) – Optional</h4>
+
+<p>Name:<br>
+<input type="text" name="housing_provider_name" value="{{ d.housing_provider_name }}"></p>
+
+<p>Signature:<br>
+<input type="text" name="housing_provider_signature" value="{{ d.housing_provider_signature }}"></p>
+
+<p>Date:<br>
+<input type="text" name="housing_provider_date" value="{{ d.housing_provider_date }}"></p>
+
+<br>
+
+<button type="submit">Save and Continue</button>
+
+</form>
+
+<hr>
+
+<p><strong>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</strong></p>
+<p><strong>Version 3.0 — Finalized May 2026</strong></p>
+
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>07 – Emergency Contact Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 850px;
+            margin: 30px auto;
+            line-height: 1.45;
+            font-size: 16px;
+        }
+        h2 {
+            margin-bottom: 5px;
+        }
+        h3 {
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+        .copyright {
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 14px;
+        }
+        input {
+            width: 420px;
+            padding: 6px;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+        .small-input {
+            width: 220px;
+        }
+        .ack {
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 35px;
+            font-size: 14px;
+        }
+        button {
+            margin-top: 25px;
+            padding: 10px 16px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h2>07 – Emergency_Contact_Form</h2>
+<p><strong>Independent Living Housing</strong></p>
+<p class="copyright">© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This form allows participants to voluntarily provide emergency contact information for reference purposes only.</p>
+<p>Providing this information does not create an obligation for the housing provider to contact, notify, or coordinate with any individual.</p>
+
+<h3>NO EMERGENCY SERVICES OR OBLIGATIONS</h3>
+<p>Independent Living housing does not provide emergency response, medical services, supervision, or notification services.</p>
+<p>The housing provider is not responsible for monitoring participant wellbeing or initiating emergency contacts.</p>
+
+<form method="POST" action="/emergency-contact/{{ id }}">
+
+<h3>PARTICIPANT INFORMATION</h3>
+
+<label>Participant Name:</label>
+<input type="text" name="participant_name" value="{{ d.participant_name }}">
+
+<label>Address (if applicable):</label>
+<input type="text" name="address" value="{{ d.address }}">
+
+<label>Phone Number:</label>
+<input type="text" name="phone" value="{{ d.phone }}">
+
+<h3>EMERGENCY CONTACT (OPTIONAL)</h3>
+
+<label>Contact Name:</label>
+<input type="text" name="contact_name" value="{{ d.contact_name }}">
+
+<label>Relationship:</label>
+<input type="text" name="relationship" value="{{ d.relationship }}">
+
+<label>Phone Number:</label>
+<input type="text" name="contact_phone" value="{{ d.contact_phone }}">
+
+<label>Alternate Phone (optional):</label>
+<input type="text" name="alternate_phone" value="{{ d.alternate_phone }}">
+
+<h3>OPTIONAL ADDITIONAL CONTACT</h3>
+
+<label>Contact Name:</label>
+<input type="text" name="contact2_name" value="{{ d.contact2_name }}">
+
+<label>Relationship:</label>
+<input type="text" name="contact2_relationship" value="{{ d.contact2_relationship }}">
+
+<label>Phone Number:</label>
+<input type="text" name="contact2_phone" value="{{ d.contact2_phone }}">
+
+<h3>PARTICIPANT ACKNOWLEDGEMENT</h3>
+<p class="ack">By completing this form, the participant understands and agrees that:</p>
+<p>● Providing emergency contact information is voluntary</p>
+<p>● The housing provider is not obligated to notify or contact listed individuals</p>
+<p>● Emergency response is the responsibility of public emergency services</p>
+
+<label>Participant Signature:</label>
+<input type="text" name="participant_signature" value="{{ d.participant_signature }}">
+
+<label>Date:</label>
+<input class="small-input" type="text" name="signature_date" value="{{ d.signature_date }}">
+
+<p><strong>End of Form</strong></p>
+
+<div class="footer">
+    <p>Single-Site License Granted to Purchaser. Unauthorized Reproduction Distribution, or Derivative Use Prohibited.</p>
+    <p>Version 2.1 — Revised February 2026</p>
+</div>
+
+<button type="submit">Save / Review Lock Final Document</button>
+
+</form>
+
+
+<form method="POST" action="/emergency-contact/{{ id }}">
+<button type="submit">Save</button>
+</form>
+</body>
+</html>

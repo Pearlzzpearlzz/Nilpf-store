@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+</style>
+    <title>Transfer Form - Locked</title>
+</head>
+<body>
+
+<h2>12 – Transfer Form</h2>
+<p><strong>Independent Living Housing</strong></p>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PARTICIPANT INFORMATION</h3>
+<p><strong>Participant Name:</strong> {{ d.participant_name }}</p>
+<p><strong>Current Address / Unit:</strong> {{ d.current_address_unit }}</p>
+
+<h3>TRANSFER INFORMATION</h3>
+<p><strong>Same Location:</strong> {{ "Yes" if d.transfer_same_location else "No" }}</p>
+<p><strong>Different Location:</strong> {{ "Yes" if d.transfer_different_location else "No" }}</p>
+<p><strong>Departure:</strong> {{ "Yes" if d.departure_independent_living else "No" }}</p>
+<p><strong>Requested / Effective Date:</strong> {{ d.requested_effective_date }}</p>
+
+<h3>REASON FOR TRANSFER</h3>
+<p>{{ d.reason_for_transfer }}</p>
+
+<h3>FORWARDING INFORMATION</h3>
+<p><strong>New Address:</strong> {{ d.new_address }}</p>
+<p><strong>City / State / Zip:</strong> {{ d.city_state_zip }}</p>
+<p><strong>Phone / Contact Number:</strong> {{ d.contact_number }}</p>
+
+<h3>ACKNOWLEDGEMENT</h3>
+<p><strong>Participant Signature:</strong> {{ d.participant_signature }}</p>
+<p><strong>Date:</strong> {{ d.signature_date }}</p>
+
+<hr>
+
+<p>
+Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.
+</p>
+<p><strong>Version 2.1 — Revised February 2026</strong></p>
+
+<br>
+<a href="/transfer-form-unlock/{{ id }}">Unlock for Editing</a>
+
+
+<form method="POST" action="/transfer-form-final/{{ id }}">
+<button type="submit">Lock</button>
+</form>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+</body>
+</html>
+
+
+<hr>
+

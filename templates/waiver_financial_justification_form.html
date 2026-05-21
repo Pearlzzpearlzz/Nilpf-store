@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Waiver Financial Justification</title>
+<style>
+body{
+    font-family:Times New Roman,serif;
+    margin:40px;
+    line-height:1.5;
+    color:#000;
+}
+h1,h2,h3{
+    text-align:center;
+}
+input[type=text], input[type=number]{
+    border:none;
+    border-bottom:1px solid #000;
+    width:300px;
+    font-size:16px;
+    padding:4px;
+}
+.money{
+    width:160px;
+}
+.section{
+    margin-top:30px;
+}
+button{
+    padding:10px 20px;
+    font-size:16px;
+    margin-top:20px;
+}
+.footer-watermark{
+    position:fixed;
+    bottom:8px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    opacity:0.65;
+}
+</style>
+</head>
+<body>
+
+<h1>WAIVER FINANCIAL JUSTIFICATION</h1>
+<h3>Transitional Housing Program</h3>
+<h3>VA / GPD / Reentry-Aligned Use</h3>
+<h3>NILPF Framework – 2026</h3>
+
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<form method="POST" action="/waiver-financial-justification/{{ id }}">
+
+<div class="section">
+<h3>1. PURPOSE OF REQUEST</h3>
+
+<p>
+The Program respectfully requests consideration for an enhanced per diem, allotment,
+reimbursement, or funding rate based on the actual operating costs required to maintain
+a structured transitional housing environment.
+</p>
+
+<p>
+The Program provides shared residential housing designed to support stability,
+accountability, documentation, housing readiness, and successful reintegration into
+the community.
+</p>
+
+<p>
+Due to the structure of the housing model, shared occupancy needs, compliance
+documentation, administrative coordination, and local housing costs, standard rates
+may be insufficient to sustain program operations at the required level of quality
+and consistency.
+</p>
+</div>
+
+<div class="section">
+<h3>2. PROGRAM DETAILS</h3>
+
+<p>
+Program / Operator Name:
+<input type="text" name="operator_name" value="{{ d.get('operator_name','') }}">
+</p>
+
+<p>
+Property / Housing Location:
+<input type="text" name="property_location" value="{{ d.get('property_location','') }}">
+</p>
+
+<p>
+City / State:
+<input type="text" name="city_state" value="{{ d.get('city_state','') }}">
+</p>
+
+<p>
+Total Bedrooms:
+<input type="text" name="bedrooms" value="{{ d.get('bedrooms','') }}">
+</p>
+
+<p>
+Total Participant Capacity:
+<input type="text" name="capacity" value="{{ d.get('capacity','') }}">
+</p>
+
+<p>
+Housing Type:
+☐ Shared Housing
+☐ Scattered Site
+☐ Single Family
+☐ Other
+</p>
+</div>
+
+<div class="section">
+<h3>3. MONTHLY OPERATING COSTS</h3>
+
+<h4>A. PROPERTY COSTS</h4>
+
+<p>Lease Payment / Mortgage Equivalent:
+$<input class="money" type="text" name="lease_cost" value="{{ d.get('lease_cost','') }}"></p>
+
+<p>Maintenance and Repairs:
+$<input class="money" type="text" name="maintenance_cost" value="{{ d.get('maintenance_cost','') }}"></p>
+
+<p>Furnishings / Replacement / Upkeep:
+$<input class="money" type="text" name="furnishings_cost" value="{{ d.get('furnishings_cost','') }}"></p>
+
+<p>Insurance / Property Expenses:
+$<input class="money" type="text" name="insurance_cost" value="{{ d.get('insurance_cost','') }}"></p>
+
+<h4>B. UTILITIES AND HOUSING OPERATIONS</h4>
+
+<p>Electricity:
+$<input class="money" type="text" name="electricity_cost" value="{{ d.get('electricity_cost','') }}"></p>
+
+<p>Water / Sewer / Trash:
+$<input class="money" type="text" name="water_cost" value="{{ d.get('water_cost','') }}"></p>
+
+<p>Internet / Communication:
+$<input class="money" type="text" name="internet_cost" value="{{ d.get('internet_cost','') }}"></p>
+
+<p>Cleaning / Supplies:
+$<input class="money" type="text" name="supplies_cost" value="{{ d.get('supplies_cost','') }}"></p>
+
+<h4>C. PROGRAM ADMINISTRATION</h4>
+
+<p>Program Coordination:
+$<input class="money" type="text" name="coordination_cost" value="{{ d.get('coordination_cost','') }}"></p>
+
+<p>Compliance / Documentation:
+$<input class="money" type="text" name="compliance_cost" value="{{ d.get('compliance_cost','') }}"></p>
+
+<p>Administrative Expenses:
+$<input class="money" type="text" name="admin_cost" value="{{ d.get('admin_cost','') }}"></p>
+
+<h4>D. PARTICIPANT SUPPORT — NON-MEDICAL</h4>
+
+<p>Intake / Onboarding:
+$<input class="money" type="text" name="intake_cost" value="{{ d.get('intake_cost','') }}"></p>
+
+<p>Program Materials:
+$<input class="money" type="text" name="materials_cost" value="{{ d.get('materials_cost','') }}"></p>
+
+<p>Transportation Support:
+$<input class="money" type="text" name="transportation_cost" value="{{ d.get('transportation_cost','') }}"></p>
+
+<p><strong>Total Monthly Operating Cost:</strong>
+$<input class="money" type="text" name="total_cost" value="{{ d.get('total_cost','') }}"></p>
+</div>
+
+<div class="section">
+<h3>4. COST PER PARTICIPANT</h3>
+
+<p>Total Participant Capacity:
+<input type="text" name="participant_total" value="{{ d.get('participant_total','') }}"></p>
+
+<p>Estimated Cost Per Participant Per Month:
+$<input class="money" type="text" name="monthly_per_participant" value="{{ d.get('monthly_per_participant','') }}"></p>
+
+<p>Estimated Cost Per Participant Per Day:
+$<input class="money" type="text" name="daily_per_participant" value="{{ d.get('daily_per_participant','') }}"></p>
+</div>
+
+<div class="section">
+<h3>5. LIMITATIONS OF STANDARD RATE</h3>
+
+<p>
+Standard per diem or reimbursement rates may be expected to cover housing,
+administrative coordination, documentation, participant intake, reporting
+requirements, program structure, utilities, maintenance, and operational overhead.
+</p>
+
+<p>
+Due to local housing costs, inflation, shared housing wear and tear,
+and compliance-related requirements, base rates may not fully support
+program sustainability while maintaining safe, stable, and organized housing operations.
+</p>
+</div>
+
+<div class="section">
+<h3>6. JUSTIFICATION FOR ENHANCED RATE</h3>
+
+<p><strong>A. Shared Housing Complexity</strong></p>
+<p>
+Shared housing requires increased coordination, maintenance,
+communication, and replacement costs due to multiple occupants.
+</p>
+
+<p><strong>B. Documentation and Compliance</strong></p>
+<p>
+The Program maintains structured documentation, participant tracking,
+reporting support, intake records, housing records, and operational files.
+</p>
+
+<p><strong>C. Program Stability</strong></p>
+<p>
+The Program is designed to provide a structured environment focused on
+accountability, housing stability, and progression toward independence.
+</p>
+
+<p><strong>D. Cost of Safe Housing</strong></p>
+<p>
+Utilities, maintenance, cleaning, furnishings, and household replacement
+costs are elevated in shared housing environments.
+</p>
+
+<p><strong>E. Reentry / VA / Publicly Funded Alignment</strong></p>
+<p>
+Where applicable, this justification may support review by programs,
+referral partners, funders, or administrative entities requiring cost documentation.
+</p>
+</div>
+
+<div class="section">
+<h3>7. REQUESTED RATE</h3>
+
+<p>
+Requested Monthly Rate Per Participant:
+$<input class="money" type="text" name="requested_monthly_rate" value="{{ d.get('requested_monthly_rate','') }}">
+</p>
+
+<p>
+Requested Daily Rate Per Participant:
+$<input class="money" type="text" name="requested_daily_rate" value="{{ d.get('requested_daily_rate','') }}">
+</p>
+</div>
+
+<div class="section">
+<h3>8. IMPACT OF APPROVAL</h3>
+
+<p>
+Approval of an enhanced rate may help maintain stable operations,
+preserve housing capacity, support compliance requirements,
+and reduce risk of homelessness and recidivism.
+</p>
+</div>
+
+<div class="section">
+<h3>9. CONCLUSION</h3>
+
+<p>
+The Program is committed to providing structured, stable housing that supports
+participant accountability, housing readiness, and long-term independence.
+</p>
+</div>
+
+<div class="section">
+<h3>10. SUPPORTING CALCULATIONS</h3>
+
+<p>
+Calculations for this document may be completed using the included Housing Cost Calculator.
+</p>
+</div>
+
+<div class="section">
+<h3>11. SIGNATURE</h3>
+
+<p>
+Program Representative:
+<input type="text" name="program_representative" value="{{ d.get('program_representative','') }}">
+</p>
+
+<p>
+Title:
+<input type="text" name="representative_title" value="{{ d.get('representative_title','') }}">
+</p>
+
+<p>
+Signature:
+<input type="text" name="signature" value="{{ d.get('signature','') }}">
+</p>
+
+<p>
+Date:
+<input type="text" name="signature_date" value="{{ d.get('signature_date','') }}">
+</p>
+</div>
+
+<button type="submit">Save and Continue</button>
+
+</form>
+
+<div class="footer-watermark">
+© Pearlzz LLC 2026 • Transitional Housing Program Documents • All Rights Reserved
+</div>
+
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Referral Source Record</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; background:#f5f5f5; color:#000; }
+.page { background:#fff; padding:30px; border:2px solid #111; max-width:950px; margin:auto; }
+h1,h2,h3 { text-align:center; margin-bottom:8px; }
+.section { border:1px solid #111; padding:15px; margin-top:18px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>REFERRAL SOURCE RECORD</h1>
+<h2>Shared Admin Record / PID-Link Capable</h2>
+<p style="text-align:center;">NILPF Framework 2026</p>
+
+<p style="font-size:14px; line-height:1.5;">
+This administrative record documents the referral source, referral pathway, agency contact, sponsorship connection, and housing/program applicability.
+</p>
+
+<form method="POST" action="/referral-source-record/{{ id }}">
+<div class="section">
+<h3>1. Referral Source Information</h3>
+
+<label>Referral Source / Agency Name</label>
+<input type="text" name="referral_source_name" value="{{ data.get('referral_source_name', '' ) }}">
+
+<label>Referral Source Type</label>
+<select name="referral_source_type">
+  <option value="">Select</option>
+  <option value="CoC / HMIS">CoC / HMIS</option>
+  <option value="VA / Veteran Agency">VA / Veteran Agency</option>
+  <option value="County Agency">County Agency</option>
+  <option value="Reentry / DOC">Reentry / DOC</option>
+  <option value="Hospital / Discharge Planner">Hospital / Discharge Planner</option>
+  <option value="Shelter / Outreach Provider">Shelter / Outreach Provider</option>
+  <option value="Self / Family Referral">Self / Family Referral</option>
+  <option value="Other">Other</option>
+</select>
+
+<label>Primary Contact Name</label>
+<input type="text" name="primary_contact_name" value="{{ data.get('primary_contact_name', '' ) }}">
+
+<label>Primary Contact Title / Role</label>
+<input type="text" name="primary_contact_role" value="{{ data.get('primary_contact_role', '' ) }}">
+
+<label>Phone Number</label>
+<input type="text" name="referral_phone" value="{{ data.get('referral_phone', '' ) }}">
+
+<label>Email Address</label>
+<input type="email" name="referral_email" value="{{ data.get('referral_email', '' ) }}">
+
+</div>
+<div class="section">
+<h3>2. Referral Pathway / Program Connection</h3>
+
+<label>Referral Date</label>
+<input type="date" name="referral_date" value="{{ data.get('referral_date', '' ) }}">
+
+<label>Participant / PID Connected to Referral</label>
+<input type="text" name="participant_pid" value="{{ data.get('participant_pid', '' ) }}">
+
+<label>Housing / Program Type</label>
+<select name="program_type">
+  <option value="">Select</option>
+  <option value="Senior Shared Housing">Senior Shared Housing</option>
+  <option value="Independent Living Housing">Independent Living Housing</option>
+  <option value="Transitional Housing">Transitional Housing</option>
+  <option value="Reentry Housing">Reentry Housing</option>
+  <option value="Veteran-Aligned Housing">Veteran-Aligned Housing</option>
+  <option value="PSH-Style Housing">PSH-Style Housing</option>
+  <option value="Other Future Module">Other Future Module</option>
+</select>
+
+<label>Referral Pathway Notes</label>
+<textarea name="referral_pathway_notes">{{ data.get('referral_pathway_notes', '' ) }}</textarea>
+
+<label>Was this referral connected to a sponsoring agency, case manager, or funding source?</label>
+<select name="sponsorship_connected">
+  <option value="">Select</option>
+  <option value="Yes">Yes</option>
+  <option value="No">No</option>
+  <option value="Pending">Pending</option>
+</select>
+
+</div>
+<div class="section">
+<h3>3. Agency / Sponsorship Connection</h3>
+
+<label>Sponsoring Agency Name</label>
+<input type="text" name="sponsoring_agency_name" value="{{ data.get('sponsoring_agency_name', '' ) }}">
+
+<label>Sponsoring Agency Contact Person</label>
+<input type="text" name="sponsoring_contact_person" value="{{ data.get('sponsoring_contact_person', '' ) }}">
+
+<label>Sponsoring Agency Phone</label>
+<input type="text" name="sponsoring_phone" value="{{ data.get('sponsoring_phone', '' ) }}">
+
+<label>Sponsoring Agency Email</label>
+<input type="email" name="sponsoring_email" value="{{ data.get('sponsoring_email', '' ) }}">
+
+<label>Payment / Support Responsibility</label>
+<select name="payment_support_responsibility">
+  <option value="">Select</option>
+  <option value="Participant Responsible">Participant Responsible</option>
+  <option value="Agency Responsible">Agency Responsible</option>
+  <option value="Shared Responsibility">Shared Responsibility</option>
+  <option value="Pending Confirmation">Pending Confirmation</option>
+  <option value="Not Applicable">Not Applicable</option>
+</select>
+
+<label>Agency / Sponsorship Notes</label>
+<textarea name="agency_sponsorship_notes">{{ data.get('agency_sponsorship_notes', '' ) }}</textarea>
+
+</div>
+<div class="section">
+<h3>4. Referral Status / Follow-Up Tracking</h3>
+
+<label>Current Referral Status</label>
+<select name="referral_status">
+  <option value="">Select</option>
+  <option value="Received">Received</option>
+  <option value="Under Review">Under Review</option>
+  <option value="Accepted">Accepted</option>
+  <option value="Pending Documents">Pending Documents</option>
+  <option value="Waitlisted">Waitlisted</option>
+  <option value="Declined">Declined</option>
+  <option value="Closed">Closed</option>
+</select>
+
+<label>Next Follow-Up Date</label>
+<input type="date" name="next_follow_up_date" value="{{ data.get('next_follow_up_date', '' ) }}">
+
+<label>Follow-Up Assigned To</label>
+<input type="text" name="follow_up_assigned_to" value="{{ data.get('follow_up_assigned_to', '' ) }}">
+
+<label>Documents Requested / Pending</label>
+<textarea name="documents_pending">{{ data.get('documents_pending', '' ) }}</textarea>
+
+<label>Follow-Up Notes</label>
+<textarea name="follow_up_notes">{{ data.get('follow_up_notes', '' ) }}</textarea>
+
+</div>
+<div class="section">
+<h3>5. Internal Administrative Notes / Record Control</h3>
+
+<label>Internal Notes</label>
+<textarea name="internal_notes">{{ data.get('internal_notes', '' ) }}</textarea>
+
+<label>Record Created By</label>
+<input type="text" name="record_created_by" value="{{ data.get('record_created_by', '' ) }}">
+
+<label>Record Review Date</label>
+<input type="date" name="record_review_date" value="{{ data.get('record_review_date', '' ) }}">
+
+<label>Admin Record Status</label>
+<select name="admin_record_status">
+  <option value="">Select</option>
+  <option value="Active">Active</option>
+  <option value="Pending Update">Pending Update</option>
+  <option value="Closed">Closed</option>
+  <option value="Archived">Archived</option>
+</select>
+
+</div>
+
+<div style="margin-top:25px; display:flex; gap:12px;">
+  <button type="submit" style="padding:12px 20px; font-size:16px;">Save / Continue to Review</button>
+</div>
+
+</form>
+</div>
+</body>
+</html>

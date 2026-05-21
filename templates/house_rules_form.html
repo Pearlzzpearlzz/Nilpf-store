@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>House Rules and Community Standards</title>
+<style>
+body { font-family: Arial, sans-serif; max-width: 900px; margin: auto; padding: 30px; line-height: 1.55; }
+h1, h2 { text-align: center; }
+h3 { margin-top: 28px; border-bottom: 1px solid #999; padding-bottom: 5px; }
+ul { margin-top: 8px; }
+li { margin-bottom: 8px; }
+.line-input { border: none; border-bottom: 1px solid #000; width: 300px; font-size: 16px; }
+button { padding: 12px 25px; font-size: 18px; font-weight: bold; margin-top: 25px; }
+.footer { text-align: center; font-size: 13px; margin-top: 35px; }
+</style>
+</head>
+<body>
+
+<h1>04 – House Rules and Community Standards</h1>
+<h2>Independent Living Housing</h2>
+<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<form method="POST">
+
+<h3>PURPOSE</h3>
+<p>This document outlines general house rules and community standards intended to support a safe, respectful, and cooperative shared living environment.</p>
+<p>These standards apply to all participants equally and are not services, supervision, or program rules.</p>
+
+<h3>SHARED LIVING EXPECTATIONS</h3>
+<p>Independent Living housing is based on mutual respect and personal responsibility.</p>
+<p>Participants are expected to:</p>
+<ul>
+<li>Respect the rights, privacy, and personal space of others</li>
+<li>Maintain reasonable cleanliness of shared areas</li>
+<li>Use shared spaces cooperatively and responsibly</li>
+<li>Communicate respectfully with other participants</li>
+</ul>
+<p>No participant is responsible for managing, supervising, or correcting another participant.</p>
+
+<h3>PERSONAL RESPONSIBILITY</h3>
+<p>Each participant is responsible for:</p>
+<ul>
+<li>Their own behavior, choices, and actions</li>
+<li>Their own guests, belongings, and conduct</li>
+<li>Compliance with applicable laws and housing terms</li>
+</ul>
+<p>The housing provider does not supervise daily activities or interpersonal interactions.</p>
+
+<h3>SAFETY AND CONDUCT</h3>
+<p>Participants agree to:</p>
+<ul>
+<li>Refrain from violence, threats, harassment, or intimidation</li>
+<li>Avoid activities that create unsafe or hazardous conditions</li>
+<li>Respect quiet hours and shared living norms</li>
+<li>Follow basic fire safety and emergency guidelines</li>
+</ul>
+<p>Illegal activity is not permitted within the housing environment.</p>
+
+<h3>SHARED AREAS AND PROPERTY</h3>
+<p>Participants are expected to:</p>
+<ul>
+<li>Use shared furnishings and facilities with care</li>
+<li>Clean up after themselves in common areas</li>
+<li>Avoid damaging property or belongings</li>
+</ul>
+<p>Damage caused by a participant may result in financial responsibility in accordance with housing terms.</p>
+
+<h3>GUESTS</h3>
+<p>Guests must be respectful of the shared living environment and comply with house standards.</p>
+<p>Participants remain responsible for the conduct of their guests at all times.</p>
+<p>Additional guest guidelines may be outlined in a separate Guest Addendum.</p>
+
+<h3>NO SUPERVISION OR ENFORCEMENT ROLE</h3>
+<p>House rules and community standards do not create a supervisory or enforcement role.</p>
+<p>The housing provider does not monitor behavior, impose treatment requirements, or manage interpersonal conflicts beyond basic housing-related matters.</p>
+
+<h3>ACKNOWLEDGEMENT</h3>
+<p>By signing below, the participant acknowledges understanding of and agreement to these House Rules and Community Standards as a condition of shared housing participation.</p>
+
+<p>Participant Name: <input class="line-input" name="participant_name" value="{{ d.get('participant_name','') }}"></p>
+<p>Signature: <input class="line-input" name="signature" value="{{ d.get('signature','') }}"></p>
+<p>Date: <input class="line-input" name="date" value="{{ d.get('date','') }}"></p>
+
+{% if not review %}
+{% if not locked and not review_mode|default(false) %}<button type="submit">Save</button>{% endif %}
+{% endif %}
+
+</form>
+
+<p class="footer">Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
+<p class="footer">Version 2.1 — Revised February 2026</p>
+
+</body>
+</html>

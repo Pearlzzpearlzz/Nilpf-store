@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Emergency Evacuation Plan - Review</title></head>
+<body>
+<h2>06 – Emergency Evacuation Plan</h2>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This document provides general information regarding emergency evacuation procedures for Independent Living housing.</p>
+<p>This plan is informational only and does not create an obligation to provide emergency services, supervision, or assistance.</p>
+
+<h3>NO EMERGENCY RESPONSE SERVICES</h3>
+<p>Independent Living housing does not provide:</p>
+<ul>
+<li>Emergency evacuation assistance</li>
+<li>Emergency supervision or monitoring</li>
+<li>Staff-led evacuation procedures</li>
+<li>Emergency drills or training</li>
+</ul>
+<p>Participants are responsible for responding to emergencies and contacting public emergency services as needed.</p>
+
+<h3>GENERAL EVACUATION INFORMATION</h3>
+<p>In the event of an emergency such as fire, natural disaster, or hazardous condition, participants should:</p>
+<ul>
+<li>Exit the building promptly if it is safe to do so</li>
+<li>Use available exits and avoid unsafe areas</li>
+<li>Follow instructions issued by emergency responders</li>
+<li>Move to a safe location away from the building</li>
+<li>Participants should call 911 or appropriate emergency services.</li>
+</ul>
+<p>Participants should not re-enter the building until authorities indicate it is safe.</p>
+
+<h3>EXIT AWARENESS</h3>
+<p>Participants are encouraged to independently familiarize themselves with:</p>
+<ul>
+<li>Primary and secondary exits</li>
+<li>Common pathways of egress</li>
+<li>Posted emergency signage</li>
+</ul>
+<p>The housing provider does not verify or monitor participant awareness of exit locations.</p>
+
+<h3>EMERGENCY CONTACT</h3>
+<p>Participants are responsible for contacting emergency services such as 911 when needed.</p>
+<p>Emergency responders have authority during emergency situations.</p>
+
+<h3>SELF-DIRECTED RESPONSE</h3>
+<p>Each participant acknowledges that:</p>
+<ul>
+<li>Emergency response is self-directed</li>
+<li>No staff or housing representative is assigned to assist with evacuation</li>
+<li>Personal safety decisions are the responsibility of the participant</li>
+</ul>
+<p>The housing provider does not assume responsibility for individual evacuation outcomes.</p>
+
+<h3>NO GUARANTEES</h3>
+<p>No guarantees are made regarding emergency conditions, evacuation timing, or outcomes.</p>
+<p>This plan is provided for general awareness only.</p>
+
+<hr>
+
+<div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
+
+{% if locked %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+<p><a href="/guest-addendum/{{ id }}">Continue to Next Form</a></p>
+
+{% else %}
+<p><a href="/emergency-evacuation-unlock/{{ id }}">Edit</a></p>
+
+<form method="POST" action="/emergency-evacuation-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+</body>
+</html>

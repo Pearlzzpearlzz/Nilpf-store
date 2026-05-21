@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NILPF Operator Admin Records</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #fff;
+      padding: 40px 20px 90px;
+    }
+    .page {
+      max-width: 760px;
+      margin: auto;
+      background: #050505;
+      border: 2px solid #d4af37;
+      border-radius: 22px;
+      padding: 32px;
+      box-shadow: 0 0 24px rgba(212,175,55,.25);
+    }
+    h1 {
+      color: #d4af37;
+      text-align: center;
+      margin: 0 0 10px;
+      font-size: 30px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #ddd;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+    label {
+      display: block;
+      color: #d4af37;
+      font-weight: bold;
+      margin: 18px 0 8px;
+      font-size: 18px;
+    }
+    select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #d4af37;
+      background: #111;
+      color: #fff;
+      font-size: 16px;
+    }
+    .notice {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 14px;
+      padding: 16px;
+      margin: 22px 0;
+      line-height: 1.5;
+    }
+    .open-btn {
+      width: 100%;
+      margin-top: 22px;
+      display: block;
+      text-align: center;
+      background: #d4af37;
+      color: #000;
+      padding: 15px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .secondary {
+      display: inline-block;
+      margin-top: 24px;
+      background: #111;
+      color: #fff;
+      border: 1px solid #d4af37;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .actions {
+      text-align: center;
+    }
+    .empty {
+      text-align: center;
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 14px;
+      padding: 22px;
+      line-height: 1.5;
+    }
+    .footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      text-align: center;
+      color: #d4af37;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Operator Admin Records</h1>
+    <div class="subtitle">
+      {{ activation.property_name }} | {{ activation.license_number }}<br>
+      Internal records organized by housing type and participant. Not participant-facing.
+    </div>
+
+    {% if participants %}
+      <label for="housingSelect">Select Housing Type</label>
+      <select id="housingSelect" onchange="filterParticipants()">
+        <option value="TH">TH</option>
+        <option value="ILH">ILH</option>
+      </select>
+
+      <label for="participantSelect">Select Participant</label>
+      <select id="participantSelect" onchange="updateOpenLink()">
+        {% for person in participants %}
+          {% set saved_type = person.get("program_type") or person.get("housing_type") or activation.program_type %}
+          {% set group_type = "ILH" if saved_type == "ILH" else "TH" %}
+          <option value="{{ loop.index0 }}" data-housing="{{ group_type }}">
+            {{ person.get("name") or person.get("participant_name") or "Unnamed Participant" }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <label for="formSelect">Select Form</label>
+      <select id="formSelect" onchange="updateOpenLink()">
+        <option value="/referral-source-record/">Referral Source Record</option>
+        <option value="/agency-sponsorship-record/">Agency Sponsorship Record</option>
+        <option value="/payor-funding-record/">Payor / Funding Record</option>
+        <option value="/billing-invoice-setup/">Billing / Invoice Setup</option>
+        <option value="/packet-builder/">Packet Builder</option>
+      </select>
+
+      <div class="notice">
+        Choose ILH or TH, choose the participant name, then choose the internal operator record to open.
+      </div>
+
+      <a id="openSelected" class="open-btn" href="#">Open Selected Form</a>
+    {% else %}
+      <div class="empty">
+        <h2>No Participants Yet</h2>
+        <p>Add a participant first, then return here to open internal operator records.</p>
+      </div>
+    {% endif %}
+
+    <div class="actions">
+      <a class="secondary" href="{{ url_for("operations") }}">Back to Operations</a>
+    </div>
+  </div>
+
+  <div class="footer">NILPF-OS 2026</div>
+
+  <script>
+    function filterParticipants() {
+      var housing = document.getElementById("housingSelect").value;
+      var participantSelect = document.getElementById("participantSelect");
+      if (!participantSelect) { return; }
+
+      var firstVisible = null;
+
+      for (var i = 0; i < participantSelect.options.length; i++) {
+        var opt = participantSelect.options[i];
+        var show = opt.getAttribute("data-housing") === housing;
+        opt.hidden = !show;
+        opt.disabled = !show;
+        if (show && firstVisible === null) {
+          firstVisible = i;
+        }
+      }
+
+      if (firstVisible !== null) {
+        participantSelect.selectedIndex = firstVisible;
+      }
+
+      updateOpenLink();
+    }
+
+    function updateOpenLink() {
+      var participantSelect = document.getElementById("participantSelect");
+      var formSelect = document.getElementById("formSelect");
+      var openLink = document.getElementById("openSelected");
+
+      if (!participantSelect || !formSelect || !openLink) { return; }
+
+      var pid = participantSelect.value;
+      var route = formSelect.value;
+      openLink.href = route + pid;
+    }
+
+    window.onload = filterParticipants;
+  </script>
+</body>
+</html>

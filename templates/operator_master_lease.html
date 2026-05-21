@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Master Lease Agreement</title>
+    <style>
+        body { background:#111; color:#111; font-family: Georgia, serif; padding:30px; }
+        .page { background:white; max-width:850px; margin:auto; padding:55px; border:4px solid #c9a227; }
+        h1 { text-align:center; font-size:26px; margin-bottom:5px; }
+        h2 { text-align:center; font-size:16px; margin-top:0; }
+        .section { margin-top:25px; }
+        label { font-weight:bold; display:block; margin-top:14px; }
+        input, textarea { width:100%; padding:9px; font-size:16px; border:1px solid #555; }
+        textarea { min-height:80px; }
+        .actions { margin-top:30px; display:flex; gap:12px; }
+        button, a { padding:12px 18px; background:#c9a227; color:#111; border:none; text-decoration:none; font-weight:bold; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <h1>MASTER LEASE AGREEMENT</h1>
+    <h2>Operator / Property Use Document</h2>
+
+    <form method="POST">
+        <div class="section">
+            <label>Effective Date</label>
+            <input name="effective_date" value="{{ d.get('effective_date','') }}">
+
+            <label>Property Owner / LLC Name</label>
+            <input name="owner_llc" value="{{ d.get('owner_llc','') }}">
+
+            <label>Program Operator / Nonprofit Name</label>
+            <input name="operator_nonprofit" value="{{ d.get('operator_nonprofit','') }}">
+
+            <label>Property Address</label>
+            <textarea name="property_address">{{ d.get('property_address','') }}</textarea>
+        </div>
+
+        <div class="section">
+            <label>Lease Term</label>
+            <input name="lease_term" value="{{ d.get('lease_term','') }}">
+
+            <label>Monthly Lease Amount</label>
+            <input name="monthly_amount" value="{{ d.get('monthly_amount','') }}">
+
+            <label>Security Deposit / Required Reserve</label>
+            <input name="deposit" value="{{ d.get('deposit','') }}">
+        </div>
+
+        <div class="section">
+            <label>Approved Program Use</label>
+            <textarea name="approved_use">{{ d.get('approved_use','Independent Living / Transitional Housing / Program-Aligned Housing operations as approved by the operator.') }}</textarea>
+
+            <label>Special Terms</label>
+            <textarea name="special_terms">{{ d.get('special_terms','') }}</textarea>
+        </div>
+
+        <div class="section">
+            <label>Owner / LLC Authorized Representative</label>
+            <input name="owner_rep" value="{{ d.get('owner_rep','') }}">
+
+            <label>Operator / Nonprofit Authorized Representative</label>
+            <input name="operator_rep" value="{{ d.get('operator_rep','') }}">
+        </div>
+
+        <div class="actions">
+            <button type="submit">Save</button>
+            <a href="/operations">Back to Operations</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

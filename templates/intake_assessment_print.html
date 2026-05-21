@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+</style>
+<meta charset="utf-8">
+<title>Initial Intake Assessment - Review</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; }
+.page { max-width:900px; margin:auto; }
+h1,h2,h3 { text-align:center; }
+.section { border:1px solid #111; padding:15px; margin-top:20px; }
+button, a { font-size:18px; margin-top:20px; display:inline-block; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>INITIAL INTAKE ASSESSMENT</h1>
+<h2>Review Page</h2>
+
+<div class="section">
+<h3>Participant Information</h3>
+<p><strong>Name:</strong> {{ d.get("participant_name","") }}</p>
+<p><strong>Date:</strong> {{ d.get("assessment_date","") }}</p>
+<p><strong>Referral Source:</strong> {{ d.get("referral_source","") }}</p>
+<p><strong>Program Type:</strong> {{ d.get("program_type","") }}</p>
+</div>
+
+<div class="section">
+<h3>Housing Situation</h3>
+<p><strong>Status:</strong> {{ d.get("housing_status","") }}</p>
+<p>{{ d.get("current_situation","") }}</p>
+</div>
+
+<div class="section">
+<h3>Immediate Needs</h3>
+<p>{% if d.get("need_housing") %}☑{% else %}☐{% endif %} Safe housing placement</p>
+<p>{% if d.get("need_food") %}☑{% else %}☐{% endif %} Food / basic supplies</p>
+<p>{% if d.get("need_documents") %}☑{% else %}☐{% endif %} Identification / documents</p>
+<p>{% if d.get("need_transportation") %}☑{% else %}☐{% endif %} Transportation</p>
+<p>{% if d.get("need_income") %}☑{% else %}☐{% endif %} Income / benefits</p>
+<p>{% if d.get("need_employment") %}☑{% else %}☐{% endif %} Employment support</p>
+<p>{% if d.get("need_case_manager") %}☑{% else %}☐{% endif %} Case manager / agency connection</p>
+<p><strong>Other:</strong> {{ d.get("other_needs","") }}</p>
+</div>
+
+<div class="section">
+<h3>Barriers</h3>
+<p>{% if d.get("barrier_income") %}☑{% else %}☐{% endif %} No or limited income</p>
+<p>{% if d.get("barrier_employment") %}☑{% else %}☐{% endif %} Employment barrier</p>
+<p>{% if d.get("barrier_documents") %}☑{% else %}☐{% endif %} Missing documents</p>
+<p>{% if d.get("barrier_transportation") %}☑{% else %}☐{% endif %} Transportation barrier</p>
+<p>{% if d.get("barrier_legal") %}☑{% else %}☐{% endif %} Legal / reentry barrier</p>
+<p>{% if d.get("barrier_health") %}☑{% else %}☐{% endif %} Health-related barrier</p>
+<p><strong>Notes:</strong> {{ d.get("barrier_notes","") }}</p>
+</div>
+
+<div class="section">
+<h3>Participant Goals</h3>
+<p><strong>Short-Term Goal:</strong> {{ d.get("short_term_goal","") }}</p>
+<p><strong>Long-Term Goal:</strong> {{ d.get("long_term_goal","") }}</p>
+<p><strong>Support Needed:</strong> {{ d.get("support_needed","") }}</p>
+</div>
+
+<div class="section">
+<h3>Staff Assessment</h3>
+<p><strong>Observations:</strong> {{ d.get("staff_observations","") }}</p>
+<p><strong>Recommended Next Step:</strong> {{ d.get("recommended_next_step","") }}</p>
+</div>
+
+<div class="section">
+<h3>Acknowledgment</h3>
+<p>This assessment is used for internal program documentation, housing coordination, and participant support planning. It does not replace any HMIS, CoC, VA, clinical, or agency-required assessment.</p>
+<p><strong>Participant Signature:</strong> {{ d.get("participant_signature","") }}</p>
+<p><strong>Staff Signature:</strong> {{ d.get("staff_signature","") }}</p>
+<p><strong>Date:</strong> {{ d.get("signature_date","") }}</p>
+</div>
+
+{% if locked %}
+{% if locked %}<h2>{% if locked %}FINAL LOCKED DOCUMENT{% endif %}</h2>{% endif %}
+{% else %}
+
+<form method="POST" action="/intake-assessment-final/{{ id }}">
+<button type="submit">Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+</body>
+</html>
+
+<hr>
+

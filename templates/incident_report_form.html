@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head><title>Incident Report Form</title></head>
+<body>
+
+<h2>08 – Incident Report Form</h2>
+<p><strong>Independent Living Housing</strong></p>
+
+<p><strong>PURPOSE</strong><br>
+This form is used to document incidents that occur within the Independent Living housing environment.
+This form is for record-keeping purposes only and does not create a duty to investigate, supervise, intervene, or provide services.</p>
+
+<hr>
+
+<h3>INCIDENT INFORMATION</h3>
+<form method="POST" action="/incident-report/{{ id }}">
+<p>Date of Incident:<br>
+<input type="date" name="incident_date" value="{{ d.incident_date }}"></p>
+
+<p>Time of Incident:<br>
+<input type="time" name="incident_time" value="{{ d.incident_time }}"></p>
+
+<p>Location of Incident:<br>
+<input type="text" name="incident_location" value="{{ d.incident_location }}"></p>
+
+<hr>
+<h3>PERSON(S) INVOLVED (if any)</h3>
+
+<p>Name(s):<br>
+<input type="text" name="persons_involved" value="{{ d.persons_involved }}"></p>
+
+<p>Relationship (resident, guest, other):<br>
+<input type="text" name="relationship" value="{{ d.relationship }}"></p>
+
+<hr>
+<h3>DESCRIPTION OF INCIDENT</h3>
+<p><i>(Factual observations only)</i></p>
+<textarea name="description" rows="5" cols="50">{{ d.description }}</textarea>
+
+<hr>
+<h3>ACTIONS TAKEN (IF ANY)</h3>
+
+<label><input type="checkbox" name="no_action" {% if d.no_action %}checked{% endif %}> No action taken</label><br>
+<label><input type="checkbox" name="emergency_contacted" {% if d.emergency_contacted %}checked{% endif %}> Emergency services contacted</label><br>
+<label><input type="checkbox" name="resident_left" {% if d.resident_left %}checked{% endif %}> Resident left voluntarily</label><br>
+
+<p>Other:<br>
+<input type="text" name="other_action" value="{{ d.other_action }}"></p>
+
+<p><i>Note: The housing provider does not provide emergency response or supervision.</i></p>
+
+<hr>
+<h3>WITNESSES (IF ANY)</h3>
+
+<p>Name(s):<br>
+<input type="text" name="witness_names" value="{{ d.witness_names }}"></p>
+
+<p>Contact Info (optional):<br>
+<input type="text" name="witness_contact" value="{{ d.witness_contact }}"></p>
+
+<hr>
+
+<h3>ADDITIONAL NOTES (OPTIONAL)</h3>
+<textarea name="notes" rows="4" cols="50">{{ d.notes }}</textarea>
+
+<hr>
+<h3>NO ADMISSION OR DETERMINATION</h3>
+<p>
+Completion of this form does not constitute:
+<br>• An admission of fault or responsibility
+<br>• A determination of cause
+<br>• An agreement to take corrective or disciplinary action
+</p>
+
+<hr>
+
+<h3>ACKNOWLEDGEMENT</h3>
+
+<p>Reported by:<br>
+<input type="text" name="reported_by" value="{{ d.reported_by }}"></p>
+
+<p>Signature:<br>
+<input type="text" name="signature" value="{{ d.signature }}"></p>
+
+<p>Date:<br>
+<input type="date" name="date" value="{{ d.date }}"></p>
+
+<br><br>
+<button type="submit">Save</button>
+
+</form>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Program Participation Agreement</title>
+</head>
+<body>
+
+<h2>PROGRAM PARTICIPATION AGREEMENT</h2>
+<p><strong>Transitional Housing Program – NILPF Framework (2026)</strong></p>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<form method="POST">
+
+<h3>PURPOSE</h3>
+<p>This Program Participation Agreement explains the expectations, responsibilities, and program conditions for a participant entering a Transitional Housing Program.</p>
+
+<p>This agreement is used when the participant is being housed as part of a structured transitional housing program, including reentry, VA-aligned, referral-based, or program-supported housing.</p>
+
+<p>This agreement is program-facing.</p>
+<p>This Agreement governs program participation only and does not create or modify housing rights, which are governed separately by the Master License Agreement.</p>
+<p>It does not replace the Master Lease, Master License Agreement, house rules, funding documents, referral documents, or required program coordination forms.</p>
+
+<h3>PROGRAM STRUCTURE</h3>
+<p>The Transitional Housing Program may operate under a dual-entity structure.</p>
+<p>The property may be owned, leased, or controlled by a separate property entity, such as an LLC.</p>
+<p>The program may be operated or managed by a nonprofit, program operator, or coordinating organization.</p>
+
+<h3>PARTICIPANT STATUS</h3>
+<p>The participant understands that transitional housing is program-based housing and not permanent housing.</p>
+
+<h3>REFERRAL AND PROGRAM COORDINATION</h3>
+<p>The participant may be referred by or connected to reentry programs, VA programs, Continuum of Care partners, shelters, case management agencies, or other approved referral sources.</p>
+
+<h3>ACKNOWLEDGMENT</h3>
+
+<p>
+<label>Participant Name:</label><br>
+<input type="text" name="participant_name" value="{{ d.participant_name }}" style="width: 400px;">
+</p>
+
+<p>
+<label>Participant Signature:</label><br>
+<input type="text" name="participant_signature" value="{{ d.participant_signature }}" style="width: 400px;">
+</p>
+
+<p>
+<label>Date:</label><br>
+<input type="date" name="signature_date" value="{{ d.signature_date }}">
+</p>
+
+<p>
+<label>Program Representative Name:</label><br>
+<input type="text" name="program_representative_name" value="{{ d.program_representative_name }}" style="width: 400px;">
+</p>
+
+<p>
+<label>Program Representative Signature:</label><br>
+<input type="text" name="program_representative_signature" value="{{ d.program_representative_signature }}" style="width: 400px;">
+</p>
+
+<p>
+<label>Program Representative Date:</label><br>
+<input type="date" name="program_representative_date" value="{{ d.program_representative_date }}">
+</p>
+
+<br>
+<button type="submit">Save / Review</button>
+
+</form>
+
+</body>
+</html>

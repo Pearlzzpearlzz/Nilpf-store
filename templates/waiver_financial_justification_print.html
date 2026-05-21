@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+
+.footer-watermark{
+    position:fixed;
+    bottom:8px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    opacity:0.65;
+    pointer-events:none;
+}
+
+@media print { .print-btn { display:none; }  .buttons { display:none; } body { background:#fff; } }
+</style>
+    <title>Waiver Financial Justification - Review</title>
+</head>
+<body>
+<button class="print-btn" type="button" onclick="window.print()">Print This Form</button>
+
+
+<h2>WAIVER FINANCIAL JUSTIFICATION</h2>
+
+{% include "waiver_financial_justification_form.html" %}
+
+<hr>
+
+<hr>
+<div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
+    {% if not locked %}
+    <form method="POST" action="/waiver-financial-justification-final/{{ id }}" style="display:inline;">
+        <button type="submit">Final Lock</button>
+    </form>
+    {% else %}
+    <p><strong>FINAL LOCKED DOCUMENT</strong></p>
+    <form method="POST" action="/waiver-financial-justification-unlock/{{ id }}" style="display:inline;">
+        <button type="submit">Edit / Unlock</button>
+    </form>
+    {% endif %}
+
+    <p style="margin-top:20px;">
+        
+    </p>
+</div>

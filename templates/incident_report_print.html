@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Incident Report Form - Review</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    max-width: 850px;
+    margin: 30px auto;
+    line-height: 1.45;
+    color: #111;
+}
+h2 { margin-bottom: 5px; }
+h3 { margin-top: 24px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+.field {
+    border-bottom: 1px solid #111;
+    min-height: 24px;
+    padding: 4px 6px;
+    margin-top: 4px;
+}
+.long-field {
+    border: 1px solid #111;
+    min-height: 90px;
+    padding: 8px;
+    margin-top: 6px;
+    white-space: pre-wrap;
+}
+.checkbox-row {
+    margin: 8px 0;
+}
+.review-actions {
+    margin-top:25px;
+    padding-top:15px;
+    border-top:2px solid #ccc;
+}
+button {
+    padding:10px 18px;
+    font-size:16px;
+    cursor:pointer;
+}
+.locked-banner {
+    font-weight:bold;
+    padding:12px;
+    border:2px solid #111;
+    background:#eee;
+    margin-top:20px;
+}
+@media print {
+    .review-actions { display:none; }
+}
+</style>
+</head>
+<body>
+
+<h2>08 – Incident Report Form</h2>
+<p><strong>Independent Living Housing</strong></p>
+
+{% if locked %}
+<p class="locked-banner">FINAL LOCKED DOCUMENT</p>
+{% endif %}
+
+<p><strong>PURPOSE</strong><br>
+This form is used to document incidents that occur within the Independent Living housing environment.
+This form is for record-keeping purposes only and does not create a duty to investigate, supervise, intervene, or provide services.</p>
+
+<hr>
+
+<h3>INCIDENT INFORMATION</h3>
+
+<p><strong>Date of Incident:</strong></p>
+<div class="field">{{ d.get("incident_date","") }}</div>
+
+<p><strong>Time of Incident:</strong></p>
+<div class="field">{{ d.get("incident_time","") }}</div>
+
+<p><strong>Location of Incident:</strong></p>
+<div class="field">{{ d.get("incident_location","") }}</div>
+
+<h3>PERSON(S) INVOLVED (if any)</h3>
+
+<p><strong>Name(s):</strong></p>
+<div class="field">{{ d.get("persons_involved","") }}</div>
+
+<p><strong>Relationship (resident, guest, other):</strong></p>
+<div class="field">{{ d.get("relationship","") }}</div>
+
+<h3>DESCRIPTION OF INCIDENT</h3>
+<p><i>(Factual observations only)</i></p>
+<div class="long-field">{{ d.get("description","") }}</div>
+
+<h3>ACTIONS TAKEN (IF ANY)</h3>
+
+<p class="checkbox-row">☐ No action taken {% if d.get("no_action") %}<strong>✓</strong>{% endif %}</p>
+<p class="checkbox-row">☐ Emergency services contacted {% if d.get("emergency_contacted") %}<strong>✓</strong>{% endif %}</p>
+<p class="checkbox-row">☐ Resident left voluntarily {% if d.get("resident_left") %}<strong>✓</strong>{% endif %}</p>
+
+<p><strong>Other:</strong></p>
+<div class="field">{{ d.get("other_action","") }}</div>
+
+<p><i>Note: The housing provider does not provide emergency response or supervision.</i></p>
+
+<h3>WITNESSES (IF ANY)</h3>
+
+<p><strong>Name(s):</strong></p>
+<div class="field">{{ d.get("witness_names","") }}</div>
+
+<p><strong>Contact Info (optional):</strong></p>
+<div class="field">{{ d.get("witness_contact","") }}</div>
+
+<h3>ADDITIONAL NOTES (OPTIONAL)</h3>
+<div class="long-field">{{ d.get("notes","") }}</div>
+
+<h3>NO ADMISSION OR DETERMINATION</h3>
+<p>
+Completion of this form does not constitute:
+<br>• An admission of fault or responsibility
+<br>• A determination of cause
+<br>• An agreement to take corrective or disciplinary action
+</p>
+
+<h3>ACKNOWLEDGEMENT</h3>
+
+<p><strong>Reported by:</strong></p>
+<div class="field">{{ d.get("reported_by","") }}</div>
+
+<p><strong>Signature:</strong></p>
+<div class="field">{{ d.get("signature","") }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="field">{{ d.get("date","") }}</div>
+
+<p><strong>End of Form</strong></p>
+
+<div class="review-actions">
+{% if locked %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+<p><a href="/bill-of-dignity/{{ id }}">Continue to Next Form</a></p>
+{% else %}
+<p><a href="/incident-report-unlock/{{ id }}">Edit</a></p>
+<form method="POST" action="/incident-report-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+</div>
+
+</body>
+</html>

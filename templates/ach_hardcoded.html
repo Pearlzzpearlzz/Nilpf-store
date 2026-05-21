@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Direct Deposit / ACH Authorization</title>
+  <style>
+    body {
+      background: #111;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    .paper {
+      background: white;
+      color: black;
+      width: 8.5in;
+      min-height: 11in;
+      margin: auto;
+      padding: 0.75in;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 16px;
+      font-weight: normal;
+      margin-top: 0;
+      margin-bottom: 35px;
+    }
+
+    .row {
+      margin: 18px 0;
+      font-size: 16px;
+    }
+
+    input[type="text"], input[type="date"] {
+      border: none;
+      border-bottom: 1px solid black;
+      font-size: 16px;
+      padding: 3px;
+      width: 62%;
+    }
+
+    .short {
+      width: 35% !important;
+    }
+
+    .checkboxes {
+      margin: 10px 0 20px 35px;
+      font-size: 16px;
+      line-height: 2;
+    }
+
+    .auth {
+      margin-top: 30px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .buttons {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    button {
+      background: #111;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<form method="POST">
+  <div class="paper">
+
+    <h1>DIRECT DEPOSIT / ACH AUTHORIZATION</h1>
+    <h2>Independent Living Program</h2>
+
+    <div class="row">
+      Participant Name:
+      <input type="text" name="participant_name" value="{{ data.get('participant_name','') }}">
+    </div>
+
+    <div class="row">
+      Financial Institution Name:
+      <input type="text" name="bank_name" value="{{ data.get('bank_name','') }}">
+    </div>
+
+    <div class="row">
+      Account Type:
+    </div>
+
+    <div class="checkboxes">
+      <label>
+        <input type="radio" name="account_type" value="Checking" {% if data.get('account_type') == 'Checking' %}checked{% endif %}>
+        Checking
+      </label>
+      <br>
+      <label>
+        <input type="radio" name="account_type" value="Savings" {% if data.get('account_type') == 'Savings' %}checked{% endif %}>
+        Savings
+      </label>
+    </div>
+
+    <div class="row">
+      Routing Number:
+      <input type="text" name="routing_number" value="{{ data.get('routing_number','') }}">
+    </div>
+
+    <div class="row">
+      Account Number:
+      <input type="text" name="account_number" value="{{ data.get('account_number','') }}">
+    </div>
+
+    <div class="auth">
+      <strong>Authorization</strong>
+      <p>
+        I authorize the Independent Living Program Operator to initiate electronic debit entries from the
+        account listed above for program participation contributions as agreed.
+      </p>
+      <p>
+        This authorization will remain in effect until written notice of cancellation is provided.
+      </p>
+    </div>
+
+    <div class="row">
+      Participant Signature:
+      <input type="text" name="participant_signature" value="{{ data.get('participant_signature','') }}">
+    </div>
+
+    <div class="row">
+      Date:
+      <input class="short" type="date" name="signature_date" value="{{ data.get('signature_date','') }}">
+    </div>
+
+    <div class="row">
+      Bank Account Holder (if different):
+      <input type="text" name="account_holder" value="{{ data.get('account_holder','') }}">
+    </div>
+
+    <div class="buttons">
+      <button type="submit">Save ACH</button>
+    </div>
+
+  </div>
+</form>
+
+</body>
+</html>

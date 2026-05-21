@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transfer Form - Review</title>
+</head>
+<body>
+
+<h2>12 – Transfer Form</h2>
+<p><strong>Independent Living Housing</strong></p>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<div style="border:2px solid #111; padding:20px; background:white;">
+{% set review_mode = True %}
+{% include "transfer_form.html" %}
+</div>
+
+<hr>
+
+<div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
+
+{% if locked %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+<p><a href="/security-camera/{{ id }}">Continue to Next Form</a></p>
+
+{% else %}
+<p><a href="/transfer-unlock/{{ id }}">Edit</a></p>
+
+<form method="POST" action="/transfer-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+</body>
+</html>

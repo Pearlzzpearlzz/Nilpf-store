@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Agency Sponsorship Record Review</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; background:#f5f5f5; color:#000; }
+.page { background:#fff; padding:30px; border:2px solid #111; max-width:950px; margin:auto; }
+h1,h2,h3 { text-align:center; margin-bottom:8px; }
+.section { border:1px solid #111; padding:15px; margin-top:18px; }
+.field { margin-top:10px; }
+.label { font-weight:bold; }
+.value { border-bottom:1px solid #555; padding:6px 0; min-height:20px; white-space:pre-wrap; }
+.buttons { margin-top:25px; display:flex; gap:12px; justify-content:center; }
+button, .btn { padding:12px 20px; font-size:16px; border:1px solid #555; text-decoration:none; color:#000; background:#ddd; cursor:pointer; }
+@media print { .buttons { display:none; } body { background:#fff; } .page { border:none; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>AGENCY SPONSORSHIP RECORD</h1>
+<h2>Review / Print Copy</h2>
+<p style="text-align:center;">NILPF Framework 2026</p>
+
+{% if locked %}
+<p style="text-align:center; font-weight:bold; color:#006400;">FINAL LOCKED DOCUMENT</p>
+{% else %}
+<p style="text-align:center; font-weight:bold; color:#8B0000;">REVIEW COPY - NOT FINAL LOCKED</p>
+{% endif %}
+
+<div class="section">
+<h3>1. Participant / PID Link</h3>
+<div class="field"><div class="label">Participant Name</div><div class="value">{{ data.get('participant_name', participant.get('name', '')) }}</div></div>
+<div class="field"><div class="label">Participant ID / PID</div><div class="value">{{ data.get('participant_pid', participant.get('pid', '')) }}</div></div>
+<div class="field"><div class="label">Housing Pathway / Program Type</div><div class="value">{{ data.get('housing_pathway', '' ) }}</div></div>
+<div class="field"><div class="label">Record Applies To</div><div class="value">{{ data.get('record_applies_to', '' ) }}</div></div>
+</div>
+<div class="section">
+<h3>2. Agency / Sponsor Identification</h3>
+<div class="field"><div class="label">Agency / Sponsor Name</div><div class="value">{{ data.get('agency_sponsor_name', '' ) }}</div></div>
+<div class="field"><div class="label">Agency Type</div><div class="value">{{ data.get('agency_type', '' ) }}</div></div>
+<div class="field"><div class="label">Primary Contact Person</div><div class="value">{{ data.get('primary_contact_person', '' ) }}</div></div>
+<div class="field"><div class="label">Contact Title / Role</div><div class="value">{{ data.get('contact_title_role', '' ) }}</div></div>
+<div class="field"><div class="label">Phone Number</div><div class="value">{{ data.get('agency_phone', '' ) }}</div></div>
+<div class="field"><div class="label">Email Address</div><div class="value">{{ data.get('agency_email', '' ) }}</div></div>
+<div class="field"><div class="label">Mailing Address</div><div class="value">{{ data.get('agency_mailing_address', '' ) }}</div></div>
+</div>
+<div class="section">
+<h3>3. Sponsorship / Support Relationship</h3>
+<div class="field"><div class="label">Type of Support Provided</div><div class="value">{{ data.get('support_type', '' ) }}</div></div>
+<div class="field"><div class="label">Describe the Support Relationship</div><div class="value">{{ data.get('support_relationship_description', '' ) }}</div></div>
+<div class="field"><div class="label">Payment / Reimbursement / Funding Communication Responsibility</div><div class="value">{{ data.get('payment_responsibility', '' ) }}</div></div>
+</div>
+<div class="section">
+<h3>4. Program / Pathway Connection</h3>
+<div class="field"><div class="label">Connected Program / Housing Pathway</div><div class="value">{{ data.get('connected_program_pathway', '' ) }}</div></div>
+<div class="field"><div class="label">Agency Relationship to Housing Pathway</div><div class="value">{{ data.get('agency_relationship_to_pathway', '' ) }}</div></div>
+<div class="field"><div class="label">Program Notes</div><div class="value">{{ data.get('program_notes', '' ) }}</div></div>
+</div>
+<div class="section">
+<h3>5. Payment / Funding Connection</h3>
+<div class="field"><div class="label">Is there a payment or funding connection?</div><div class="value">{{ data.get('funding_connection', '' ) }}</div></div>
+<div class="field"><div class="label">Funding / Payment Source Name</div><div class="value">{{ data.get('funding_source_name', '' ) }}</div></div>
+<div class="field"><div class="label">Payment Contact Person</div><div class="value">{{ data.get('payment_contact_person', '' ) }}</div></div>
+<div class="field"><div class="label">Payment Contact Email</div><div class="value">{{ data.get('payment_contact_email', '' ) }}</div></div>
+<div class="field"><div class="label">Funding / Payment Notes</div><div class="value">{{ data.get('funding_payment_notes', '' ) }}</div></div>
+</div>
+<div class="section">
+<h3>6. Documentation / Eligibility Support</h3>
+<div class="field"><div class="label">Eligibility Documentation Support</div><div class="value">{{ data.get('eligibility_documentation_support', '' ) }}</div></div>
+<div class="field"><div class="label">Documents or Eligibility Items Supported</div><div class="value">{{ data.get('eligibility_items_supported', '' ) }}</div></div>
+<div class="field"><div class="label">Verification Notes</div><div class="value">{{ data.get('verification_notes', '' ) }}</div></div>
+</div>
+<div class="section">
+<h3>7. Communication / Follow-Up Tracking</h3>
+<div class="field"><div class="label">Date of Last Contact</div><div class="value">{{ data.get('date_of_last_contact', '' ) }}</div></div>
+<div class="field"><div class="label">Preferred Communication Method</div><div class="value">{{ data.get('preferred_communication_method', '' ) }}</div></div>
+<div class="field"><div class="label">Follow-Up Needed?</div><div class="value">{{ data.get('follow_up_needed', '' ) }}</div></div>
+<div class="field"><div class="label">Follow-Up Notes</div><div class="value">{{ data.get('follow_up_notes', '' ) }}</div></div>
+</div>
+<div class="section">
+<h3>8. Administrative Notes / Status</h3>
+<div class="field"><div class="label">Agency / Sponsor Status</div><div class="value">{{ data.get('agency_sponsor_status', '' ) }}</div></div>
+<div class="field"><div class="label">Internal Administrative Notes</div><div class="value">{{ data.get('internal_admin_notes', '' ) }}</div></div>
+<div class="field"><div class="label">Staff Completing Record</div><div class="value">{{ data.get('staff_completing_record', '' ) }}</div></div>
+<div class="field"><div class="label">Date Completed / Updated</div><div class="value">{{ data.get('date_completed_updated', '' ) }}</div></div>
+</div>
+<div class="buttons">
+  <button type="button" onclick="window.print()">Print This Form</button>
+  <form method="POST" action="/agency-sponsorship-record-final/{{ id }}" style="display:inline;">
+    <button type="submit">Next Form</button>
+  </form>
+</div>
+
+</div>
+</body>
+</html>

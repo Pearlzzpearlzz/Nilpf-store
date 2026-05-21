@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Program Funding / Payment Responsibility Addendum</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; background:#f5f5f5; color:#000; }
+.page { background:#fff; padding:30px; border:2px solid #111; max-width:950px; margin:auto; }
+h1,h2,h3 { text-align:center; margin-bottom:8px; }
+.section { border:1px solid #111; padding:15px; margin-top:18px; }
+label { display:block; font-weight:bold; margin-top:12px; }
+input, select, textarea { width:100%; padding:9px; margin-top:5px; font-size:15px; box-sizing:border-box; }
+textarea { min-height:80px; }
+.notice { background:#fff8d6; border:1px solid #b99b00; padding:12px; margin-top:15px; }
+.buttons { margin-top:22px; display:flex; gap:12px; }
+button, .btn { padding:10px 16px; font-size:15px; border:1px solid #111; background:#eee; color:#000; text-decoration:none; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="page">
+<h1>Program Funding / Payment Responsibility Addendum</h1>
+<h3>Shared Operator / PID-Linked Administrative Record</h3>
+
+<div class="notice">
+<strong>Purpose:</strong> This addendum documents the funding source, payment responsibility, participant payment obligation if any, and agency/sponsor responsibility connected to the housing placement or program pathway.
+</div>
+
+<form method="POST">
+
+<div class="section">
+<h2>Participant / Placement Information</h2>
+<label>Participant Name</label>
+<input name="participant_name" value="{{ data.get('participant_name', participant.get('name', '')) }}">
+
+<label>Participant ID / PID</label>
+<input name="participant_id" value="{{ data.get('participant_id', id) }}">
+
+<label>Housing / Program Type</label>
+<input name="program_type" value="{{ data.get('program_type', program_type|default('')) }}">
+
+<label>Property / Program Location</label>
+<input name="property_location" value="{{ data.get('property_location', '' ) }}">
+</div>
+
+<div class="section">
+<h2>Funding Source</h2>
+<label>Primary Funding Source</label>
+<select name="primary_funding_source">
+<option value="">-- Select --</option>
+<option value="Participant/Self Pay" {% if data.get('primary_funding_source') == 'Participant/Self Pay' %}selected{% endif %}>Participant / Self Pay</option>
+<option value="Agency Sponsored" {% if data.get('primary_funding_source') == 'Agency Sponsored' %}selected{% endif %}>Agency Sponsored</option>
+<option value="Nonprofit Program Support" {% if data.get('primary_funding_source') == 'Nonprofit Program Support' %}selected{% endif %}>Nonprofit Program Support</option>
+<option value="Grant/Public Funding" {% if data.get('primary_funding_source') == 'Grant/Public Funding' %}selected{% endif %}>Grant / Public Funding</option>
+<option value="VA/CoC/Referral Partner" {% if data.get('primary_funding_source') == 'VA/CoC/Referral Partner' %}selected{% endif %}>VA / CoC / Referral Partner</option>
+<option value="Other" {% if data.get('primary_funding_source') == 'Other' %}selected{% endif %}>Other</option>
+</select>
+
+<label>Other Funding Source Details</label>
+<textarea name="other_funding_details">{{ data.get('other_funding_details', '' ) }}</textarea>
+</div>
+
+<div class="section">
+<h2>Payment Responsibility</h2>
+
+<label>Responsible Paying Party</label>
+<select name="responsible_paying_party">
+<option value="">-- Select --</option>
+<option value="Participant" {% if data.get('responsible_paying_party') == 'Participant' %}selected{% endif %}>Participant</option>
+<option value="Family/Representative" {% if data.get('responsible_paying_party') == 'Family/Representative' %}selected{% endif %}>Family / Representative</option>
+<option value="Sponsoring Agency" {% if data.get('responsible_paying_party') == 'Sponsoring Agency' %}selected{% endif %}>Sponsoring Agency</option>
+<option value="Nonprofit Program Operator" {% if data.get('responsible_paying_party') == 'Nonprofit Program Operator' %}selected{% endif %}>Nonprofit Program Operator</option>
+<option value="Public Funding Source" {% if data.get('responsible_paying_party') == 'Public Funding Source' %}selected{% endif %}>Public Funding Source</option>
+<option value="Other" {% if data.get('responsible_paying_party') == 'Other' %}selected{% endif %}>Other</option>
+</select>
+
+<label>Monthly Housing / Program Amount</label>
+<input name="monthly_amount" value="{{ data.get('monthly_amount', '' ) }}">
+
+<label>Amount Paid by Participant, If Any</label>
+<input name="participant_amount" value="{{ data.get('participant_amount', '' ) }}">
+
+<label>Amount Paid by Agency / Sponsor / Program</label>
+<input name="agency_amount" value="{{ data.get('agency_amount', '' ) }}">
+
+<label>Payment Due Date / Frequency</label>
+<input name="payment_due_frequency" value="{{ data.get('payment_due_frequency', '' ) }}">
+
+<label>Payment Responsibility Notes</label>
+<textarea name="payment_responsibility_notes">{{ data.get('payment_responsibility_notes', '' ) }}</textarea>
+</div>
+
+<div class="section">
+<h2>Agency / Sponsor Responsibility</h2>
+
+<label>Agency / Sponsor Name</label>
+<input name="agency_sponsor_name" value="{{ data.get('agency_sponsor_name', '' ) }}">
+
+<label>Agency Contact Person</label>
+<input name="agency_contact_person" value="{{ data.get('agency_contact_person', '' ) }}">
+
+<label>Agency Contact Phone</label>
+<input name="agency_contact_phone" value="{{ data.get('agency_contact_phone', '' ) }}">
+
+<label>Agency Contact Email</label>
+<input name="agency_contact_email" value="{{ data.get('agency_contact_email', '' ) }}">
+
+<label>What is the agency / sponsor agreeing to pay or support?</label>
+<textarea name="agency_support_description">{{ data.get('agency_support_description', '' ) }}</textarea>
+
+<label>Payment Approval / Authorization Notes</label>
+<textarea name="payment_authorization_notes">{{ data.get('payment_authorization_notes', '' ) }}</textarea>
+
+<label>Start Date of Payment Responsibility</label>
+<input name="payment_start_date" value="{{ data.get('payment_start_date', '' ) }}">
+
+<label>End Date / Review Date, If Any</label>
+<input name="payment_review_date" value="{{ data.get('payment_review_date', '' ) }}">
+</div>
+
+<div class="section">
+<h2>Participant / Program Acknowledgment</h2>
+
+<label>Participant Payment Understanding</label>
+<textarea name="participant_payment_understanding">{{ data.get('participant_payment_understanding', 'The participant has been informed of any payment obligation connected to this placement, including whether payment is made by the participant, an agency, sponsor, nonprofit program, grant source, or other responsible party.' ) }}</textarea>
+
+<label>Additional Conditions / Special Notes</label>
+<textarea name="special_conditions">{{ data.get('special_conditions', '' ) }}</textarea>
+
+<label>Prepared By</label>
+<input name="prepared_by" value="{{ data.get('prepared_by', '' ) }}">
+
+<label>Date Prepared</label>
+<input name="date_prepared" value="{{ data.get('date_prepared', '' ) }}">
+</div>
+
+<div class="buttons">
+<button type="submit">Save and Review</button>
+<a class="btn" href="/admin-forms">Back to Admin Forms</a>
+</div>
+
+</form>
+</div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+@media print { .print-btn { display:none; } }
+</style>
+<meta charset="utf-8">
+<title>ILH Master Lease - Review</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.45; }
+h1, h2, h3 { text-align: center; }
+.locked { border: 3px solid #111; padding: 15px; text-align: center; font-weight: bold; margin: 20px 0; }
+button { padding: 12px 22px; font-size: 16px; }
+</style>
+</head>
+<body>
+<button class="print-btn" type="button" onclick="window.print()">Print This Form</button>
+
+
+{% if locked %}
+{% if locked %}<div class="locked">FINAL LOCKED DOCUMENT</div>{% endif %}
+{% endif %}
+
+{% include "ilh_master_lease_form.html" %}
+
+<hr>
+
+{% if not locked %}
+
+<hr>
+{% if not locked %}
+<a href="/ilh-master-lease-unlock/{{ id }}">Edit / Unlock</a>
+<br><br>
+<form method="POST" action="/ilh-master-lease-final/{{ id }}">
+<button type="submit">Finalize and Lock</button>
+</form>
+{% else %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+{% endif %}
+
+</body>
+</html>
+
+
+<hr>
+
+
+{% endif %}

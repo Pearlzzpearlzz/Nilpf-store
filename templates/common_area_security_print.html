@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>13 – Common Area Security Disclosure - Review</title>
+
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; line-height: 1.45; }
+h1, h2 { text-align: center; }
+h3 { margin-top: 24px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+input[type=text], input:not([type]) { width: 90%; padding: 6px; margin-top: 4px; }
+button { padding: 10px 18px; font-weight: bold; }
+</style>
+
+</head>
+<body>
+
+<h1>13 – Common Area Security Disclosure</h1>
+<h2>Independent Living Housing</h2>
+<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This disclosure explains expectations related to shared spaces, common areas, security, cameras if applicable, and participant responsibility in maintaining a safe housing environment.</p>
+
+<h3>COMMON AREA ACKNOWLEDGMENTS</h3>
+<p>☐ I understand that common areas are shared by participants <input disabled type="checkbox" name="shared_common_areas" {% if d.get('shared_common_areas') %}checked{% endif %}></p>
+<p>☐ I understand that safety and security expectations apply in all shared spaces <input disabled type="checkbox" name="security_expectations" {% if d.get('security_expectations') %}checked{% endif %}></p>
+<p>☐ I understand that common areas must not be blocked, damaged, or misused <input disabled type="checkbox" name="no_misuse" {% if d.get('no_misuse') %}checked{% endif %}></p>
+<p>☐ I understand that any cameras, if present, are for property/common-area security only and not for private rooms or private areas <input disabled type="checkbox" name="camera_acknowledgment" {% if d.get('camera_acknowledgment') %}checked{% endif %}></p>
+
+<h3>PARTICIPANT INFORMATION</h3>
+<label>Participant Name:</label><br>
+<input readonly name="participant_name" value="{{ d.get('participant_name','') }}"><br><br>
+
+<label>Property Address:</label><br>
+<input readonly name="property_address" value="{{ d.get('property_address','') }}"><br><br>
+
+<label>Participant Signature:</label><br>
+<input readonly name="participant_signature" value="{{ d.get('participant_signature','') }}"><br><br>
+
+<label>Date:</label><br>
+<input readonly name="date" value="{{ d.get('date','') }}"><br><br>
+
+
+<hr>
+
+<div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
+
+{% if locked %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+<p><a href="/personal-belongings/{{ id }}">Continue to Next Form</a></p>
+
+{% else %}
+<p><a href="/common-area-security-unlock/{{ id }}">Edit</a></p>
+
+<form method="POST" action="/common-area-security-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+</body>
+</html>

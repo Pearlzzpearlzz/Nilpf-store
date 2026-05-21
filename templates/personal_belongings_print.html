@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>14 – Property / Personal Belongings Acknowledgment - Review</title>
+
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; line-height: 1.45; }
+h1, h2 { text-align: center; }
+h3 { margin-top: 24px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+input[type=text], input:not([type]) { width: 90%; padding: 6px; margin-top: 4px; }
+button { padding: 10px 18px; font-weight: bold; }
+</style>
+
+</head>
+<body>
+
+<h1>14 – Property / Personal Belongings Acknowledgment</h1>
+<h2>Independent Living Housing</h2>
+<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This acknowledgment explains participant responsibility for personal belongings and clarifies that the housing provider is not responsible for lost, stolen, abandoned, or damaged personal property except where required by law.</p>
+
+<h3>PERSONAL BELONGINGS ACKNOWLEDGMENTS</h3>
+<p>☐ I am responsible for my own personal belongings <input disabled type="checkbox" name="responsible_belongings" {% if d.get('responsible_belongings') %}checked{% endif %}></p>
+<p>☐ I understand that valuables should be secured by me <input disabled type="checkbox" name="secure_valuables" {% if d.get('secure_valuables') %}checked{% endif %}></p>
+<p>☐ I understand that abandoned property may be handled according to property policy and applicable law <input disabled type="checkbox" name="abandoned_property" {% if d.get('abandoned_property') %}checked{% endif %}></p>
+<p>☐ I understand that shared housing requires keeping personal items in assigned areas <input disabled type="checkbox" name="assigned_areas" {% if d.get('assigned_areas') %}checked{% endif %}></p>
+
+<h3>PARTICIPANT INFORMATION</h3>
+<label>Participant Name:</label><br>
+<input readonly name="participant_name" value="{{ d.get('participant_name','') }}"><br><br>
+
+<label>Room / Bed Assignment:</label><br>
+<input readonly name="room_assignment" value="{{ d.get('room_assignment','') }}"><br><br>
+
+<label>Participant Signature:</label><br>
+<input readonly name="participant_signature" value="{{ d.get('participant_signature','') }}"><br><br>
+
+<label>Date:</label><br>
+<input readonly name="date" value="{{ d.get('date','') }}"><br><br>
+
+
+<hr>
+
+<div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
+
+{% if locked %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+<p><a href="/property-belongings/{{ id }}">Continue to Next Form</a></p>
+
+{% else %}
+<p><a href="/personal-belongings-unlock/{{ id }}">Edit</a></p>
+
+<form method="POST" action="/personal-belongings-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+</body>
+</html>

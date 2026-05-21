@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Property & Personal Belongings Acknowledgment</title>
+</head>
+<body>
+
+<h2>PROPERTY & PERSONAL BELONGINGS ACKNOWLEDGMENT</h2>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<p>This housing environment does not provide storage services, property supervision, or asset protection.</p>
+
+<p>Participants are solely responsible for all personal belongings brought onto or stored within the premises.</p>
+
+<p><strong>The Operator is not responsible for:</strong></p>
+<ul>
+<li>Theft</li>
+<li>Loss</li>
+<li>Damage</li>
+<li>Misplacement</li>
+<li>Items left unattended in common areas</li>
+<li>Personal property disputes between participants</li>
+</ul>
+
+<p>Participants are encouraged to maintain renter’s insurance or personal property insurance if they desire additional protection.</p>
+
+<p>By signing below, the Participant acknowledges full responsibility for their personal belongings and releases the Operator from liability relating to personal property loss or damage, except where required by law.</p>
+
+<hr>
+
+<form method="POST" action="/property-belongings/{{ id }}">
+
+<p><strong>Participant Name:</strong><br>
+<input type="text" name="participant_name" value="{{ d.participant_name }}"></p>
+
+<p><strong>Participant Signature:</strong><br>
+<input type="text" name="participant_signature" value="{{ d.participant_signature }}"></p>
+
+<p><strong>Date:</strong><br>
+<input type="text" name="signature_date" value="{{ d.signature_date }}"></p>
+
+<p><strong>Operator Representative:</strong><br>
+<input type="text" name="operator_name" value="{{ d.operator_name }}"></p>
+
+<p><strong>Date:</strong><br>
+<input type="text" name="operator_date" value="{{ d.operator_date }}"></p>
+
+<br>
+
+<button type="submit">Save</button>
+
+</form>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Core Docs</title>
+<style>
+body {background:#000;color:#fff;font-family:Arial;padding:40px;}
+h1 {color:#d4af37;text-align:center;}
+.list {max-width:700px;margin:30px auto;}
+.item {
+  border:1px solid #d4af37;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:12px;
+  background:#111;
+}
+.btn {
+  display:inline-block;
+  margin-top:10px;
+  padding:10px 16px;
+  background:#d4af37;
+  color:#000;
+  text-decoration:none;
+  border-radius:8px;
+  font-weight:bold;
+}
+.meta {
+  max-width:700px;
+  margin:0 auto 20px auto;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<h1>Core Documents</h1>
+
+<div class="meta">Program Type: {{ program_type }}</div>
+
+<div class="list">
+  {% if docs %}
+    {% for doc in docs %}
+      <div class="item">
+        {{ doc.title }}
+        <br>
+        <a class="btn" href="#">Open</a>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="item">
+      No core documents are configured yet for this program type.
+    </div>
+  {% endif %}
+</div>
+
+<div style="text-align:center;margin-top:30px;">
+  <a class="btn" href="{{ url_for('operations') }}">Back</a>
+</div>
+
+</body>
+</html>

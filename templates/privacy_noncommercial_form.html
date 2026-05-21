@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>11 – Participant Privacy & Non-Commercialization Acknowledgment</title>
+    <style>
+        body { font-family: Arial; max-width: 850px; margin: 30px auto; line-height: 1.45; }
+        h2 { margin-bottom: 5px; }
+        input { width: 420px; padding: 6px; margin-top: 4px; }
+        .small { width: 220px; }
+        .footer { margin-top: 35px; font-size: 14px; }
+        button { margin-top: 25px; padding: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h2>PARTICIPANT PRIVACY & NON-COMMERCIALIZATION ACKNOWLEDGMENT</h2>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<p>This housing environment maintains a position of privacy, dignity, and non-commercialization.</p>
+
+<p>The Operator does not:</p>
+<p>• Use participant likeness for advertising</p>
+<p>• Publish participant photographs</p>
+<p>• Post participant testimonials for promotional purposes</p>
+<p>• Publicly disclose participant identity or residency status</p>
+<p>• Use participant presence for commercial marketing</p>
+
+<p>Participants remain free to discuss their living arrangement at their own discretion.</p>
+
+<p>The Operator maintains confidentiality of participant residency consistent with housing-based operations and applicable law.</p>
+
+<p>By signing below, the Participant acknowledges understanding of the privacy position of this housing environment.</p>
+
+<form method="POST" action="/privacy-noncommercial/{{ id }}">
+
+<p><strong>Participant Name:</strong></p>
+<input type="text" name="participant_name" value="{{ d.participant_name }}">
+
+<p><strong>Participant Signature:</strong></p>
+<input type="text" name="participant_signature" value="{{ d.participant_signature }}">
+
+<p><strong>Date:</strong></p>
+<input class="small" type="text" name="signature_date" value="{{ d.signature_date }}">
+
+<div class="footer">
+<p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
+<p>Version 2.1 — Revised February 2026</p>
+</div>
+
+<button type="submit">Save / Review Lock Final Document</button>
+
+</form>
+
+
+<form method="POST" action="/privacy-noncommercial/{{ id }}">
+<button type="submit">Save</button>
+</form>
+</body>
+</html>

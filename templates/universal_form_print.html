@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+</style>
+    <title>Form Review</title>
+</head>
+<body>
+
+<h2>Saved Form Review</h2>
+
+{% include form_key + ".html" %}
+
+<br><br>
+<hr>
+
+{% if locked %}
+{% if locked %}<p><strong>{% if locked %}FINAL LOCKED DOCUMENT{% endif %}</strong></p>{% endif %}
+{% else %}
+<form method="POST" action="/form/{{ id }}/{{ form_key }}/lock">
+    <button type="submit">Save and Lock (Final)</button>
+</form>
+{% endif %}
+
+<br><br>
+
+
+
+<form method="POST" action="/universal-form-final/{{ id }}">
+<button type="submit">Lock</button>
+</form>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+</body>
+</html>

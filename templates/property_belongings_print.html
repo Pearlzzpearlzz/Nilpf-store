@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Property & Personal Belongings - Review</title></head>
+<body>
+<h2>PROPERTY & PERSONAL BELONGINGS ACKNOWLEDGMENT</h2>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+<p><strong>Participant Name:</strong> {{ d.participant_name }}</p>
+<p><strong>Participant Signature:</strong> {{ d.participant_signature }}</p>
+<p><strong>Date:</strong> {{ d.signature_date }}</p>
+<p><strong>Operator Representative:</strong> {{ d.operator_name }}</p>
+<p><strong>Date:</strong> {{ d.operator_date }}</p>
+<hr>
+
+<div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
+
+{% if locked %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+<p><a href="/pet-animal/{{ id }}">Continue to Next Form</a></p>
+
+{% else %}
+<p><a href="/property-belongings-unlock/{{ id }}">Edit</a></p>
+
+<form method="POST" action="/property-belongings-final/{{ id }}">
+    <button type="submit">Final Lock</button>
+</form>
+{% endif %}
+
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+</body>
+</html>

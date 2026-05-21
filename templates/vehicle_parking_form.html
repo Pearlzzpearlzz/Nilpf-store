@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Vehicle / Parking Information Form</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+h2 { text-align: center; }
+.section { margin-top: 20px; }
+input { border: none; border-bottom: 1px solid black; width: 300px; }
+.line { margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h2>VEHICLE / PARKING INFORMATION FORM</h2>
+<p><strong>Independent Living (IL)</strong></p>
+
+<div class="section">
+<p><strong>1. Participant Information</strong></p>
+<div class="line">Participant Name: <input type="text" name="participant_name" value="{{ d.participant_name }}"></div>
+<div class="line">Room/Unit: <input type="text" name="room_unit" value="{{ d.room_unit }}"></div>
+</div>
+
+<div class="section">
+<p><strong>2. Vehicle Details</strong></p>
+<div class="line">Make: <input type="text" name="car_make" value="{{ d.car_make }}"></div>
+<div class="line">Model: <input type="text" name="car_model" value="{{ d.car_model }}"></div>
+<div class="line">Year: <input type="text" name="year_of_car" value="{{ d.year_of_car }}"></div>
+<div class="line">Color: <input type="text" name="car_color" value="{{ d.car_color }}"></div>
+<div class="line">License Plate Number: <input type="text" name="license_number" value="{{ d.license_number }}"></div>
+<div class="line">State: <input type="text" name="state" value="{{ d.state }}"></div>
+<div class="line">Insurance Provider: <input type="text" name="insurance_provider" value="{{ d.insurance_provider }}"></div>
+<div class="line">Policy Number: <input type="text" name="policy_number" value="{{ d.policy_number }}"></div>
+</div>
+
+<div class="section">
+<p><strong>3. Additional Rules</strong></p>
+<p>Residents must:</p>
+<p>☐ Park only in designated spaces</p>
+<p>☐ Maintain valid registration and insurance</p>
+<p>☐ Not store inoperable vehicles</p>
+<p>☐ Not perform mechanical repairs on the property</p>
+<p>☐ Report changes in vehicle information</p>
+<p>Vehicles violating policies may be towed at the owner’s expense.</p>
+</div>
+
+<div class="section">
+<p><strong>4. Emergency Contact</strong></p>
+<div class="line">Emergency Contact Name: <input type="text" name="emergency_contact" value="{{ d.emergency_contact }}"></div>
+<div class="line">Phone: <input type="text" name="phone_number" value="{{ d.phone_number }}"></div>
+</div>
+
+<div class="section">
+<p><strong>5. Acknowledgment</strong></p>
+<div class="line">Resident Signature: <input type="text" name="participant_signature" value="{{ d.participant_signature }}"></div>
+<div class="line">Date: <input type="text" name="signature_date" value="{{ d.signature_date }}"></div>
+<div class="line">Operator Signature: <input type="text" name="operator_signature" value="{{ d.operator_signature }}"></div>
+<div class="line">Date: <input type="text" name="operator_signature_date" value="{{ d.operator_signature_date }}"></div>
+</div>
+
+<form method="POST" action="/vehicle-parking/{{ id }}">
+    <button type="submit">Save Vehicle Parking Form</button>
+</form>
+
+
+<form method="POST" action="/vehicle-parking/{{ id }}">
+<button type="submit">Save</button>
+</form>
+</body>
+</html>

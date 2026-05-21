@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>NILPF Rolodex</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:30px;color:#111;}
+.page{max-width:1200px;margin:auto;background:white;padding:30px;border:2px solid #111;}
+h1{text-align:center;}
+.note{background:#fffbea;border:1px dashed #555;padding:12px;margin-bottom:20px;font-weight:bold;}
+form{border:2px solid #111;padding:18px;background:#fafafa;margin-bottom:25px;}
+label{display:block;font-weight:bold;margin-top:12px;}
+input,textarea,select{width:100%;padding:9px;margin-top:5px;box-sizing:border-box;font-size:15px;}
+textarea{min-height:80px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+button{margin-top:18px;background:#111;color:white;padding:10px 16px;border:none;font-weight:bold;cursor:pointer;}
+table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;}
+th,td{border:1px solid #111;padding:8px;vertical-align:top;}
+th{background:#111;color:white;}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>NILPF Rolodex / Organization Contact List</h1>
+<div class="note">Standalone editable contact list. This is not part of participant packet flow and does not final-lock.</div>
+<form method="POST">
+<h2>Add Organization Contact</h2>
+<div class="row">
+<div><label>Organization Name</label><input name="organization_name"></div>
+<div><label>Organization Type</label><select name="organization_type"><option value="">Select Type</option><option>LLC / Housing Provider</option><option>Nonprofit / Program Operator</option><option>Government Agency</option><option>Referral Partner</option><option>Sponsoring Agency</option><option>Payor / Funding Source</option><option>Billing Contact</option><option>VA / Veteran Service Contact</option><option>CoC / Housing System Contact</option><option>Community Partner</option><option>Other</option></select></div>
+</div>
+<div class="row">
+<div><label>Contact Person</label><input name="contact_person"></div>
+<div><label>Role / Title</label><input name="role_title"></div>
+</div>
+<div class="row">
+<div><label>Phone</label><input name="phone"></div>
+<div><label>Email</label><input name="email"></div>
+</div>
+<label>Notes</label>
+<textarea name="notes"></textarea>
+<button type="submit">Save Contact</button>
+</form>
+<h2>Saved Contacts</h2>
+<table>
+<tr><th>#</th><th>Organization</th><th>Type</th><th>Contact Person</th><th>Role / Title</th><th>Phone</th><th>Email</th><th>Notes</th></tr>
+{% for c in contacts %}
+<tr>
+<td>{{ loop.index }}</td>
+<td>{{ c.organization_name }}</td>
+<td>{{ c.organization_type }}</td>
+<td>{{ c.contact_person }}</td>
+<td>{{ c.role_title }}</td>
+<td>{{ c.phone }}</td>
+<td>{{ c.email }}</td>
+<td>{{ c.notes }}</td>
+</tr>
+{% endfor %}
+</table>
+<p style="margin-top:25px;"><a href="/admin-forms">Return to Operator Control Room</a></p>
+</div>
+</body>
+</html>

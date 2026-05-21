@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Billing / Invoice Setup Record</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background:#fff; color:#000; }
+    h1, h2 { text-align:center; }
+    .section { border:1px solid #000; padding:18px; margin:18px 0; }
+    label { display:block; margin-top:12px; font-weight:bold; }
+    input, select, textarea { width:100%; padding:10px; margin-top:5px; font-size:16px; }
+    textarea { min-height:80px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .buttons { margin-top:24px; display:flex; gap:12px; }
+    button, a.button { padding:12px 18px; background:#D4AF37; color:#000; border:0; text-decoration:none; font-weight:bold; cursor:pointer; }
+  </style>
+</head>
+<body>
+<h1>Billing / Invoice Setup Record</h1>
+<h2>NILPF Universal Invoice Setup</h2>
+<form method="POST">
+<div class="section">
+  <h2>Property / Program Information</h2>
+  <div class="row">
+    <div>
+      <label>Property Name</label>
+      <input name="property_name" value="{{ data.get('property_name', activation.get('property_name', '')) }}">
+    </div>
+    <div>
+      <label>Program Type</label>
+      <input name="program_type" value="{{ data.get('program_type', activation.get('program_type', '')) }}">
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Participant Name</label>
+      <input name="participant_name" value="{{ data.get('participant_name', participant.get('name', '')) }}">
+    </div>
+    <div>
+      <label>Participant ID</label>
+      <input name="participant_id" value="{{ data.get('participant_id', id) }}">
+    </div>
+  </div>
+</div>
+<div class="section">
+  <h2>Billing Contact Information</h2>
+  <div class="row">
+    <div>
+      <label>Billing Contact Name</label>
+      <input name="billing_contact_name" value="{{ data.get('billing_contact_name', '' ) }}">
+    </div>
+    <div>
+      <label>Billing Contact Title</label>
+      <input name="billing_contact_title" value="{{ data.get('billing_contact_title', '' ) }}">
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Billing Email</label>
+      <input name="billing_email" value="{{ data.get('billing_email', '' ) }}">
+    </div>
+    <div>
+      <label>Billing Phone</label>
+      <input name="billing_phone" value="{{ data.get('billing_phone', '' ) }}">
+    </div>
+  </div>
+  <label>Billing Mailing Address</label>
+  <textarea name="billing_address">{{ data.get('billing_address', '' ) }}</textarea>
+</div>
+<div class="section">
+  <h2>Invoice Responsibility</h2>
+  <label>Who is responsible for payment?</label>
+  <select name="payment_responsibility">
+    <option value="">Select one</option>
+    <option value="Participant" {% if data.get('payment_responsibility') == 'Participant' %}selected{% endif %}>Participant</option>
+    <option value="Agency" {% if data.get('payment_responsibility') == 'Agency' %}selected{% endif %}>Agency</option>
+    <option value="Sponsor" {% if data.get('payment_responsibility') == 'Sponsor' %}selected{% endif %}>Sponsor</option>
+    <option value="Program/Funder" {% if data.get('payment_responsibility') == 'Program/Funder' %}selected{% endif %}>Program/Funder</option>
+    <option value="Other" {% if data.get('payment_responsibility') == 'Other' %}selected{% endif %}>Other</option>
+  </select>
+  <label>Payment Responsibility Notes</label>
+  <textarea name="payment_responsibility_notes">{{ data.get('payment_responsibility_notes', '' ) }}</textarea>
+</div>
+<div class="section">
+  <h2>Invoice Details</h2>
+  <div class="row">
+    <div>
+      <label>Invoice Start Date</label>
+      <input type="date" name="invoice_start_date" value="{{ data.get('invoice_start_date', '' ) }}">
+    </div>
+    <div>
+      <label>Invoice Frequency</label>
+      <select name="invoice_frequency">
+        <option value="">Select one</option>
+        <option value="Weekly" {% if data.get('invoice_frequency') == 'Weekly' %}selected{% endif %}>Weekly</option>
+        <option value="Biweekly" {% if data.get('invoice_frequency') == 'Biweekly' %}selected{% endif %}>Biweekly</option>
+        <option value="Monthly" {% if data.get('invoice_frequency') == 'Monthly' %}selected{% endif %}>Monthly</option>
+        <option value="Other" {% if data.get('invoice_frequency') == 'Other' %}selected{% endif %}>Other</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Rate / Amount</label>
+      <input name="rate_amount" value="{{ data.get('rate_amount', '' ) }}">
+    </div>
+    <div>
+      <label>Due Date Terms</label>
+      <input name="due_date_terms" value="{{ data.get('due_date_terms', 'Due upon receipt' ) }}">
+    </div>
+  </div>
+</div>
+<div class="section">
+  <h2>Payment Portal Setup</h2>
+  <label>Payment Portal Type</label>
+  <select name="payment_portal_type">
+    <option value="">Select one</option>
+    <option value="Stripe" {% if data.get('payment_portal_type') == 'Stripe' %}selected{% endif %}>Stripe</option>
+    <option value="PayPal" {% if data.get('payment_portal_type') == 'PayPal' %}selected{% endif %}>PayPal</option>
+    <option value="Payhip" {% if data.get('payment_portal_type') == 'Payhip' %}selected{% endif %}>Payhip</option>
+    <option value="Manual Invoice" {% if data.get('payment_portal_type') == 'Manual Invoice' %}selected{% endif %}>Manual Invoice</option>
+    <option value="Other" {% if data.get('payment_portal_type') == 'Other' %}selected{% endif %}>Other</option>
+  </select>
+  <label>Payment Link / Portal URL</label>
+  <input name="payment_portal_url" value="{{ data.get('payment_portal_url', '' ) }}">
+  <label>Portal Notes</label>
+  <textarea name="payment_portal_notes">{{ data.get('payment_portal_notes', '' ) }}</textarea>
+</div>
+<div class="section">
+  <h2>Invoice Delivery Instructions</h2>
+  <label>Preferred Invoice Delivery Method</label>
+  <select name="invoice_delivery_method">
+    <option value="">Select one</option>
+    <option value="Email" {% if data.get('invoice_delivery_method') == 'Email' %}selected{% endif %}>Email</option>
+    <option value="Mail" {% if data.get('invoice_delivery_method') == 'Mail' %}selected{% endif %}>Mail</option>
+    <option value="Portal Upload" {% if data.get('invoice_delivery_method') == 'Portal Upload' %}selected{% endif %}>Portal Upload</option>
+    <option value="Hand Delivery" {% if data.get('invoice_delivery_method') == 'Hand Delivery' %}selected{% endif %}>Hand Delivery</option>
+    <option value="Other" {% if data.get('invoice_delivery_method') == 'Other' %}selected{% endif %}>Other</option>
+  </select>
+  <label>Invoice Delivery Notes</label>
+  <textarea name="invoice_delivery_notes">{{ data.get('invoice_delivery_notes', '' ) }}</textarea>
+</div>
+<div class="section">
+  <h2>Approval / Authorization</h2>
+  <div class="row">
+    <div>
+      <label>Authorized By</label>
+      <input name="authorized_by" value="{{ data.get('authorized_by', '' ) }}">
+    </div>
+    <div>
+      <label>Authorization Date</label>
+      <input type="date" name="authorization_date" value="{{ data.get('authorization_date', '' ) }}">
+    </div>
+  </div>
+  <label>Authorization Notes</label>
+  <textarea name="authorization_notes">{{ data.get('authorization_notes', '' ) }}</textarea>
+</div>
+<div class="buttons">
+  <button type="submit">Save Billing Setup</button>
+</div>
+</form>
+</body>
+</html>

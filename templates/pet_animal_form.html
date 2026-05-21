@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>10 – Pet Animal Information Sheet</title>
+    <style>
+        body { font-family: Arial; max-width: 850px; margin: 30px auto; line-height: 1.45; }
+        h2 { margin-bottom: 5px; }
+        h3 { margin-top: 24px; }
+        input { width: 420px; padding: 6px; margin-top: 4px; }
+        .small { width: 220px; }
+        .footer { margin-top: 35px; font-size: 14px; }
+        button { margin-top: 25px; padding: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h2>10 – Pet_Animal_Information_Sheet</h2>
+<p><strong>Independent Living Housing</strong></p>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This form is used to collect basic information regarding pets or animals present in Independent Living housing.</p>
+<p>This form is informational only and does not constitute approval, authorization, supervision, or accommodation.</p>
+
+<h3>NO ANIMAL SERVICES OR ASSESSMENTS</h3>
+<p>Independent Living housing does not:</p>
+<p>● Provide animal care, training, or supervision</p>
+<p>● Assess or verify animal behavior or suitability</p>
+<p>● Determine service or support animal status</p>
+<p>● Assume responsibility for animals</p>
+<p>All responsibility for animals rests with the participant.</p>
+
+<form method="POST" action="/pet-animal/{{ id }}">
+
+<h3>PARTICIPANT INFORMATION</h3>
+<label>Participant Name:</label>
+<input type="text" name="participant_name" value="{{ d.participant_name }}">
+
+<label>Unit / Room (if applicable):</label>
+<input class="small" type="text" name="unit" value="{{ d.unit }}">
+
+<h3>ANIMAL INFORMATION</h3>
+<p>(Complete one section per animal)</p>
+
+<label>Type of Animal:</label>
+<input type="text" name="animal_type" value="{{ d.animal_type }}">
+
+<label>Breed (if applicable):</label>
+<input type="text" name="breed" value="{{ d.breed }}">
+
+<label>Name:</label>
+<input type="text" name="animal_name" value="{{ d.animal_name }}">
+
+<label>Age (approximate):</label>
+<input class="small" type="text" name="age" value="{{ d.age }}">
+
+<label>Vaccination Information (if provided):</label>
+<input type="text" name="vaccination" value="{{ d.vaccination }}">
+
+<h3>PARTICIPANT RESPONSIBILITY</h3>
+<p>● Care, control, and supervision of the animal</p>
+<p>● Any damage or disturbances caused by the animal</p>
+<p>● Compliance with applicable laws and housing terms</p>
+<p>The housing provider does not monitor animal behavior or condition.</p>
+
+<h3>NO RIGHTS OR GUARANTEES CREATED</h3>
+<p>● Guarantee permission for an animal</p>
+<p>● Create tenancy or occupancy rights for an animal</p>
+<p>● Establish any ongoing obligation by the housing provider</p>
+<p>Animal presence remains subject to housing terms and applicable laws.</p>
+
+<h3>ACKNOWLEDGEMENT</h3>
+<p>By signing below, the participant acknowledges that this form is for informational purposes only and that full responsibility for any animal rests with the resident.</p>
+
+<label>Participant Signature:</label>
+<input type="text" name="participant_signature" value="{{ d.participant_signature }}">
+
+<label>Date:</label>
+<input class="small" type="text" name="signature_date" value="{{ d.signature_date }}">
+
+<p><strong>End of Form</strong></p>
+
+<div class="footer">
+<p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
+<p>Version 2.1 — Revised February 2026</p>
+</div>
+
+<button type="submit">Save / Review Lock Final Document</button>
+
+</form>
+
+
+<form method="POST" action="/pet-animal/{{ id }}">
+<button type="submit">Save</button>
+</form>
+</body>
+</html>

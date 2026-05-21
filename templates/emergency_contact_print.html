@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>07 – Emergency Contact Form - Review</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 850px;
+            margin: 30px auto;
+            line-height: 1.45;
+            font-size: 16px;
+        }
+        h2 { margin-bottom: 5px; }
+        h3 { margin-top: 24px; margin-bottom: 8px; }
+        .copyright { margin-top: 8px; margin-bottom: 20px; }
+        .line { border-bottom: 1px solid #000; display: inline-block; min-width: 360px; padding-left: 8px; }
+        .small-line { border-bottom: 1px solid #000; display: inline-block; min-width: 180px; padding-left: 8px; }
+        .footer { margin-top: 35px; font-size: 14px; }
+        .actions { margin-top: 25px; }
+    </style>
+</head>
+<body>
+
+<h2>07 – Emergency_Contact_Form</h2>
+<p><strong>Independent Living Housing</strong></p>
+<p class="copyright">© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This form allows participants to voluntarily provide emergency contact information for reference purposes only.</p>
+<p>Providing this information does not create an obligation for the housing provider to contact, notify, or coordinate with any individual.</p>
+
+<h3>NO EMERGENCY SERVICES OR OBLIGATIONS</h3>
+<p>Independent Living housing does not provide emergency response, medical services, supervision, or notification services.</p>
+<p>The housing provider is not responsible for monitoring participant wellbeing or initiating emergency contacts.</p>
+
+<h3>PARTICIPANT INFORMATION</h3>
+<p><strong>Participant Name:</strong> <span class="line">{{ d.participant_name }}</span></p>
+<p><strong>Address (if applicable):</strong> <span class="line">{{ d.address }}</span></p>
+<p><strong>Phone Number:</strong> <span class="line">{{ d.phone }}</span></p>
+
+<h3>EMERGENCY CONTACT (OPTIONAL)</h3>
+<p><strong>Contact Name:</strong> <span class="line">{{ d.contact_name }}</span></p>
+<p><strong>Relationship:</strong> <span class="line">{{ d.relationship }}</span></p>
+<p><strong>Phone Number:</strong> <span class="line">{{ d.contact_phone }}</span></p>
+<p><strong>Alternate Phone (optional):</strong> <span class="line">{{ d.alternate_phone }}</span></p>
+
+<h3>OPTIONAL ADDITIONAL CONTACT</h3>
+<p><strong>Contact Name:</strong> <span class="line">{{ d.contact2_name }}</span></p>
+<p><strong>Relationship:</strong> <span class="line">{{ d.contact2_relationship }}</span></p>
+<p><strong>Phone Number:</strong> <span class="line">{{ d.contact2_phone }}</span></p>
+
+<h3>PARTICIPANT ACKNOWLEDGEMENT</h3>
+<p>By completing this form, the participant understands and agrees that:</p>
+<p>● Providing emergency contact information is voluntary</p>
+<p>● The housing provider is not obligated to notify or contact listed individuals</p>
+<p>● Emergency response is the responsibility of public emergency services</p>
+
+<p><strong>Participant Signature:</strong> <span class="line">{{ d.participant_signature }}</span></p>
+<p><strong>Date:</strong> <span class="small-line">{{ d.signature_date }}</span></p>
+
+<p><strong>End of Form</strong></p>
+
+<div class="footer">
+    <p>Single-Site License Granted to Purchaser. Unauthorized Reproduction Distribution, or Derivative Use Prohibited.</p>
+    <p>Version 2.1 — Revised February 2026</p>
+</div>
+
+<div class="actions">
+{% if locked %}
+    <p><strong>FINAL LOCKED DOCUMENT</strong></p>
+    <p><a href="/packet-builder/{{ id }}">Return to Packet Builder</a></p>
+{% else %}
+    <p><a href="/emergency-contact-unlock/{{ id }}">Edit</a></p>
+    <form method="POST" action="/emergency-contact-final/{{ id }}">
+        <button type="submit">Final Lock</button>
+    </form>
+{% endif %}
+</div>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+</body>
+</html>

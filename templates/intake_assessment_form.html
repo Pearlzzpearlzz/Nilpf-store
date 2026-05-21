@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Initial Intake Assessment</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; background:#f5f5f5; }
+.page { background:white; padding:30px; border:2px solid #111; max-width:900px; margin:auto; }
+h1,h2,h3 { text-align:center; }
+label { display:block; margin-top:12px; font-weight:bold; }
+input, textarea, select { width:100%; padding:8px; margin-top:4px; }
+textarea { height:80px; }
+.check { width:auto; }
+button { padding:12px 25px; font-size:18px; font-weight:bold; margin-top:25px; }
+.section { border:1px solid #111; padding:15px; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>INITIAL INTAKE ASSESSMENT</h1>
+<h2>Transitional / VA / Reentry-Aligned Housing Program</h2>
+<p style="text-align:center;">NILPF Framework 2026</p>
+
+<form method="POST" action="/intake-assessment/{{ id }}">
+
+<div class="section">
+<h3>1. Participant Information</h3>
+
+<label>Participant Name</label>
+  <input name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
+
+<label>Date of Assessment</label>
+  <input type="date" name="assessment_date" value="{{ d.get('assessment_date', today) }}">
+
+<label>Referral Source</label>
+<input name="referral_source" value="{{ d.get('referral_source','') }}">
+
+<label>Program Type</label>
+<select name="program_type">
+<option value="">Select</option>
+<option value="Transitional" {% if d.get('program_type') == 'Transitional' %}selected{% endif %}>Transitional Housing</option>
+<option value="VA_GPD_Aligned" {% if d.get('program_type') == 'VA_GPD_Aligned' %}selected{% endif %}>VA / GPD-Aligned</option>
+<option value="DOC_Reentry_Aligned" {% if d.get('program_type') == 'DOC_Reentry_Aligned' %}selected{% endif %}>DOC / Reentry-Aligned</option>
+</select>
+</div>
+
+<div class="section">
+<h3>2. Current Housing Situation</h3>
+
+<label>Current Housing Status</label>
+<select name="housing_status">
+<option value="">Select</option>
+<option value="Unsheltered" {% if d.get('housing_status') == 'Unsheltered' %}selected{% endif %}>Unsheltered</option>
+<option value="Shelter" {% if d.get('housing_status') == 'Shelter' %}selected{% endif %}>Emergency Shelter</option>
+<option value="Temporary" {% if d.get('housing_status') == 'Temporary' %}selected{% endif %}>Temporary / Staying With Others</option>
+<option value="Institutional" {% if d.get('housing_status') == 'Institutional' %}selected{% endif %}>Institutional / Facility Release</option>
+<option value="Other" {% if d.get('housing_status') == 'Other' %}selected{% endif %}>Other</option>
+</select>
+
+<label>Brief Description of Current Situation</label>
+<textarea name="current_situation">{{ d.get('current_situation','') }}</textarea>
+</div>
+
+<div class="section">
+<h3>3. Immediate Needs</h3>
+
+<p><input class="check" type="checkbox" name="need_housing" {% if d.get('need_housing') %}checked{% endif %}> Safe housing placement</p>
+<p><input class="check" type="checkbox" name="need_food" {% if d.get('need_food') %}checked{% endif %}> Food / basic supplies</p>
+<p><input class="check" type="checkbox" name="need_documents" {% if d.get('need_documents') %}checked{% endif %}> Identification / documents</p>
+<p><input class="check" type="checkbox" name="need_transportation" {% if d.get('need_transportation') %}checked{% endif %}> Transportation</p>
+<p><input class="check" type="checkbox" name="need_income" {% if d.get('need_income') %}checked{% endif %}> Income / benefits</p>
+<p><input class="check" type="checkbox" name="need_employment" {% if d.get('need_employment') %}checked{% endif %}> Employment support</p>
+<p><input class="check" type="checkbox" name="need_case_manager" {% if d.get('need_case_manager') %}checked{% endif %}> Case manager / agency connection</p>
+
+<label>Other Immediate Needs</label>
+<textarea name="other_needs">{{ d.get('other_needs','') }}</textarea>
+</div>
+
+<div class="section">
+<h3>4. Barriers to Stability</h3>
+
+<p><input class="check" type="checkbox" name="barrier_income" {% if d.get('barrier_income') %}checked{% endif %}> No or limited income</p>
+<p><input class="check" type="checkbox" name="barrier_employment" {% if d.get('barrier_employment') %}checked{% endif %}> Employment barrier</p>
+<p><input class="check" type="checkbox" name="barrier_documents" {% if d.get('barrier_documents') %}checked{% endif %}> Missing documents</p>
+<p><input class="check" type="checkbox" name="barrier_transportation" {% if d.get('barrier_transportation') %}checked{% endif %}> Transportation barrier</p>
+<p><input class="check" type="checkbox" name="barrier_legal" {% if d.get('barrier_legal') %}checked{% endif %}> Legal / reentry barrier</p>
+<p><input class="check" type="checkbox" name="barrier_health" {% if d.get('barrier_health') %}checked{% endif %}> Health-related barrier</p>
+
+<label>Barrier Notes</label>
+<textarea name="barrier_notes">{{ d.get('barrier_notes','') }}</textarea>
+</div>
+
+<div class="section">
+<h3>5. Participant Goals</h3>
+
+<label>Short-Term Goal</label>
+<textarea name="short_term_goal">{{ d.get('short_term_goal','') }}</textarea>
+
+<label>Long-Term Goal</label>
+<textarea name="long_term_goal">{{ d.get('long_term_goal','') }}</textarea>
+
+<label>Support Needed to Reach Goals</label>
+<textarea name="support_needed">{{ d.get('support_needed','') }}</textarea>
+</div>
+
+<div class="section">
+<h3>6. Staff Assessment Notes</h3>
+
+<label>Staff Observations</label>
+<textarea name="staff_observations">{{ d.get('staff_observations','') }}</textarea>
+
+<label>Recommended Next Step</label>
+<textarea name="recommended_next_step">{{ d.get('recommended_next_step','') }}</textarea>
+</div>
+
+<div class="section">
+<h3>7. Acknowledgment</h3>
+<p>This assessment is used for internal program documentation, housing coordination, and participant support planning. It does not replace any HMIS, CoC, VA, clinical, or agency-required assessment.</p>
+
+<label>Participant Signature</label>
+<input name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
+
+<label>Staff Signature</label>
+<input name="staff_signature" value="{{ d.get('staff_signature','') }}">
+
+<label>Date</label>
+<input type="date" name="signature_date" value="{{ d.get('signature_date', today) }}">
+</div>
+
+<button type="submit">Save</button>
+
+</form>
+</div>
+</body>
+</html>

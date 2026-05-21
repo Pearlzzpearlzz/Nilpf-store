@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+</style>
+<meta charset="utf-8">
+<title>ACH Authorization</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 40px; }
+  h2 { text-align:center; margin-bottom:20px; }
+  .row { margin: 14px 0; }
+  .label { display:inline-block; width:260px; }
+  .line { display:inline-block; border-bottom:1px solid #000; min-width:280px; padding:2px 6px; }
+  .check { display:inline-block; width:16px; text-align:center; }
+  .small { font-size:12px; margin-top:20px; }
+  @media print { body { margin: 20px; } }
+</style>
+</head>
+<body>
+<h2>DIRECT DEPOSIT / ACH AUTHORIZATION</h2>
+
+<div class="row"><span class="label">Participant Name:</span>
+  <span class="line">{{ d.participant_name }}</span></div>
+
+<div class="row"><span class="label">Financial Institution Name:</span>
+  <span class="line">{{ d.bank_name }}</span></div>
+
+<div class="row"><span class="label">Account Type:</span>
+  {% if d.account_type|lower == 'checking' %}☑{% else %}☐{% endif %} Checking
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  {% if d.account_type|lower == 'savings' %}☑{% else %}☐{% endif %} Savings
+</div>
+
+<div class="row"><span class="label">Routing Number:</span>
+  <span class="line">{{ d.routing_number }}</span></div>
+
+<div class="row"><span class="label">Account Number:</span>
+  <span class="line">{{ d.account_number }}</span></div>
+
+<div class="small">
+I authorize the Independent Living Program Operator to initiate electronic debit entries from the account listed above for program participation contributions as agreed.
+</div>
+
+<div class="row" style="margin-top:28px;">
+  <span class="label">Participant Signature:</span>
+  <span class="line">{{ d.participant_signature }}</span>
+</div>
+
+<div class="row">
+  <span class="label">Date:</span>
+  <span class="line">{{ d.signature_date }}</span>
+</div>
+
+<div class="row">
+  <span class="label">Bank Account Holder (if different):</span>
+  <span class="line">{{ d.account_holder or '' }}</span>
+</div>
+
+
+<form method="POST" action="/ach-final/{{ id }}">
+<button type="submit">Lock</button>
+</form>
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+</body>
+</html>
+
+
+<hr>
+

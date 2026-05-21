@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ILH Master Lease</title>
+<style>
+body { font-family: Arial; margin:40px; line-height:1.5; }
+h1,h2,h3 { text-align:center; }
+.section { margin-top:25px; }
+input, textarea { width:100%; margin-top:5px; margin-bottom:10px; padding:6px; }
+</style>
+</head>
+<body>
+
+<h1>MASTER LEASE AGREEMENT</h1>
+<h2>Independent Shared Housing – Property Control Structure</h2>
+<h3>NILPF Framework</h3>
+
+<p><strong>Document Version:</strong> v2.0 (2026)</p>
+
+<p>
+This Master Lease Agreement is entered into by and between the Property Owner and the Program Operator
+for the lease of residential real property to be used solely as independent, non-supervised shared residential occupancy.
+</p>
+
+<p>
+The Property shall not be used for medical care, assisted living, residential treatment, supervision,
+monitoring, or regulated services.
+</p>
+
+<p>
+This Agreement establishes a property lease only and does not create any care, custodial, supervisory,
+service, or program relationship.
+</p>
+
+<p><strong>Independent Living – Non-Tenancy Housing Structure</strong></p>
+
+<label>Date:</label>
+<input name="date" value="{{ d.get('date','') }}">
+
+<div class="section">
+<h3>PARTIES</h3>
+
+<label>Owner Name:</label>
+<input name="owner_name" value="{{ d.get('owner_name','') }}">
+
+<label>Owner Address:</label>
+<input name="owner_address" value="{{ d.get('owner_address','') }}">
+
+<label>Operator Entity Name:</label>
+<input name="operator_name" value="{{ d.get('operator_name','') }}">
+
+<label>Entity Type:</label>
+<input name="entity_type" value="{{ d.get('entity_type','') }}">
+
+<label>Business Address:</label>
+<input name="business_address" value="{{ d.get('business_address','') }}">
+
+<label>Property Address:</label>
+<input name="property_address" value="{{ d.get('property_address','') }}">
+</div>
+
+<div class="section">
+<h3>1. PURPOSE</h3>
+<p>Independent shared residential housing only.</p>
+<p>No medical care. No supervision. No treatment. No personal assistance.</p>
+</div>
+
+<div class="section">
+<h3>2. TERM</h3>
+<input name="start_date" placeholder="Start Date" value="{{ d.get('start_date','') }}">
+<input name="end_date" placeholder="End Date" value="{{ d.get('end_date','') }}">
+<textarea name="renewal" placeholder="Renewal Terms">{{ d.get('renewal','') }}</textarea>
+</div>
+
+<div class="section">
+<h3>3. RENT</h3>
+<input name="rent" placeholder="Monthly Rent" value="{{ d.get('rent','') }}">
+<input name="due_date" placeholder="Due Date" value="{{ d.get('due_date','') }}">
+<input name="late_fee" placeholder="Late Fee" value="{{ d.get('late_fee','') }}">
+<input name="late_days" placeholder="Late Days Trigger" value="{{ d.get('late_days','') }}">
+<input name="deposit" placeholder="Deposit" value="{{ d.get('deposit','') }}">
+</div>
+
+<div class="section">
+<h3>4. EXCLUSIVE POSSESSION</h3>
+<p>Owner has no operational authority. Operator manages housing fully.</p>
+</div>
+
+<div class="section">
+<h3>5. OCCUPANCY</h3>
+<input name="max_total" placeholder="Max Occupants" value="{{ d.get('max_total','') }}">
+<input name="max_room" placeholder="Max per Room" value="{{ d.get('max_room','') }}">
+</div>
+
+<div class="section">
+<h3>6. MAINTENANCE</h3>
+<p>Operator handles routine + under $500. Owner handles structural + over $500.</p>
+</div>
+
+<div class="section">
+<h3>7. UTILITIES</h3>
+<textarea name="utilities">{{ d.get('utilities','') }}</textarea>
+</div>
+
+<div class="section">
+<h3>8. INSURANCE</h3>
+<input name="insurance" placeholder="Coverage" value="{{ d.get('insurance','') }}">
+</div>
+
+<div class="section">
+<h3>9. LIABILITY</h3>
+<p>No liability for independent occupant actions.</p>
+</div>
+
+<div class="section">
+<h3>10. REGULATORY STATUS</h3>
+<p>Independent, non-supervised, non-licensed housing.</p>
+</div>
+
+<div class="section">
+<h3>11. INDEMNIFICATION</h3>
+<p>Operator indemnifies Owner except gross negligence.</p>
+</div>
+
+<div class="section">
+<h3>12. ACCESS</h3>
+<input name="notice_hours" placeholder="Notice Hours" value="{{ d.get('notice_hours','') }}">
+</div>
+
+<div class="section">
+<h3>13. NO PARTNERSHIP</h3>
+<p>No partnership or joint venture created.</p>
+</div>
+
+<div class="section">
+<h3>SIGNATURES</h3>
+
+<label>Owner Signature:</label>
+<input name="owner_sig" value="{{ d.get('owner_sig','') }}">
+
+<label>Date:</label>
+<input name="owner_date" value="{{ d.get('owner_date','') }}">
+
+<label>Operator Signature:</label>
+<input name="operator_sig" value="{{ d.get('operator_sig','') }}">
+
+<label>Date:</label>
+<input name="operator_date" value="{{ d.get('operator_date','') }}">
+</div>
+
+<br>
+<button type="submit">Save</button>
+
+
+<form method="POST" action="/ilh-master-lease/{{ id }}">
+<button type="submit">Save</button>
+</form>
+</body>
+</html>

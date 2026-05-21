@@ -1,0 +1,253 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Release of Information / Authorization to Communicate</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; background:#f5f5f5; color:#000; }
+.page { background:#fff; padding:35px; border:2px solid #111; max-width:950px; margin:auto; }
+h1, h2, h3 { text-align:center; }
+pre { white-space:pre-wrap; font-family: Arial, sans-serif; font-size:15px; line-height:1.45; }
+label { display:block; font-weight:bold; margin-top:14px; }
+input, textarea { width:100%; padding:9px; margin-top:5px; font-size:15px; box-sizing:border-box; }
+textarea { min-height:85px; }
+button { margin-top:25px; padding:12px 18px; font-size:16px; font-weight:bold; }
+</style>
+</head>
+<body>
+<div class="page">
+<h1>RELEASE OF INFORMATION / AUTHORIZATION TO COMMUNICATE</h1>
+<h3>Universal Conditional Participant Form</h3>
+
+<form method="POST">
+<label>Participant Name</label>
+<input name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}">
+
+<label>Date of Birth</label>
+<input name="dob" value="{{ d.get('dob','') }}">
+
+<label>Program / Housing Category</label>
+<input name="program_category" value="{{ d.get('program_category', participant.get('program_type','')) }}">
+
+<label>Person / Agency Authorized for Communication</label>
+<input name="authorized_party" value="{{ d.get('authorized_party','') }}">
+
+<label>Role / Relationship</label>
+<input name="relationship_role" value="{{ d.get('relationship_role','') }}">
+
+<label>Phone</label>
+<input name="phone" value="{{ d.get('phone','') }}">
+
+<label>Email</label>
+<input name="email" value="{{ d.get('email','') }}">
+
+<label>Purpose / Information Authorized</label>
+<textarea name="authorized_purpose">{{ d.get('authorized_purpose','') }}</textarea>
+
+<label>Information NOT Authorized</label>
+<textarea name="not_authorized">{{ d.get('not_authorized','') }}</textarea>
+
+<label>Authorization Start Date</label>
+<input name="start_date" value="{{ d.get('start_date','') }}">
+
+<label>Authorization Expiration / End Date</label>
+<input name="expiration_date" value="{{ d.get('expiration_date','') }}">
+
+<label>Participant Signature</label>
+<input name="participant_signature" value="{{ d.get('participant_signature','') }}">
+
+<label>Signature Date</label>
+<input name="signature_date" value="{{ d.get('signature_date','') }}">
+
+<hr>
+<pre>RELEASE OF INFORMATION / AUTHORIZATION TO COMMUNICATE
+Universal Conditional Participant Form
+NILPF Framework (2026)
+
+1. PURPOSE OF THIS FORM
+
+This Release of Information / Authorization to Communicate form allows the participant to give written permission for the program operator to communicate with a specific outside person, agency, case manager, referral source, sponsor, payor, VA contact, probation/parole contact, healthcare provider, social service provider, or other support contact.
+
+This form is conditional. It is only required when outside communication is needed and the participant gives permission.
+
+For ILH participants, this form is generally used only when a change of condition, outside coordination need, emergency coordination need, or participant-requested communication is documented.
+
+2. PARTICIPANT INFORMATION
+
+Participant Name: ___________________________________________
+
+Date of Birth: _______________________________________________
+
+Program / Housing Category:
+
+[ ] ILH - Independent Living Housing
+[ ] Transitional Housing
+[ ] VA / GPD Aligned
+[ ] DOC Reentry Aligned
+[ ] Reentry
+[ ] PSH - Future Module
+[ ] HUD-VASH - Future Separate Module
+[ ] Other: _________________________________________________
+
+Property / Program Location: __________________________________
+
+Date of Authorization: ________________________________________
+
+3. PERSON OR AGENCY AUTHORIZED FOR COMMUNICATION
+
+I authorize the program operator to communicate with the following person, agency, or organization:
+
+Name of Person / Agency: _____________________________________
+
+Role / Relationship to Participant:
+
+[ ] Case Manager
+[ ] VA Worker / VA Contact
+[ ] Probation Officer
+[ ] Parole Officer
+[ ] Referral Source
+[ ] Sponsoring Agency
+[ ] Payor / Funding Agency
+[ ] Shelter / Outreach Worker
+[ ] Social Worker
+[ ] Behavioral Health Provider
+[ ] Medical Provider
+[ ] Emergency Contact
+[ ] Other: _________________________________________________
+
+Contact Person: ______________________________________________
+
+Phone Number: _______________________________________________
+
+Email Address: _______________________________________________
+
+Mailing Address: _____________________________________________
+
+4. INFORMATION THAT MAY BE SHARED OR DISCUSSED
+
+The participant authorizes communication related only to the items checked below:
+
+[ ] Program participation status
+[ ] Housing participation status
+[ ] Attendance / check-in information
+[ ] Referral follow-up
+[ ] Sponsorship or payment coordination
+[ ] Billing or funding coordination
+[ ] Change of condition concern
+[ ] Emergency coordination
+[ ] Safety-related concern
+[ ] Program compliance concern
+[ ] Documentation needed for continued participation
+[ ] Discharge / transition planning
+[ ] Other: _________________________________________________
+
+5. INFORMATION NOT AUTHORIZED
+
+Unless specifically written below, this authorization does not allow disclosure of unrelated medical, mental health, substance use, financial, legal, or personal information beyond what is necessary for the purpose identified in this form.
+
+Information NOT authorized for release:
+
+______________________________________________________________
+
+______________________________________________________________
+
+______________________________________________________________
+
+6. PURPOSE OF COMMUNICATION
+
+This authorization is being completed for the following reason:
+
+[ ] Participant requested outside communication
+[ ] Referral coordination
+[ ] Case management coordination
+[ ] VA coordination
+[ ] DOC / probation / parole coordination
+[ ] Sponsorship or payment coordination
+[ ] Change of condition follow-up
+[ ] Emergency contact coordination
+[ ] Program documentation requirement
+[ ] Other: _________________________________________________
+
+Explanation / Notes:
+
+______________________________________________________________
+
+______________________________________________________________
+
+______________________________________________________________
+
+7. TIME PERIOD OF AUTHORIZATION
+
+This authorization begins on:
+
+Start Date: _________________________________________________
+
+This authorization expires on:
+
+[ ] Specific Date: ___________________________________________
+[ ] End of program participation
+[ ] When revoked by participant in writing
+[ ] Other: _________________________________________________
+
+8. PARTICIPANT RIGHTS
+
+The participant understands that:
+
+- This authorization is voluntary.
+- The participant may refuse to sign this form.
+- The participant may revoke this authorization in writing at any time.
+- Revocation does not affect information already shared before the written revocation was received.
+- Signing this form does not create a requirement to accept services.
+- Signing this form does not create a supervisory, medical, clinical, or custodial relationship.
+- The program operator provides housing/program coordination only unless otherwise stated in a separate written agreement.
+
+9. LIMITATION OF AUTHORIZATION
+
+This form does not authorize the program operator to act as the participant’s guardian, representative payee, medical decision-maker, legal representative, or supervising authority.
+
+This form only permits communication for the limited purpose described in this authorization.
+
+10. PARTICIPANT AUTHORIZATION
+
+I understand the purpose of this form. I authorize the program operator to communicate with the person, agency, or organization listed above for the limited purpose described in this form.
+
+Participant Name: ____________________________________________
+
+Participant Signature: ________________________________________
+
+Date: _______________________________________________________
+
+11. PROGRAM OPERATOR ACKNOWLEDGMENT
+
+Program Operator / Staff Name: ________________________________
+
+Title / Role: ________________________________________________
+
+Signature: __________________________________________________
+
+Date: _______________________________________________________
+
+12. REVOCATION OF AUTHORIZATION, IF APPLICABLE
+
+I revoke this authorization effective:
+
+Date: _______________________________________________________
+
+Participant Signature: ________________________________________
+
+Staff Witness: ______________________________________________
+
+Notes:
+
+______________________________________________________________
+
+______________________________________________________________
+
+© 2026 Pearlzz LLC - NILPF Framework
+</pre>
+
+<button type="submit">Save and Review</button>
+</form>
+</div>
+</body>
+</html>

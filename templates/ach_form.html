@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Direct Deposit / ACH Authorization</title>
+
+<style>
+body {
+    background:#111;
+    padding:30px;
+    font-family: Georgia, "Times New Roman", serif;
+}
+.page {
+    background:white;
+    color:#111;
+    width:8.5in;
+    min-height:11in;
+    margin:0 auto 25px auto;
+    padding:.85in;
+    box-sizing:border-box;
+    font-size:17px;
+    line-height:1.7;
+    box-shadow:0 0 12px rgba(0,0,0,.45);
+}
+h1 {
+    text-align:center;
+    font-size:22px;
+    margin-bottom:0;
+}
+.subtitle {
+    text-align:center;
+    font-size:18px;
+    margin-bottom:35px;
+}
+.field {
+    border:none;
+    border-bottom:1px solid #111;
+    width:310px;
+    font-size:17px;
+    font-family: Georgia, "Times New Roman", serif;
+    padding:4px;
+}
+.short { width:220px; }
+.checkline {
+    margin-left:30px;
+}
+.buttons {
+    width:8.5in;
+    margin:20px auto;
+    text-align:center;
+}
+button, a.button {
+    background:#d4af37;
+    color:#111;
+    border:none;
+    padding:12px 22px;
+    font-weight:bold;
+    text-decoration:none;
+    border-radius:6px;
+    margin:8px;
+    cursor:pointer;
+}
+.locked {
+    width:8.5in;
+    margin:0 auto 20px auto;
+    background:#d4af37;
+    text-align:center;
+    padding:12px;
+    font-weight:bold;
+    border-radius:6px;
+}
+.line {
+    display:inline-block;
+    border-bottom:1px solid #111;
+    min-width:310px;
+    padding:4px;
+}
+@media print {
+    body { background:white; padding:0; }
+    .buttons, .locked { display:none; }
+    .page { box-shadow:none; margin:0; }
+}
+</style>
+
+</head>
+<body>
+<form method="POST" action="/ach/{{ id }}">
+
+<div class="page">
+    <h1>DIRECT DEPOSIT / ACH AUTHORIZATION</h1>
+    <div class="subtitle">Independent Living Program</div>
+
+    <p>Participant Name: <input class="field" name="participant_name" value="{{ d.get('participant_name','') }}"></p>
+
+    <p>Financial Institution Name: <input class="field" name="bank_name" value="{{ d.get('bank_name','') }}"></p>
+
+    <p>Account Type:</p>
+    <p class="checkline">
+        <label><input type="radio" name="account_type" value="Checking" {% if d.get('account_type') == 'Checking' %}checked{% endif %}> Checking</label>
+        &nbsp;&nbsp;&nbsp;
+        <label><input type="radio" name="account_type" value="Savings" {% if d.get('account_type') == 'Savings' %}checked{% endif %}> Savings</label>
+    </p>
+
+    <p>Routing Number: <input class="field" name="routing_number" value="{{ d.get('routing_number','') }}"></p>
+
+    <p>Account Number: <input class="field" name="account_number" value="{{ d.get('account_number','') }}"></p>
+
+    <p><strong>Authorization</strong></p>
+
+    <p>I authorize the Independent Living Program Operator to initiate electronic debit entries from the account listed above for program participation contributions as agreed.</p>
+
+    <p>This authorization will remain in effect until written notice of cancellation is provided.</p>
+
+    <p><strong>Direct Express / Non-ACH Payment Notice</strong></p>
+
+    <p>Participants who receive funds through Direct Express or another account that does not allow ACH debit authorization understand that the Independent Living Program Operator may not be able to retrieve funds electronically from that account.</p>
+
+    <p>In that situation, the participant remains responsible for making their agreed housing participation payments by another accepted method, such as cash, money order, Cash App, or another payment method approved by the housing provider.</p>
+
+
+    <p>Participant Signature: <input class="field" name="participant_signature" value="{{ d.get('participant_signature','') }}"></p>
+
+    <p>Date: <input class="field short" name="signature_date" value="{{ d.get('signature_date','') }}"></p>
+
+    <p>Bank Account Holder (if different): <input class="field" name="account_holder" value="{{ d.get('account_holder','') }}"></p>
+</div>
+
+<div class="buttons">
+    <button type="submit">Save</button>
+    <a class="button" href="/packet-builder/{{ id }}">Back to Packet</a>
+</div>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>13 – Common Area Security Disclosure</title>
+
+<style>
+body { font-family: Arial, sans-serif; margin: 30px; line-height: 1.45; }
+h1, h2 { text-align: center; }
+h3 { margin-top: 24px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+input[type=text], input:not([type]) { width: 90%; padding: 6px; margin-top: 4px; }
+button { padding: 10px 18px; font-weight: bold; }
+</style>
+
+</head>
+<body>
+<form method="POST" action="/common-area-security/{{ id }}">
+
+<h1>13 – Common Area Security Disclosure</h1>
+<h2>Independent Living Housing</h2>
+<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This disclosure explains expectations related to shared spaces, common areas, security, cameras if applicable, and participant responsibility in maintaining a safe housing environment.</p>
+
+<h3>COMMON AREA ACKNOWLEDGMENTS</h3>
+<p>☐ I understand that common areas are shared by participants <input type="checkbox" name="shared_common_areas" {% if d.get('shared_common_areas') %}checked{% endif %}></p>
+<p>☐ I understand that safety and security expectations apply in all shared spaces <input type="checkbox" name="security_expectations" {% if d.get('security_expectations') %}checked{% endif %}></p>
+<p>☐ I understand that common areas must not be blocked, damaged, or misused <input type="checkbox" name="no_misuse" {% if d.get('no_misuse') %}checked{% endif %}></p>
+<p>☐ I understand that any cameras, if present, are for property/common-area security only and not for private rooms or private areas <input type="checkbox" name="camera_acknowledgment" {% if d.get('camera_acknowledgment') %}checked{% endif %}></p>
+
+<h3>PARTICIPANT INFORMATION</h3>
+<label>Participant Name:</label><br>
+<input name="participant_name" value="{{ d.get('participant_name','') }}"><br><br>
+
+<label>Property Address:</label><br>
+<input name="property_address" value="{{ d.get('property_address','') }}"><br><br>
+
+<label>Participant Signature:</label><br>
+<input name="participant_signature" value="{{ d.get('participant_signature','') }}"><br><br>
+
+<label>Date:</label><br>
+<input name="date" value="{{ d.get('date','') }}"><br><br>
+
+<button type="submit">Save / Review</button>
+</form>
+
+</body>
+</html>

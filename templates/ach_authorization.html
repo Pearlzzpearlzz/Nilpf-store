@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACH Authorization</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 24px;
+    }
+    .card {
+      background: #1b1b1b;
+      border: 1px solid #444;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.35);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 30px;
+      color: #f5f5f5;
+    }
+    .sub {
+      color: #cfcfcf;
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .full {
+      grid-column: 1 / -1;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #666;
+      background: #fff;
+      color: #111;
+      font-size: 16px;
+    }
+    .radio-group {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      padding: 12px 14px;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #666;
+      color: #111;
+      min-height: 50px;
+    }
+    .radio-group label {
+      margin: 0;
+      font-weight: normal;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .actions {
+      margin-top: 28px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 14px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .save {
+      background: #ffffff;
+      color: #111;
+    }
+    .next {
+      background: #d4af37;
+      color: #111;
+    }
+    .flash {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #2b2b2b;
+      border: 1px solid #555;
+      color: #fff;
+    }
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>ACH Authorization</h1>
+      <p class="sub">Complete this form, then click Save or Save &amp; Next.</p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <div class="grid">
+          <div class="full">
+            <label for="participant_name">Participant Name</label>
+            <input type="text" id="participant_name" name="participant_name" value="{{ form_data.get('participant_name', participant.get('name', '')) }}" required>
+          </div>
+
+          <div class="full">
+            <label for="bank_name">Financial Institution Name</label>
+            <input type="text" id="bank_name" name="bank_name" value="{{ form_data.get('bank_name', '') }}" required>
+          </div>
+
+          <div>
+            <label>Account Type</label>
+            <div class="radio-group">
+              <label><input type="radio" name="account_type" value="checking" {% if form_data.get('account_type') == 'checking' %}checked{% endif %} required> Checking</label>
+              <label><input type="radio" name="account_type" value="savings" {% if form_data.get('account_type') == 'savings' %}checked{% endif %}> Savings</label>
+            </div>
+          </div>
+
+          <div>
+            <label for="account_holder_If_not_participant">Bank Account Holder (If Not Participant)</label>
+            <input type="text" id="account_holder_If_not_participant" name="account_holder_If_not_participant" value="{{ form_data.get('account_holder_If_not_participant', '') }}">
+          </div>
+
+          <div>
+            <label for="routing_number">Routing Number</label>
+            <input type="text" id="routing_number" name="routing_number" value="{{ form_data.get('routing_number', '') }}" required>
+          </div>
+
+          <div>
+            <label for="account_number">Account Number</label>
+            <input type="text" id="account_number" name="account_number" value="{{ form_data.get('account_number', '') }}" required>
+          </div>
+
+          <div>
+            <label for="participant_signature">Participant Signature</label>
+            <input type="text" id="participant_signature" name="participant_signature" value="{{ form_data.get('participant_signature', participant.get('name', '')) }}" required>
+          </div>
+
+          <div>
+            <label for="signature_date">Signature Date</label>
+            <input type="date" id="signature_date" name="signature_date" value="{{ form_data.get('signature_date', '') }}" required>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" name="action" value="save" class="save">Save</button>
+          <button type="submit" name="action" value="next" class="next">Save &amp; Next</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

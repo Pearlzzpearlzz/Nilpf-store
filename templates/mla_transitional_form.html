@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Transitional MLA</title>
+<style>
+body{font-family:Arial,sans-serif;background:#eee;margin:0;padding:30px;}
+.doc{background:white;max-width:900px;margin:auto;padding:55px;border:2px solid #111;line-height:1.45;}
+h1,h2,h3{text-align:center;}
+.section{margin-top:26px;}
+.line{border:0;border-bottom:1px solid #111;width:100%;padding:7px;font-size:15px;}
+.inline{border:0;border-bottom:1px solid #111;padding:4px;width:260px;font-size:15px;}
+button{margin-top:30px;padding:12px 28px;font-size:18px;font-weight:bold;}
+
+.footer-watermark{
+    position:fixed;
+    bottom:8px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    opacity:0.65;
+    pointer-events:none;
+}
+
+</style>
+</head>
+<body>
+<form method="POST" action="/mla/{{ id }}">
+<div class="doc">
+
+<h1>MASTER LICENSE AGREEMENT</h1>
+<h2>Transitional Housing Program</h2>
+<p style="text-align:center;"><strong>Reentry, VA & Program-Aligned / GPD-Aligned Edition</strong></p>
+<p style="text-align:center;">NILPF Framework 2026</p>
+
+<div class="section">
+<h3>1. PARTIES</h3>
+<p>This Master License Agreement is entered into between:</p>
+
+<p><strong>Program Operator Nonprofit 501(c)(3):</strong></p>
+<input class="line" name="operator_name" value="{{ d.get('operator_name','') }}">
+
+<p><strong>Participant:</strong></p>
+<input class="line" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
+
+<p><strong>Property Address:</strong></p>
+<input class="line" name="property_address" value="{{ d.get('property_address','') }}">
+
+<p><strong>Agreement Date:</strong></p>
+<input class="line" type="date" name="agreement_date" value="{{ d.get('agreement_date', today) }}">
+</div>
+
+<div class="section">
+<h3>2. PURPOSE</h3>
+<p>This Agreement establishes a structured transitional housing arrangement designed to support individuals reentering the community and progressing toward stable, independent living.</p>
+<p>The Program provides shared housing within a structured environment focused on accountability, stability, and successful reintegration.</p>
+</div>
+
+<div class="section">
+<h3>3. NATURE OF OCCUPANCY</h3>
+<p>Participant is granted a revocable, non-exclusive license to occupy an assigned sleeping space within shared housing.</p>
+<p>This Agreement does not create a landlord-tenant relationship, exclusive possession, or permanent housing rights unless required by applicable law.</p>
+</div>
+
+<div class="section">
+<h3>4. PROGRAM PARTICIPATION</h3>
+<p>Participant agrees to follow program expectations, communicate with the Program Operator, comply with documentation requirements, and maintain respectful behavior within the shared housing environment.</p>
+</div>
+
+<div class="section">
+<h3>5. HOUSE RULES AND COMMUNITY STANDARDS</h3>
+<p>Participant agrees to follow all house rules, safety requirements, quiet hours, cleanliness expectations, guest rules, and shared space responsibilities.</p>
+</div>
+
+<div class="section">
+<h3>6. FEES / PROGRAM CONTRIBUTIONS</h3>
+<p>Participant may be responsible for approved program fees, occupancy contributions, or other written charges:</p>
+<input class="line" name="fees" value="{{ d.get('fees','') }}">
+</div>
+
+<div class="section">
+<h3>7. NO GUARANTEE OF SERVICES</h3>
+<p>This Agreement does not create medical, nursing, personal care, supervision, or assisted living obligations.</p>
+<p>Any supportive services must be separately documented and provided by an authorized agency or provider.</p>
+</div>
+
+<div class="section">
+<h3>8. TERMINATION</h3>
+<p>The Program Operator may terminate this license for violation of program expectations, safety concerns, non-payment where applicable, failure to comply with documentation, or other written program reasons.</p>
+</div>
+
+<div class="section">
+<h3>9. PARTICIPANT RIGHTS</h3>
+<p>Participant has the right to fair treatment, privacy within shared housing limits, access to grievance procedures when applicable, and written notice as required by program policy or law.</p>
+</div>
+
+<div class="section">
+<h3>10. ACKNOWLEDGMENT</h3>
+<p>Participant acknowledges that this is a license agreement for transitional shared housing and not a traditional lease or tenancy unless applicable law states otherwise.</p>
+</div>
+
+<div class="section">
+<h3>11. SIGNATURES</h3>
+
+<p>Participant Name:</p>
+<input class="line" name="participant_signature_name" value="{{ d.get('participant_signature_name', participant.get('name', '')) }}">
+
+<p>Participant Signature:</p>
+<input class="line" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
+
+<p>Date:</p>
+<input class="line" type="date" name="participant_signature_date" value="{{ d.get('participant_signature_date', today) }}">
+
+<br><br>
+
+<p>Operator Representative:</p>
+<input class="line" name="operator_rep" value="{{ d.get('operator_rep','') }}">
+
+<p>Operator Signature:</p>
+<input class="line" name="operator_signature" value="{{ d.get('operator_signature','') }}">
+
+<p>Date:</p>
+<input class="line" type="date" name="operator_signature_date" value="{{ d.get('operator_signature_date', today) }}">
+</div>
+
+<button type="submit">Save / Review</button>
+
+</div>
+</form>
+
+
+<div class="footer-watermark">
+© Pearlzz LLC 2026 • Transitional Housing Program Documents • All Rights Reserved
+</div>
+
+</body>
+</html>

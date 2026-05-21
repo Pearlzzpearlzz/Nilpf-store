@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+</style><title>ILH MLA Review</title></head>
+<body>
+{% include "ilh_mla_form.html" %}
+<hr>
+{% if locked %}
+{% if locked %}<p><strong>FINAL LOCKED DOCUMENT</strong></p>{% endif %}
+{% else %}
+<form method="POST" action="/ilh-mla-final/{{ id }}">
+<button type="submit">Lock</button>
+</form>
+
+{% endif %}
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+
+<hr>
+{% if not locked %}
+<a href="/ilh-mla-unlock/{{ id }}">Edit / Unlock</a>
+<br><br>
+<form method="POST" action="/ilh-mla-final/{{ id }}">
+<button type="submit">Finalize and Lock</button>
+</form>
+{% else %}
+<p><strong>FINAL LOCKED DOCUMENT</strong></p>
+{% endif %}
+
+</body>
+</html>
+
+
+<hr>
+

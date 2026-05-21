@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NILPF Dashboard</title>
+    <link rel="icon" type="image/png" href="/static/favicon2.png">
+      <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+    .wrap {
+      margin-top: 20px;
+      max-width: 520px;
+      margin: 60px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(0,0,0,.08);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 28px;
+    }
+    p {
+      color: #444;
+    }
+    label {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cfd6dd;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 22px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #1f4f82;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #183e66;
+    }
+    .note {
+      margin-top: 14px;
+      font-size: 14px;
+      color: #666;
+    }
+    .flash {
+      background: #ffe9e9;
+      color: #8a1f1f;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+<div style="width:100%;background:#000;text-align:center;padding-top:20px;">
+  <img src="/static/favicon2.png" style="max-width:700px;width:90%;height:auto;">
+</div>
+
+  <div class="wrap">
+    <h1>NILPF Dashboard</h1>
+    <p>Select an action below to begin using the system.</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="flash">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <p><strong>Property:</strong> {{ property_name }}</p>
+      <p><strong>License Number:</strong> {{ license_number }}</p>
+    </div>
+
+    <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:12px;">
+      <a href="/add_participant" style="display:inline-block;padding:12px 18px;background:#1f4f82;color:#fff;border-radius:10px;text-decoration:none;font-weight:bold;">Add Participant</a>
+      <a href="#" style="display:inline-block;padding:12px 18px;background:#1f4f82;color:#fff;border-radius:10px;text-decoration:none;font-weight:bold;">View Participants</a>
+      <a href="#" style="display:inline-block;padding:12px 18px;background:#1f4f82;color:#fff;border-radius:10px;text-decoration:none;font-weight:bold;">Download Packet</a>
+      <a href="{{ url_for('logout') }}" style="display:inline-block;padding:12px 18px;background:#444;color:#fff;border-radius:10px;text-decoration:none;font-weight:bold;">Logout</a>
+    </div>
+
+
+  </div>
+<div style='position:fixed;bottom:0;width:100%;text-align:center;font-size:12px;color:#555;padding:6px 0;background:#fff;border-top:1px solid #ddd;'>NILPF-OS 2026</div>
+<div style='position:fixed;bottom:0;left:0;width:100%;text-align:center;font-size:14px;color:#000;padding:10px 0;background:#fff;border-top:2px solid #000;z-index:99999;'>NILPF-OS 2026</div><div style='position:fixed;bottom:0;left:0;width:100%;text-align:center;font-size:14px;color:#000;padding:10px 0;background:#fff;border-top:2px solid #000;z-index:99999;'>NILPF-OS 2026</div></body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transfer Form</title>
+</head>
+<body>
+
+<h2>12 – Transfer Form</h2>
+<p><strong>Independent Living Housing</strong></p>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>
+This form is used to document participant’s request or notice regarding a transfer related to Independent Living housing.
+This form is for informational purposes only and does not create an obligation to arrange, approve, or facilitate a transfer.
+</p>
+
+<h3>NO TRANSFER SERVICES PROVIDED</h3>
+<ul>
+<li>Placement or referral services</li>
+<li>Transfer coordination or assistance</li>
+<li>Case management or relocation services</li>
+</ul>
+<p>Any transfer decision or action is initiated by the participant.</p>
+
+{% if not locked %}<form method="POST" action="/transfer/{{ id }}">{% endif %}
+
+<hr>
+
+<h3>PARTICIPANT INFORMATION</h3>
+
+<p>Participant Name:</p>
+<input type="text" {% if locked %}readonly{% endif %} name="participant_name" value="{{ d.participant_name }}"><br><br>
+
+<p>Current Address / Unit (if applicable):</p>
+<input type="text" {% if locked %}readonly{% endif %} name="current_address_unit" value="{{ d.current_address_unit }}"><br><br>
+
+<hr>
+
+<h3>TRANSFER INFORMATION</h3>
+
+<label>
+<input type="checkbox" {% if locked %}disabled{% endif %} name="transfer_same_location" {% if d.transfer_same_location %}checked{% endif %}>
+Transfer within the same housing location
+</label><br>
+
+<label>
+<input type="checkbox" {% if locked %}disabled{% endif %} name="transfer_different_location" {% if d.transfer_different_location %}checked{% endif %}>
+Transfer to a different housing location
+</label><br>
+
+<label>
+<input type="checkbox" {% if locked %}disabled{% endif %} name="departure_independent_living" {% if d.departure_independent_living %}checked{% endif %}>
+Departure from Independent Living housing
+</label><br><br>
+
+<p>Requested or Effective Date:</p>
+<input type="text" {% if locked %}readonly{% endif %} name="requested_effective_date" value="{{ d.requested_effective_date }}"><br><br>
+
+<hr>
+
+<h3>REASON FOR TRANSFER (OPTIONAL)</h3>
+
+<textarea {% if locked %}readonly{% endif %} name="reason_for_transfer" rows="4" cols="60">{{ d.reason_for_transfer }}</textarea><br><br>
+
+<hr>
+
+<h3>PARTICIPANT ACKNOWLEDGEMENT</h3>
+<ul>
+<li>The transfer is voluntary and participant-initiated</li>
+<li>The housing provider does not guarantee availability or acceptance</li>
+<li>No services, placement, or assistance are provided in connection with transfers</li>
+</ul>
+
+<h3>NO GUARANTEES OR OBLIGATIONS</h3>
+<p>
+Completion of this form does not guarantee approval, availability, timing, or outcome of any transfer.
+The housing provider assumes no responsibility for relocation outcomes.
+</p>
+
+<hr>
+
+<h3>FORWARDING INFORMATION</h3>
+
+<p>New Address (if known):</p>
+<input type="text" {% if locked %}readonly{% endif %} name="new_address" value="{{ d.new_address }}"><br><br>
+
+<p>City / State / Zip:</p>
+<input type="text" {% if locked %}readonly{% endif %} name="city_state_zip" value="{{ d.city_state_zip }}"><br><br>
+
+<p>Phone / Contact Number:</p>
+<input type="text" {% if locked %}readonly{% endif %} name="contact_number" value="{{ d.contact_number }}"><br><br>
+
+<p>Receiving Facility / Housing (if applicable):</p>
+<input type="text" {% if locked %}readonly{% endif %} name="receiving_facility" value="{{ d.receiving_facility }}"><br><br>
+
+<hr>
+
+<h3>PERSONAL PROPERTY CHECK-OUT</h3>
+
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="all_removed_yes" {% if d.all_removed_yes %}checked{% endif %}> Yes</label>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="all_removed_no" {% if d.all_removed_no %}checked{% endif %}> No</label><br><br>
+
+<p>Items left behind:</p>
+<textarea {% if locked %}readonly{% endif %} name="items_left" rows="3">{{ d.items_left }}</textarea><br><br>
+
+<p>Disposition of items left behind:</p>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="returned" {% if d.returned %}checked{% endif %}> Returned to participant</label><br>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="stored" {% if d.stored %}checked{% endif %}> Stored temporarily</label><br>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="abandoned" {% if d.abandoned %}checked{% endif %}> Abandoned property policy applied</label><br><br>
+
+<hr>
+
+<h3>ROOM CONDITION INSPECTION</h3>
+
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="room_inspected" {% if d.room_inspected %}checked{% endif %}> Yes</label><br><br>
+
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="clean" {% if d.clean %}checked{% endif %}> Clean / Normal condition</label><br>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="minor_damage" {% if d.minor_damage %}checked{% endif %}> Minor damage</label><br>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="significant_damage" {% if d.significant_damage %}checked{% endif %}> Significant damage</label><br><br>
+
+<p>Description of damage (if any):</p>
+<textarea {% if locked %}readonly{% endif %} name="damage_description" rows="3">{{ d.damage_description }}</textarea><br><br>
+
+<hr>
+
+<h3>ACCESS ITEMS RETURNED</h3>
+
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="room_key" {% if d.room_key %}checked{% endif %}> Room key returned</label><br>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="mailbox_key" {% if d.mailbox_key %}checked{% endif %}> Mailbox key returned</label><br>
+<label><input type="checkbox" {% if locked %}disabled{% endif %} name="parking_permit" {% if d.parking_permit %}checked{% endif %}> Parking permit returned</label><br><br>
+
+<p>Other access items:</p>
+<input type="text" {% if locked %}readonly{% endif %} name="other_items" value="{{ d.other_items }}"><br><br>
+
+<hr>
+
+<h3>ACKNOWLEDGEMENT</h3>
+
+<p>Participant Signature:</p>
+<input type="text" {% if locked %}readonly{% endif %} name="participant_signature" value="{{ d.participant_signature }}"><br><br>
+
+<p>Date:</p>
+<input type="text" {% if locked %}readonly{% endif %} name="signature_date" value="{{ d.signature_date }}"><br><br>
+
+<hr>
+
+<p>
+Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.
+</p>
+
+<p><strong>Version 2.1 — Revised February 2026</strong></p>
+
+<br>
+{% if not locked and not review_mode|default(false) %}<button type="submit">Save</button>{% endif %}
+
+{% if not locked %}</form>{% endif %}
+
+</body>
+</html>

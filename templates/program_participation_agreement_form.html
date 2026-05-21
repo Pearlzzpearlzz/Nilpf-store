@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Program Participation Agreement</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+h2 { text-align: center; }
+.section { margin-top: 20px; }
+.signature { margin-top: 40px; }
+input { width: 300px; padding: 6px; margin-top: 5px; }
+
+.footer-watermark{
+    position:fixed;
+    bottom:8px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    opacity:0.65;
+    pointer-events:none;
+}
+
+</style>
+</head>
+<body>
+
+<h2>PROGRAM PARTICIPATION AGREEMENT</h2>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<div class="section">
+<p>This agreement outlines the participant’s role within a structured housing program environment.</p>
+<p>Participation in this program does not create a tenancy relationship and does not establish entitlement to housing beyond program guidelines.</p>
+<p>The participant agrees to follow program structure, maintain respectful conduct, and uphold the expectations outlined by the program operator.</p>
+<p>The operator maintains administrative oversight of the program but does not provide clinical care, supervision, or personal management services.</p>
+<p>Participation is voluntary and may be discontinued in accordance with program guidelines.</p>
+</div>
+
+<div class="section">
+<p>By signing below, the participant acknowledges understanding and agreement to program participation expectations.</p>
+</div>
+
+<div class="signature">
+<label>Participant Name:</label><br>
+<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"><br><br>
+
+<label>Participant Signature:</label><br>
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}"><br><br>
+
+<label>Date:</label><br>
+<input type="text" name="signature_date" value="{{ d.get('signature_date', today) }}">
+</div>
+
+
+<form method="POST" action="/program-participation-agreement/{{ id }}">
+<button type="submit">Save</button>
+</form>
+
+<div class="footer-watermark">
+© Pearlzz LLC 2026 • Transitional Housing Program Documents • All Rights Reserved
+</div>
+
+</body>
+</html>

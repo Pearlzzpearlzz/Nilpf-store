@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+</style>
+    <title>Program Participation Agreement - Final</title>
+</head>
+<body>
+
+<h2>PROGRAM PARTICIPATION AGREEMENT</h2>
+<p><strong>Transitional Housing Program – NILPF Framework (2026)</strong></p>
+<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+
+<h3>PURPOSE</h3>
+<p>This Program Participation Agreement explains the expectations, responsibilities, and program conditions for a participant entering a Transitional Housing Program.</p>
+
+<p>This agreement is used when the participant is being housed as part of a structured transitional housing program, including reentry, VA-aligned, referral-based, or program-supported housing.</p>
+
+<p>This agreement is program-facing. It does not replace the Master Lease, Master License Agreement, house rules, funding documents, referral documents, or required program coordination forms.</p>
+
+<h3>PROGRAM STRUCTURE</h3>
+<p>The Transitional Housing Program may operate under a dual-entity structure.</p>
+<p>The property may be owned, leased, or controlled by a separate property entity, such as an LLC.</p>
+<p>The program may be operated or managed by a nonprofit, program operator, or coordinating organization.</p>
+<p>The Program Operator is responsible for program participation requirements, participant coordination, referral communication, documentation, program expectations, and compliance-related activities.</p>
+<p>The property entity is responsible only for the property-related role assigned to it by written agreement.</p>
+
+<h3>PARTICIPANT STATUS</h3>
+<p>The participant understands that transitional housing is program-based housing and not permanent housing.</p>
+
+<h3>REFERRAL AND PROGRAM COORDINATION</h3>
+<p>The participant may be referred by or connected to outside agencies including reentry programs, VA programs, Continuum of Care partners, and social service agencies.</p>
+<p>The participant understands that program placement and continuation may depend on referral requirements, documentation, or funding approval.</p>
+
+<h3>PARTICIPANT RIGHTS</h3>
+<ul>
+<li>Right to dignity and respect</li>
+<li>Right to privacy</li>
+<li>Right to written expectations</li>
+<li>Right to file grievances without retaliation</li>
+</ul>
+
+<h3>PARTICIPANT RESPONSIBILITIES</h3>
+<ul>
+<li>Follow program and house rules</li>
+<li>Respect others and property</li>
+<li>Maintain safe environment</li>
+<li>Participate in required program activities</li>
+</ul>
+
+<h3>PROGRAM EXPECTATIONS</h3>
+<p>The participant may be required to work toward stability goals including employment, housing transition, recovery, or compliance with referral programs.</p>
+
+<h3>SAFETY EXPECTATIONS</h3>
+<p>Violence, illegal activity, or behavior that threatens safety may result in removal from the program.</p>
+
+<h3>CONFIDENTIALITY</h3>
+<p>Participant information will be handled confidentially unless disclosure is required by law or authorized.</p>
+
+<h3>GRIEVANCE PROCESS</h3>
+<p>The participant may submit complaints in writing without fear of retaliation.</p>
+
+<h3>PROGRAM REVIEW AND DISCHARGE</h3>
+<p>Failure to comply with program expectations may result in warnings, corrective action, or discharge.</p>
+
+<h3>PROPERTY</h3>
+<p>The participant is responsible for personal belongings.</p>
+
+<h3>NO GUARANTEE</h3>
+<p>The program does not guarantee permanent housing or funding approval.</p>
+
+<h3>ACKNOWLEDGMENT</h3>
+
+<p><strong>Participant Name:</strong> {{ d.participant_name }}</p>
+<p><strong>Participant Signature:</strong> {{ d.participant_signature }}</p>
+<p><strong>Date:</strong> {{ d.signature_date }}</p>
+
+<p><strong>Program Representative Name:</strong> {{ d.program_representative_name }}</p>
+<p><strong>Program Representative Signature:</strong> {{ d.program_representative_signature }}</p>
+<p><strong>Date:</strong> {{ d.program_representative_date }}</p>
+
+<br>
+
+{% if not locked %}
+<form method="POST" action="/transitional-program-participation-final/{{ id }}">
+    <button type="submit">Lock</button>
+</form>
+{% endif %}
+
+<br>
+<a href="/transitional-program-participation-unlock/{{ id }}">Unlock for Editing</a>
+
+
+<script>
+{% if locked %}
+document.querySelectorAll("input, textarea, select").forEach(el => {
+    el.setAttribute("readonly","readonly");
+    el.setAttribute("disabled","disabled");
+});
+{% endif %}
+</script>
+</body>
+</html>
+
+<hr>
+

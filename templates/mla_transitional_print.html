@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+<style>
+body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+
+.footer-watermark{
+    position:fixed;
+    bottom:8px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    opacity:0.65;
+    pointer-events:none;
+}
+
+</style>
+<meta charset="utf-8">
+<title>Transitional MLA Review</title>
+<style>
+body{font-family:Arial,sans-serif;background:#eee;margin:0;padding:30px;}
+.doc{background:white;max-width:900px;margin:auto;padding:55px;border:2px solid #111;line-height:1.45;}
+h1,h2,h3{text-align:center;}
+.section{margin-top:26px;}
+.line{border-bottom:1px solid #111;min-height:24px;padding:6px;}
+button,a{font-size:18px;font-weight:bold;}
+
+.footer-watermark{
+    position:fixed;
+    bottom:8px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:11px;
+    color:#777;
+    opacity:0.65;
+    pointer-events:none;
+}
+
+</style>
+</head>
+<body>
+<div class="doc">
+
+<h1>MASTER LICENSE AGREEMENT</h1>
+<h2>Transitional Housing Program</h2>
+<p style="text-align:center;"><strong>Reentry, VA & Program-Aligned / GPD-Aligned Edition</strong></p>
+<p style="text-align:center;">NILPF Framework 2026</p>
+
+<h3>1. PARTIES</h3>
+<p><strong>Program Operator Nonprofit 501(c)(3):</strong></p>
+<div class="line">{{ d.get('operator_name','') }}</div>
+
+<p><strong>Participant:</strong></p>
+<div class="line">{{ d.get('participant_name','') }}</div>
+
+<p><strong>Property Address:</strong></p>
+<div class="line">{{ d.get('property_address','') }}</div>
+
+<p><strong>Agreement Date:</strong></p>
+<div class="line">{{ d.get('agreement_date','') }}</div>
+
+<h3>2. PURPOSE</h3>
+<p>This Agreement establishes a structured transitional housing arrangement designed to support individuals reentering the community and progressing toward stable, independent living.</p>
+<p>The Program provides shared housing within a structured environment focused on accountability, stability, and successful reintegration.</p>
+
+<h3>3. NATURE OF OCCUPANCY</h3>
+<p>Participant is granted a revocable, non-exclusive license to occupy an assigned sleeping space within shared housing.</p>
+<p>This Agreement does not create a landlord-tenant relationship, exclusive possession, or permanent housing rights unless required by applicable law.</p>
+
+<h3>4. PROGRAM PARTICIPATION</h3>
+<p>Participant agrees to follow program expectations, communicate with the Program Operator, comply with documentation requirements, and maintain respectful behavior within the shared housing environment.</p>
+
+<h3>5. HOUSE RULES AND COMMUNITY STANDARDS</h3>
+<p>Participant agrees to follow all house rules, safety requirements, quiet hours, cleanliness expectations, guest rules, and shared space responsibilities.</p>
+
+<h3>6. FEES / PROGRAM CONTRIBUTIONS</h3>
+<div class="line">{{ d.get('fees','') }}</div>
+
+<h3>7. NO GUARANTEE OF SERVICES</h3>
+<p>This Agreement does not create medical, nursing, personal care, supervision, or assisted living obligations.</p>
+<p>Any supportive services must be separately documented and provided by an authorized agency or provider.</p>
+
+<h3>8. TERMINATION</h3>
+<p>The Program Operator may terminate this license for violation of program expectations, safety concerns, non-payment where applicable, failure to comply with documentation, or other written program reasons.</p>
+
+<h3>9. PARTICIPANT RIGHTS</h3>
+<p>Participant has the right to fair treatment, privacy within shared housing limits, access to grievance procedures when applicable, and written notice as required by program policy or law.</p>
+
+<h3>10. ACKNOWLEDGMENT</h3>
+<p>Participant acknowledges that this is a license agreement for transitional shared housing and not a traditional lease or tenancy unless applicable law states otherwise.</p>
+
+<h3>11. SIGNATURES</h3>
+
+<p><strong>Participant Name:</strong></p>
+<div class="line">{{ d.get('participant_signature_name','') }}</div>
+
+<p><strong>Participant Signature:</strong></p>
+<div class="line">{{ d.get('participant_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="line">{{ d.get('participant_signature_date','') }}</div>
+
+<p><strong>Operator Representative:</strong></p>
+<div class="line">{{ d.get('operator_rep','') }}</div>
+
+<p><strong>Operator Signature:</strong></p>
+<div class="line">{{ d.get('operator_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="line">{{ d.get('operator_signature_date','') }}</div>
+
+<hr>
+
+{% if locked %}
+{% if locked %}<h2>{% if locked %}FINAL LOCKED DOCUMENT{% endif %}</h2>{% endif %}
+{% else %}
+<a href="/mla/{{ id }}">Edit</a>
+<br><br>
+
+<hr>
+<div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
+    {% if not locked %}
+    <form method="POST" action="/mla-final/{{ id }}" style="display:inline;">
+        <button type="submit">Final Lock</button>
+    </form>
+    {% else %}
+    <p><strong>FINAL LOCKED DOCUMENT</strong></p>
+    <form method="POST" action="/mla-unlock/{{ id }}" style="display:inline;">
+        <button type="submit">Edit / Unlock</button>
+    </form>
+    {% endif %}
+
+    <p style="margin-top:20px;">
+        
+    </p>
+</div>
+
+{% endif %}
