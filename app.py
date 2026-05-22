@@ -1458,6 +1458,7 @@ def download_packet(id):
         "security_camera": ("/security-camera-print/{id}", "security_camera_true_to_sight.pdf"),
         "voluntary_participation": ("/voluntary-participation-print/{id}", "voluntary_participation_true_to_sight.pdf"),
         "incident_report": ("/incident-report-print/{id}", "incident_report_true_to_sight.pdf"),
+        "release_of_information": ("/release-of-information-print/{id}", "release_of_information_true_to_sight.pdf"),
         "bill_of_dignity": ("/bill-of-dignity-print/{id}", "bill_of_dignity_true_to_sight.pdf"),
     }
 
