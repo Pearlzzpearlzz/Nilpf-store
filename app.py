@@ -556,6 +556,49 @@ def add_participant():
 def property_papers():
     return render_template("property_papers.html")
 
+
+@app.route("/single-form-print")
+def single_form_print_center():
+    activated_system = load_activation()
+    current_participants = load_participants()
+
+    single_form_routes = [
+        {"title": "Initial Intake Assessment", "key": "intake_assessment", "print_route": "/intake-assessment-print/{id}"},
+        {"title": "Master License Agreement", "key": "mla", "print_route": "/mla-print/{id}"},
+        {"title": "Release of Information / Authorization to Communicate", "key": "release_of_information", "print_route": "/release-of-information-print/{id}"},
+        {"title": "Program Compliance Addendum", "key": "program_compliance_addendum", "print_route": "/program-compliance-addendum-print/{id}"},
+        {"title": "Program Participation Agreement", "key": "program_participation_agreement", "print_route": "/program-participation-agreement-print/{id}"},
+        {"title": "House Rules & Community Standards", "key": "house_rules", "print_route": "/house-rules-print/{id}"},
+        {"title": "Fire Safety & Self-Preservation", "key": "fire_safety", "print_route": "/fire-safety-print/{id}"},
+        {"title": "Emergency Contact", "key": "emergency_contact", "print_route": "/emergency-contact-print/{id}"},
+        {"title": "Emergency Evacuation", "key": "emergency_evacuation", "print_route": "/emergency-evacuation-print/{id}"},
+        {"title": "Guest Addendum", "key": "guest_addendum", "print_route": "/guest-addendum-print/{id}"},
+        {"title": "Common Area Security", "key": "common_area_security", "print_route": "/common-area-security-print/{id}"},
+        {"title": "Personal Belongings", "key": "personal_belongings", "print_route": "/personal-belongings-print/{id}"},
+        {"title": "Property Belongings", "key": "property_belongings", "print_route": "/property-belongings-print/{id}"},
+        {"title": "Pet Animal Information", "key": "pet_animal", "print_route": "/pet-animal-print/{id}"},
+        {"title": "Privacy Acknowledgment", "key": "privacy_acknowledgment", "print_route": "/privacy-acknowledgment-print/{id}"},
+        {"title": "Privacy Noncommercial", "key": "privacy_noncommercial", "print_route": "/privacy-noncommercial-print/{id}"},
+        {"title": "Vehicle Parking", "key": "vehicle_parking", "print_route": "/vehicle-parking-print/{id}"},
+        {"title": "Transfer Form", "key": "transfer", "print_route": "/transfer-print/{id}"},
+        {"title": "Security Camera Disclosure", "key": "security_camera", "print_route": "/security-camera-print/{id}"},
+        {"title": "Voluntary Participation", "key": "voluntary_participation", "print_route": "/voluntary-participation-print/{id}"},
+        {"title": "Incident Report", "key": "incident_report", "print_route": "/incident-report-print/{id}"},
+        {"title": "ACH Authorization", "key": "ach_authorization", "print_route": "/ach-print/{id}"},
+        {"title": "No Services / No Supervision", "key": "no_services_supervision", "print_route": "/no-services-supervision-print/{id}"},
+        {"title": "Independent Living Disclosure", "key": "independent_living_disclosure", "print_route": "/independent-living-disclosure-print/{id}"},
+        {"title": "Vehicle Parking Information", "key": "vehicle_parking", "print_route": "/vehicle-parking-print/{id}"},
+        {"title": "Member Bill of Dignity", "key": "bill_of_dignity", "print_route": "/bill-of-dignity-print/{id}"}
+    ]
+
+    return render_template(
+        "single_form_print.html",
+        activation=activated_system,
+        participants=current_participants,
+        single_form_routes=single_form_routes
+    )
+
+
 @app.route("/admin-forms")
 def admin_forms():
     if not session.get("logged_in"):

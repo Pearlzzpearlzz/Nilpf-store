@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Single Form Print Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top, rgba(212,175,55,0.16), transparent 35%),
+        linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
+      color: #111;
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      color: #d4af37;
+      font-size: clamp(38px, 6vw, 68px);
+      margin: 0 0 10px;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 0 #7a5a08, 0 5px 15px rgba(0,0,0,0.22);
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 22px;
+      margin-bottom: 26px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, #171717, #050505);
+      border: 4px solid #d4af37;
+      border-radius: 20px;
+      padding: 30px;
+      color: #fff;
+      box-shadow:
+        0 0 0 2px #8a680f,
+        0 14px 28px rgba(0,0,0,0.24),
+        inset 0 0 24px rgba(212,175,55,0.10);
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      color: #f2cf5a;
+      font-size: 24px;
+      font-weight: 900;
+      margin: 18px 0 8px;
+    }
+
+    select {
+      width: 100%;
+      padding: 14px;
+      font-size: 20px;
+      border-radius: 10px;
+      border: 2px solid #d4af37;
+      background: #fff;
+      color: #111;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.55);
+      color: #fff;
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      justify-content: center;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      color: #050505;
+      background: linear-gradient(180deg, #f4d55f, #d4af37);
+      border: 2px solid #b88d1b;
+      border-radius: 10px;
+      padding: 14px 34px;
+      font-size: 22px;
+      font-weight: 900;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 12px rgba(0,0,0,0.25);
+      cursor: pointer;
+    }
+
+    .button.secondary {
+      background: #111;
+      color: #d4af37;
+      border-color: #d4af37;
+    }
+
+    .button.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .footer {
+      text-align: center;
+      color: #d4af37;
+      margin-top: 24px;
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Single Form Print Center</h1>
+    <div class="subtitle">Choose a participant, choose a form, then open the saved review/print copy.</div>
+
+    <section class="panel">
+      <label for="participantSelect">Select Participant</label>
+      <select id="participantSelect">
+        <option value="">-- Choose Participant --</option>
+        {% for person in participants %}
+          <option value="{{ loop.index0 }}">
+            PID {{ loop.index0 }} - {{ person.name or "Unnamed Participant" }} - {{ person.program_type or "No Program" }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <label for="formSelect">Select Form</label>
+      <select id="formSelect">
+        <option value="">-- Choose Form --</option>
+        {% for form in single_form_routes %}
+          <option value="{{ form.print_route }}" data-key="{{ form.key }}">
+            {{ form.title }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <div class="status" id="statusBox">
+        Select a participant and a form. If the form was completed for that participant, open the review/print copy.
+      </div>
+
+      <div class="button-row">
+        <a class="button disabled" id="openButton" href="#">Open Print Copy</a>
+        <a class="button secondary" href="/operations">Back to Operations</a>
+        <a class="button secondary" href="/">Back to Dashboard</a>
+      </div>
+    </section>
+
+    <div class="footer">NILPF-OS 2026</div>
+  </main>
+
+  <script>
+    const participants = {{ participants|tojson }};
+    const participantSelect = document.getElementById("participantSelect");
+    const formSelect = document.getElementById("formSelect");
+    const openButton = document.getElementById("openButton");
+    const statusBox = document.getElementById("statusBox");
+
+    function refreshLink() {
+      const pid = participantSelect.value;
+      const route = formSelect.value;
+      const selectedOption = formSelect.options[formSelect.selectedIndex];
+      const formKey = selectedOption ? selectedOption.getAttribute("data-key") : "";
+
+      openButton.classList.add("disabled");
+      openButton.href = "#";
+
+      if (!pid || !route || !formKey) {
+        statusBox.textContent = "Select a participant and a form.";
+        return;
+      }
+
+      const person = participants[parseInt(pid, 10)] || {};
+      const forms = person.forms || {};
+      const savedForm = forms[formKey];
+
+      if (!savedForm) {
+        statusBox.textContent = "This form has not been completed for this participant yet.";
+        return;
+      }
+
+      const finalRoute = route.replace("{id}", pid);
+      openButton.href = finalRoute;
+      openButton.classList.remove("disabled");
+
+      statusBox.textContent = "Ready: open the saved review/print copy for this participant.";
+    }
+
+    participantSelect.addEventListener("change", refreshLink);
+    formSelect.addEventListener("change", refreshLink);
+  </script>
+</body>
+</html>
