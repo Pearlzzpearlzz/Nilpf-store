@@ -14,12 +14,26 @@ h1,h2,h3 { text-align:center; margin-bottom:8px; }
 <div class="page">
 
 <h1>REFERRAL SOURCE RECORD</h1>
-<h2>Shared Admin Record / PID-Link Capable</h2>
+<h2>Participant-Linked Admin Record</h2>
 <p style="text-align:center;">NILPF Framework 2026</p>
+
+<div class="section" style="background:#f7f7f7;" id="AUTO-PARTICIPANT-LINK-BLOCK">
+<h3>Participant Link</h3>
+<p><strong>Participant Name:</strong> {{ participant.get("name") or participant.get("participant_name") or "Unnamed Participant" }}</p>
+<p><strong>PID:</strong> {{ id }}</p>
+<p><strong>Housing / Program Type:</strong> {{ participant.get("program_type") or participant.get("housing_type") or "" }}</p>
+</div>
 
 <p style="font-size:14px; line-height:1.5;">
 This administrative record documents the referral source, referral pathway, agency contact, sponsorship connection, and housing/program applicability.
 </p>
+
+<div class="section" style="background:#f7f7f7;">
+<h3>Participant / PID Link</h3>
+<p><strong>Participant Name:</strong> {{ participant.get("name") or participant.get("participant_name") or "Unnamed Participant" }}</p>
+<p><strong>PID:</strong> {{ id }}</p>
+<p><strong>Housing / Program Type:</strong> {{ participant.get("program_type") or participant.get("housing_type") or "" }}</p>
+</div>
 
 <form method="POST" action="/referral-source-record/{{ id }}">
 <div class="section">
@@ -61,7 +75,7 @@ This administrative record documents the referral source, referral pathway, agen
 <input type="date" name="referral_date" value="{{ data.get('referral_date', '' ) }}">
 
 <label>Participant / PID Connected to Referral</label>
-<input type="text" name="participant_pid" value="{{ data.get('participant_pid', '' ) }}">
+<input type="text" name="participant_pid" readonly value="{{ data.get('participant_pid') or ((participant.get('name') or participant.get('participant_name') or 'Unnamed Participant') ~ ' / PID ' ~ id) }}">
 
 <label>Housing / Program Type</label>
 <select name="program_type">
