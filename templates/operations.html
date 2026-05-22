@@ -5,74 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NILPF Operations</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
       font-family: Georgia, "Times New Roman", serif;
       background:
-        radial-gradient(circle at top, rgba(212,175,55,0.16), transparent 35%),
-        linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
+        radial-gradient(circle at top, rgba(212,175,55,0.14), transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%);
       color: #111;
-      padding: 20px;
+      padding: 18px;
     }
 
     .page {
-      max-width: 1180px;
+      max-width: 1050px;
       margin: 0 auto;
       text-align: center;
-      padding-bottom: 40px;
+      padding-bottom: 32px;
     }
 
     h1 {
-      margin: 0 0 18px;
-      font-size: clamp(44px, 6vw, 76px);
+      margin: 0 0 10px;
+      font-size: clamp(38px, 5vw, 62px);
       letter-spacing: 3px;
       color: #d4af37;
       font-weight: 900;
       text-transform: uppercase;
-      text-shadow:
-        0 2px 0 #7a5a08,
-        0 5px 15px rgba(0,0,0,0.25);
+      text-shadow: 0 2px 0 #7a5a08, 0 5px 14px rgba(0,0,0,0.22);
     }
 
     .clock-wrap {
-      width: min(620px, 94%);
-      margin: 0 auto 34px;
+      width: min(560px, 94%);
+      margin: 0 auto 22px;
       position: relative;
     }
 
     .clock-crown {
       position: absolute;
-      top: -29px;
+      top: -23px;
       left: 50%;
       transform: translateX(-50%);
       background: linear-gradient(145deg, #111, #000);
       color: #d4af37;
       border: 3px solid #d4af37;
-      border-radius: 50% 50% 18px 18px;
-      padding: 8px 30px 7px;
+      border-radius: 50% 50% 15px 15px;
+      padding: 5px 26px;
       z-index: 2;
-      box-shadow:
-        0 0 18px rgba(212,175,55,0.65),
-        inset 0 0 16px rgba(212,175,55,0.18);
+      box-shadow: 0 0 16px rgba(212,175,55,0.55), inset 0 0 14px rgba(212,175,55,0.16);
       font-weight: 900;
       letter-spacing: 2px;
     }
 
     .clock-crown .crown {
       display: block;
-      font-size: 26px;
-      line-height: 18px;
+      font-size: 22px;
+      line-height: 15px;
     }
 
     .clock-card {
-      margin-top: 34px;
-      padding: 34px 28px 20px;
-      border-radius: 22px;
+      margin-top: 28px;
+      padding: 26px 20px 16px;
+      border-radius: 20px;
       background:
         linear-gradient(145deg, rgba(255,255,255,0.06), transparent 22%),
         linear-gradient(180deg, #191919, #050505);
@@ -80,8 +74,8 @@
       border: 4px solid #d4af37;
       box-shadow:
         0 0 0 2px #8a680f,
-        0 18px 34px rgba(0,0,0,0.28),
-        inset 0 0 26px rgba(212,175,55,0.15);
+        0 12px 24px rgba(0,0,0,0.24),
+        inset 0 0 22px rgba(212,175,55,0.14);
       position: relative;
       overflow: hidden;
     }
@@ -90,97 +84,78 @@
     .clock-card::after {
       content: "";
       position: absolute;
-      top: 28px;
-      width: 15px;
-      height: 15px;
+      top: 21px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: #fff3b0;
-      box-shadow: 0 0 18px #fff3b0, 0 0 30px #d4af37;
+      box-shadow: 0 0 18px #fff3b0, 0 0 28px #d4af37;
     }
 
-    .clock-card::before {
-      left: 18px;
-    }
-
-    .clock-card::after {
-      right: 18px;
-    }
+    .clock-card::before { left: 16px; }
+    .clock-card::after { right: 16px; }
 
     #liveTime {
-      font-size: clamp(42px, 7vw, 76px);
+      font-size: clamp(36px, 6vw, 62px);
       line-height: 1;
       font-weight: 900;
       letter-spacing: 2px;
       color: #e5c75f;
-      text-shadow:
-        0 2px 0 #6f5208,
-        0 0 18px rgba(212,175,55,0.35);
+      text-shadow: 0 2px 0 #6f5208, 0 0 18px rgba(212,175,55,0.35);
     }
 
     #liveDate {
-      margin-top: 12px;
-      font-size: clamp(22px, 3vw, 34px);
+      margin-top: 9px;
+      font-size: clamp(19px, 2.4vw, 28px);
       font-weight: 800;
       color: #e3bf45;
     }
 
     .clock-label {
-      margin-top: 12px;
-      font-size: 20px;
+      margin-top: 9px;
+      font-size: 16px;
       font-weight: 900;
       letter-spacing: 1px;
       text-transform: uppercase;
       color: #f2cf5a;
     }
 
-    .property-line {
-      font-size: clamp(20px, 2.5vw, 30px);
-      margin: 26px auto 34px;
-      color: #111;
-      font-weight: 500;
-    }
-
-    .cards {
+    .control-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(230px, 1fr));
-      gap: 24px;
-      align-items: stretch;
-      margin: 0 auto 30px;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 14px;
+      margin: 20px auto 22px;
     }
 
     .card {
-      min-height: 380px;
       background:
         linear-gradient(145deg, rgba(255,255,255,0.05), transparent 20%),
         linear-gradient(180deg, #171717, #050505);
-      border: 4px solid #d4af37;
-      border-radius: 18px;
-      padding: 32px 26px 26px;
+      border: 3px solid #d4af37;
+      border-radius: 15px;
       color: #fff;
       box-shadow:
-        0 0 0 2px #8a680f,
-        0 14px 25px rgba(0,0,0,0.22),
-        inset 0 0 24px rgba(212,175,55,0.08);
+        0 0 0 1px #8a680f,
+        0 8px 16px rgba(0,0,0,0.18),
+        inset 0 0 18px rgba(212,175,55,0.08);
+      padding: 16px 12px;
+      min-height: 178px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
     .icon {
-      font-size: 88px;
+      font-size: 38px;
       line-height: 1;
-      margin-bottom: 18px;
-      filter:
-        sepia(1)
-        saturate(2.8)
-        hue-rotate(355deg)
-        drop-shadow(0 6px 9px rgba(0,0,0,0.45));
+      margin-bottom: 7px;
+      filter: sepia(1) saturate(2.4) hue-rotate(355deg) drop-shadow(0 4px 6px rgba(0,0,0,0.35));
     }
 
     .card h2 {
       margin: 0;
       color: #fff;
-      font-size: clamp(31px, 3vw, 40px);
+      font-size: 22px;
       line-height: 1.05;
       font-weight: 900;
       text-shadow: 0 3px 4px rgba(0,0,0,0.55);
@@ -189,66 +164,53 @@
     .gold-line {
       height: 2px;
       background: linear-gradient(90deg, transparent, #d4af37, transparent);
-      margin: 22px auto;
-      width: 94%;
+      margin: 10px auto;
+      width: 90%;
     }
 
     .card p {
       margin: 0 auto;
-      max-width: 280px;
       color: #f4f4f4;
-      font-size: clamp(21px, 2vw, 28px);
+      font-size: 14px;
       line-height: 1.25;
     }
 
     .button {
       display: inline-block;
-      margin-top: 26px;
       text-decoration: none;
       color: #050505;
       background: linear-gradient(180deg, #f4d55f, #d4af37);
       border: 2px solid #b88d1b;
-      border-radius: 10px;
-      padding: 12px 42px;
-      font-size: 24px;
+      border-radius: 9px;
+      padding: 8px 18px;
+      font-size: 16px;
       font-weight: 900;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.5),
-        0 6px 12px rgba(0,0,0,0.25);
-    }
-
-    .button:hover {
-      transform: translateY(-1px);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.5),
-        0 8px 16px rgba(0,0,0,0.3);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 4px 9px rgba(0,0,0,0.20);
+      margin-top: 10px;
     }
 
     .back {
-      margin-top: 4px;
-      padding: 16px 74px;
-      font-size: 26px;
-      border-radius: 13px;
+      padding: 12px 48px;
+      font-size: 20px;
+      border-radius: 12px;
     }
 
     .footer {
-      margin-top: 28px;
+      margin-top: 20px;
       color: #d4af37;
-      font-size: 24px;
+      font-size: 20px;
       letter-spacing: 2px;
     }
 
     @media (max-width: 900px) {
-      .cards {
+      .control-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .control-grid {
         grid-template-columns: 1fr;
-      }
-
-      .card {
-        min-height: auto;
-      }
-
-      .property-line {
-        font-size: 20px;
       }
     }
   </style>
@@ -270,19 +232,13 @@
       </div>
     </section>
 
-    <div class="property-line">
-      {{ activation.property_name if activation and activation.property_name else "Current Property" }}
-      &nbsp;|&nbsp;
-      {{ activation.email if activation and activation.email else "Operator Email" }}
-    </div>
-
-    <section class="cards">
+    <section class="control-grid">
       <article class="card">
         <div>
           <div class="icon">📁</div>
           <h2>Property Papers</h2>
           <div class="gold-line"></div>
-          <p>Outgoing rent, property, and funding-support documents.</p>
+          <p>Master leases, Board Resolution, and Waiver Justification.</p>
         </div>
         <a class="button" href="/property-papers">Enter</a>
       </article>
@@ -292,17 +248,27 @@
           <div class="icon">📋</div>
           <h2>Admin Forms</h2>
           <div class="gold-line"></div>
-          <p>Operator-side forms and office records.</p>
+          <p>Referral, sponsorship, payor, and billing records.</p>
         </div>
         <a class="button" href="/admin-forms">Enter</a>
       </article>
 
       <article class="card">
         <div>
-          <div class="icon">🖨️</div>
-          <h2>Single Form<br>Print Center</h2>
+          <div class="icon">☎️</div>
+          <h2>Rolodex</h2>
           <div class="gold-line"></div>
-          <p>Select any form and print for any participant.</p>
+          <p>Organization contact list and phonebook directory.</p>
+        </div>
+        <a class="button" href="/rolodex">Enter</a>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="icon">🖨️</div>
+          <h2>Single Form Print</h2>
+          <div class="gold-line"></div>
+          <p>Open one completed participant form for printing.</p>
         </div>
         <a class="button" href="/single-form-print">Enter</a>
       </article>
