@@ -1,49 +1,279 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<style>
-body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
+  <meta charset="UTF-8">
+  <title>Waiver Financial Justification - Review / Print</title>
+  <style>
+    * { box-sizing: border-box; }
 
-.footer-watermark{
-    position:fixed;
-    bottom:8px;
-    left:0;
-    width:100%;
-    text-align:center;
-    font-size:11px;
-    color:#777;
-    opacity:0.65;
-    pointer-events:none;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background: #e9e9e9;
+      margin: 0;
+      padding: 24px;
+      color: #111;
+      font-size: 13px;
+      line-height: 1.35;
+    }
 
-@media print { .print-btn { display:none; }  .buttons { display:none; } body { background:#fff; } }
-</style>
-    <title>Waiver Financial Justification - Review</title>
+    .page {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0 auto 24px auto;
+      background: #fff;
+      padding: 0.55in;
+      border: 1px solid #bbb;
+      position: relative;
+      page-break-after: always;
+    }
+
+    .page:last-of-type {
+      page-break-after: auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin: 0 0 4px 0;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      margin: 2px 0;
+      font-weight: bold;
+    }
+
+    .copyright {
+      text-align: center;
+      font-size: 11px;
+      margin: 8px 0 18px 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      margin: 16px 0 6px 0;
+      border-bottom: 1px solid #333;
+      padding-bottom: 3px;
+    }
+
+    h4 {
+      font-size: 13px;
+      margin: 10px 0 4px 0;
+    }
+
+    p {
+      margin: 6px 0;
+    }
+
+    .line {
+      display: inline-block;
+      min-width: 220px;
+      border-bottom: 1px solid #111;
+      padding: 0 6px 1px 6px;
+      min-height: 18px;
+    }
+
+    .money-line {
+      display: inline-block;
+      min-width: 140px;
+      border-bottom: 1px solid #111;
+      padding: 0 6px 1px 6px;
+      min-height: 18px;
+    }
+
+    .wide-line {
+      display: inline-block;
+      min-width: 360px;
+      border-bottom: 1px solid #111;
+      padding: 0 6px 1px 6px;
+      min-height: 18px;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0.25in;
+      left: 0.55in;
+      right: 0.55in;
+      font-size: 9px;
+      color: #444;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #ccc;
+      padding-top: 5px;
+    }
+
+    .actions {
+      width: 8.5in;
+      margin: 0 auto 24px auto;
+      background: #fff;
+      padding: 16px;
+      border: 1px solid #bbb;
+      text-align: center;
+    }
+
+    .actions button,
+    .actions a {
+      display: inline-block;
+      margin: 6px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 0;
+      background: #111;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .actions a.secondary {
+      background: #555;
+    }
+
+    .review-note {
+      font-weight: bold;
+      color: #8a0000;
+      margin-bottom: 10px;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      .page {
+        width: 8.5in;
+        min-height: 11in;
+        margin: 0;
+        border: none;
+        padding: 0.55in;
+      }
+
+      .actions {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
-<button class="print-btn" type="button" onclick="window.print()">Print This Form</button>
 
-
-<h2>WAIVER FINANCIAL JUSTIFICATION</h2>
-
-{% include "waiver_financial_justification_form.html" %}
-
-<hr>
-
-<hr>
-<div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
-    {% if not locked %}
-    <form method="POST" action="/waiver-financial-justification-final/{{ id }}" style="display:inline;">
-        <button type="submit">Final Lock</button>
-    </form>
+  <div class="actions">
+    {% if locked %}
+      <div class="review-note">FINAL LOCKED DOCUMENT</div>
     {% else %}
-    <p><strong>FINAL LOCKED DOCUMENT</strong></p>
-    <form method="POST" action="/waiver-financial-justification-unlock/{{ id }}" style="display:inline;">
-        <button type="submit">Edit / Unlock</button>
-    </form>
+      <div class="review-note">REVIEW COPY - NOT FINAL LOCKED</div>
+      <form method="POST" action="/waiver-financial-justification-final/{{ id }}" style="display:inline;">
+        <button type="submit">Final Lock</button>
+      </form>
     {% endif %}
+    <button onclick="window.print()">Print</button>
+    <a class="secondary" href="/waiver-financial-justification/{{ id }}">Back to Edit</a>
+    <a class="secondary" href="/property-papers">Back to Property Papers</a>
+  </div>
 
-    <p style="margin-top:20px;">
-        
-    </p>
-</div>
+  <div class="page">
+    <h1>WAIVER FINANCIAL JUSTIFICATION</h1>
+    <div class="subtitle">Transitional Housing Program</div>
+    <div class="subtitle">VA / GPD / Reentry-Aligned Use</div>
+    <div class="subtitle">NILPF Framework – 2026</div>
+    <div class="copyright">© 2026 Pearlzz LLC. All Rights Reserved.</div>
+
+    <h3>1. PURPOSE OF REQUEST</h3>
+    <p>The Program respectfully requests consideration for an enhanced per diem, allotment, reimbursement, or funding rate based on the actual operating costs required to maintain a structured transitional housing environment.</p>
+    <p>The Program provides shared residential housing designed to support stability, accountability, documentation, housing readiness, and successful reintegration into the community.</p>
+    <p>Due to the structure of the housing model, shared occupancy needs, compliance documentation, administrative coordination, and local housing costs, standard rates may be insufficient to sustain program operations at the required level of quality and consistency.</p>
+
+    <h3>2. PROGRAM DETAILS</h3>
+    <p>Program / Operator Name: <span class="wide-line">{{ d.get('operator_name','') }}</span></p>
+    <p>Property / Housing Location: <span class="wide-line">{{ d.get('property_location','') }}</span></p>
+    <p>City / State: <span class="line">{{ d.get('city_state','') }}</span></p>
+    <p>Total Bedrooms: <span class="line">{{ d.get('bedrooms','') }}</span></p>
+    <p>Total Participant Capacity: <span class="line">{{ d.get('capacity','') }}</span></p>
+    <p>Housing Type: ☐ Shared Housing &nbsp;&nbsp; ☐ Scattered Site &nbsp;&nbsp; ☐ Single Family &nbsp;&nbsp; ☐ Other</p>
+
+    <h3>3. MONTHLY OPERATING COSTS</h3>
+
+    <h4>A. PROPERTY COSTS</h4>
+    <p>Lease Payment / Mortgage Equivalent: $<span class="money-line">{{ d.get('lease_cost','') }}</span></p>
+    <p>Maintenance and Repairs: $<span class="money-line">{{ d.get('maintenance_cost','') }}</span></p>
+    <p>Furnishings / Replacement / Upkeep: $<span class="money-line">{{ d.get('furnishings_cost','') }}</span></p>
+    <p>Insurance / Property Expenses: $<span class="money-line">{{ d.get('insurance_cost','') }}</span></p>
+
+    <h4>B. UTILITIES AND HOUSING OPERATIONS</h4>
+    <p>Electricity: $<span class="money-line">{{ d.get('electricity_cost','') }}</span></p>
+    <p>Water / Sewer / Trash: $<span class="money-line">{{ d.get('water_cost','') }}</span></p>
+    <p>Internet / Communication: $<span class="money-line">{{ d.get('internet_cost','') }}</span></p>
+    <p>Cleaning / Supplies: $<span class="money-line">{{ d.get('supplies_cost','') }}</span></p>
+
+    <h4>C. PROGRAM ADMINISTRATION</h4>
+    <p>Program Coordination: $<span class="money-line">{{ d.get('coordination_cost','') }}</span></p>
+    <p>Compliance / Documentation: $<span class="money-line">{{ d.get('compliance_cost','') }}</span></p>
+    <p>Administrative Expenses: $<span class="money-line">{{ d.get('admin_cost','') }}</span></p>
+
+    <h4>D. PARTICIPANT SUPPORT — NON-MEDICAL</h4>
+    <p>Intake / Onboarding: $<span class="money-line">{{ d.get('intake_cost','') }}</span></p>
+    <p>Program Materials: $<span class="money-line">{{ d.get('materials_cost','') }}</span></p>
+    <p>Transportation Support: $<span class="money-line">{{ d.get('transportation_cost','') }}</span></p>
+    <p>Total Monthly Operating Cost: $<span class="money-line">{{ d.get('total_cost','') }}</span></p>
+
+    <div class="footer">
+      <span>Waiver Financial Justification</span>
+      <span>Page 1 of 2</span>
+    </div>
+  </div>
+
+  <div class="page">
+    <h3>4. COST PER PARTICIPANT</h3>
+    <p>Total Participant Capacity: <span class="line">{{ d.get('participant_total','') }}</span></p>
+    <p>Estimated Cost Per Participant Per Month: $<span class="money-line">{{ d.get('monthly_per_participant','') }}</span></p>
+    <p>Estimated Cost Per Participant Per Day: $<span class="money-line">{{ d.get('daily_per_participant','') }}</span></p>
+
+    <h3>5. LIMITATIONS OF STANDARD RATE</h3>
+    <p>Standard per diem or reimbursement rates may be expected to cover housing, administrative coordination, documentation, participant intake, reporting requirements, program structure, utilities, maintenance, and operational overhead.</p>
+    <p>Due to local housing costs, inflation, shared housing wear and tear, and compliance-related requirements, base rates may not fully support program sustainability while maintaining safe, stable, and organized housing operations.</p>
+
+    <h3>6. JUSTIFICATION FOR ENHANCED RATE</h3>
+    <h4>A. Shared Housing Complexity</h4>
+    <p>Shared housing requires increased coordination, maintenance, communication, and replacement costs due to multiple occupants.</p>
+
+    <h4>B. Documentation and Compliance</h4>
+    <p>The Program maintains structured documentation, participant tracking, reporting support, intake records, housing records, and operational files.</p>
+
+    <h4>C. Program Stability</h4>
+    <p>The Program is designed to provide a structured environment focused on accountability, housing stability, and progression toward independence.</p>
+
+    <h4>D. Cost of Safe Housing</h4>
+    <p>Utilities, maintenance, cleaning, furnishings, and household replacement costs are elevated in shared housing environments.</p>
+
+    <h4>E. Reentry / VA / Publicly Funded Alignment</h4>
+    <p>Where applicable, this justification may support review by programs, referral partners, funders, or administrative entities requiring cost documentation.</p>
+
+    <h3>7. REQUESTED RATE</h3>
+    <p>Requested Monthly Rate Per Participant: $<span class="money-line">{{ d.get('requested_monthly_rate','') }}</span></p>
+    <p>Requested Daily Rate Per Participant: $<span class="money-line">{{ d.get('requested_daily_rate','') }}</span></p>
+
+    <h3>8. IMPACT OF APPROVAL</h3>
+    <p>Approval of an enhanced rate may help maintain stable operations, preserve housing capacity, support compliance requirements, and reduce risk of homelessness and recidivism.</p>
+
+    <h3>9. CONCLUSION</h3>
+    <p>The Program is committed to providing structured, stable housing that supports participant accountability, housing readiness, and long-term independence.</p>
+
+    <h3>10. SUPPORTING CALCULATIONS</h3>
+    <p>Calculations for this document may be completed using the included Housing Cost Calculator.</p>
+
+    <h3>11. SIGNATURE</h3>
+    <p>Program Representative: <span class="wide-line">{{ d.get('program_representative','') }}</span></p>
+    <p>Title: <span class="wide-line">{{ d.get('representative_title','') }}</span></p>
+    <p>Signature: <span class="wide-line">{{ d.get('signature','') }}</span></p>
+    <p>Date: <span class="line">{{ d.get('signature_date','') }}</span></p>
+
+    <div class="footer">
+      <span>Waiver Financial Justification</span>
+      <span>Page 2 of 2</span>
+    </div>
+  </div>
+
+</body>
+</html>

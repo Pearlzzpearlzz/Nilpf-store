@@ -2101,7 +2101,7 @@ def billing_invoice_setup_final(id):
     participant["forms"][form_key]["locked"] = True
 
     save_participants(participants)
-    return redirect(f"/packet-builder/{id}")
+    return redirect("/admin-forms")
 
 
 @app.route("/referral-source-record/<int:id>", methods=["GET", "POST"])
