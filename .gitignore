@@ -94,3 +94,13 @@ static/packets/
 # Template helper/backup files
 templates/*.py
 templates/*SAFE*
+
+# Public cleanup backups - keep local only
+data/public_cleanup_backup/
+static/public_cleanup_backup/
+static/filled_BEFORE_CLEAN_SLATE/
+templates_WEB_READY_LOCAL_FIXES_WORKING/
+Dockerfile_BEFORE_PLAYWRIGHT_160_FIX
+Dockerfile_RENDER_PLAYWRIGHT_160_WORKING
+requirements_BEFORE_PLAYWRIGHT_PIN.txt
+requirements_RENDER_PLAYWRIGHT_160_WORKING.txt

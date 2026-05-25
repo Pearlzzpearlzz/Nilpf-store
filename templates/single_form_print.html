@@ -15,18 +15,18 @@
         radial-gradient(circle at top, rgba(212,175,55,0.16), transparent 35%),
         linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
       color: #111;
-      padding: 24px;
+      padding: 12px;
     }
 
     .wrap {
-      max-width: 960px;
+      max-width: 680px;
       margin: 0 auto;
       text-align: center;
     }
 
     h1 {
       color: #d4af37;
-      font-size: clamp(38px, 6vw, 68px);
+      font-size: clamp(24px, 4vw, 36px);
       margin: 0 0 10px;
       letter-spacing: 2px;
       text-shadow: 0 2px 0 #7a5a08, 0 5px 15px rgba(0,0,0,0.22);
@@ -34,19 +34,19 @@
     }
 
     .subtitle {
-      font-size: 22px;
-      margin-bottom: 26px;
+      font-size: 16px;
+      margin-bottom: 12px;
     }
 
     .panel {
       background: linear-gradient(180deg, #171717, #050505);
-      border: 4px solid #d4af37;
-      border-radius: 20px;
-      padding: 30px;
+      border: 2px solid #d4af37;
+      border-radius: 14px;
+      padding: 10px;
       color: #fff;
       box-shadow:
         0 0 0 2px #8a680f,
-        0 14px 28px rgba(0,0,0,0.24),
+        0 8px 18px rgba(0,0,0,0.20),
         inset 0 0 24px rgba(212,175,55,0.10);
       text-align: left;
     }
@@ -54,15 +54,15 @@
     label {
       display: block;
       color: #f2cf5a;
-      font-size: 24px;
+      font-size: 17px;
       font-weight: 900;
-      margin: 18px 0 8px;
+      margin: 10px 0 6px;
     }
 
     select {
       width: 100%;
-      padding: 14px;
-      font-size: 20px;
+      padding: 9px;
+      font-size: 14px;
       border-radius: 10px;
       border: 2px solid #d4af37;
       background: #fff;
@@ -70,23 +70,23 @@
     }
 
     .status {
-      margin-top: 20px;
-      padding: 16px;
+      margin-top: 12px;
+      padding: 10px;
       border-radius: 12px;
       background: rgba(212,175,55,0.12);
       border: 1px solid rgba(212,175,55,0.55);
       color: #fff;
-      font-size: 20px;
+      font-size: 14px;
       line-height: 1.35;
     }
 
-    .button-row {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-top: 24px;
-      justify-content: center;
-    }
+      .button-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+        justify-content: center;
+      }
 
     .button {
       display: inline-block;
@@ -95,8 +95,8 @@
       background: linear-gradient(180deg, #f4d55f, #d4af37);
       border: 2px solid #b88d1b;
       border-radius: 10px;
-      padding: 14px 34px;
-      font-size: 22px;
+      padding: 9px 16px;
+      font-size: 16px;
       font-weight: 900;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 12px rgba(0,0,0,0.25);
       cursor: pointer;
@@ -116,8 +116,8 @@
     .footer {
       text-align: center;
       color: #d4af37;
-      margin-top: 24px;
-      font-size: 20px;
+      margin-top: 14px;
+      font-size: 14px;
       letter-spacing: 2px;
     }
   </style>
@@ -154,6 +154,7 @@
 
       <div class="button-row">
         <a class="button disabled" id="openButton" href="#">Open Print Copy</a>
+          <a class="button disabled" id="packetButton" href="#">Open Packet Builder</a>
         <a class="button secondary" href="/operations">Back to Operations</a>
         <a class="button secondary" href="/">Back to Dashboard</a>
       </div>
@@ -167,6 +168,7 @@
     const participantSelect = document.getElementById("participantSelect");
     const formSelect = document.getElementById("formSelect");
     const openButton = document.getElementById("openButton");
+      const packetButton = document.getElementById("packetButton");
     const statusBox = document.getElementById("statusBox");
 
     function refreshLink() {
@@ -177,12 +179,21 @@
 
       openButton.classList.add("disabled");
       openButton.href = "#";
+        packetButton.classList.add("disabled");
+        packetButton.href = "#";
 
-      if (!pid || !route || !formKey) {
-        statusBox.textContent = "Select a participant and a form.";
-        return;
-      }
+        if (!pid) {
+          statusBox.textContent = "Select a participant.";
+          return;
+        }
 
+        packetButton.href = "/packet-builder/" + pid;
+        packetButton.classList.remove("disabled");
+
+        if (!route || !formKey) {
+          statusBox.textContent = "Select a form, or open Packet Builder for this participant.";
+          return;
+        }
       const person = participants[parseInt(pid, 10)] || {};
       const forms = person.forms || {};
       const savedForm = forms[formKey];
