@@ -2344,6 +2344,69 @@ def rolodex():
     return render_template("rolodex.html", contacts=contacts)
 
 
+@app.route("/mr-ir/scan")
+def mr_ir_scan():
+    scan_targets = [
+        {"name": "Mr.IR Dashboard", "path": "/mr-ir", "purpose": "Internal repair dashboard"},
+        {"name": "Operations", "path": "/operations", "purpose": "Main operations/control area"},
+        {"name": "Rolodex", "path": "/rolodex", "purpose": "Organization contact list"},
+        {"name": "PDF Diagnostic", "path": "/render-pdf-diagnostic", "purpose": "Render/Docker PDF generation check"},
+        {"name": "Packet Builder PID 0", "path": "/packet-builder/0", "purpose": "Participant packet builder test"},
+    ]
+
+    results = []
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["logged_in"] = True
+            sess["owner_operator_email"] = "mr.ir@internal.local"
+
+        for item in scan_targets:
+            try:
+                response = client.get(item["path"])
+                status_code = response.status_code
+
+                if status_code in (200, 302):
+                    result = "PASS"
+                    possible_issue = "No immediate issue detected."
+                    suggested_fix = "No action needed."
+                elif status_code == 404:
+                    result = "WARNING"
+                    possible_issue = "The route may be missing or the URL may have changed."
+                    suggested_fix = "Check app.py for the route and confirm the link path is correct."
+                elif status_code >= 500:
+                    result = "FAIL"
+                    possible_issue = "The route exists but crashed while loading."
+                    suggested_fix = "Check the terminal/logs for the error, then inspect the route function and template."
+                else:
+                    result = "CHECK"
+                    possible_issue = "The route returned an unusual status code."
+                    suggested_fix = "Review whether this response is expected."
+
+                results.append({
+                    "name": item["name"],
+                    "path": item["path"],
+                    "purpose": item["purpose"],
+                    "status_code": status_code,
+                    "result": result,
+                    "possible_issue": possible_issue,
+                    "suggested_fix": suggested_fix,
+                })
+
+            except Exception as e:
+                results.append({
+                    "name": item["name"],
+                    "path": item["path"],
+                    "purpose": item["purpose"],
+                    "status_code": "CRASH",
+                    "result": "FAIL",
+                    "possible_issue": f"Python error: {type(e).__name__}",
+                    "suggested_fix": str(e)[:250],
+                })
+
+    return render_template("mr_ir_scan.html", results=results)
+
+
 @app.route("/mr-ir")
 def mr_ir_dashboard():
     return render_template("mr_ir_dashboard.html")

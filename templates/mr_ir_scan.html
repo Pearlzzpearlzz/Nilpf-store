@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mr.IR Scan Results</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f1ea;
+      margin: 0;
+      padding: 24px;
+      color: #1f2937;
+    }
+    .wrap {
+      max-width: 1150px;
+      margin: auto;
+    }
+    .hero {
+      background: #111827;
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      border: 3px solid #d4af37;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+    }
+    .hero p {
+      margin: 4px 0;
+      color: #e5e7eb;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    th {
+      background: #111827;
+      color: white;
+      text-align: left;
+      padding: 10px;
+      font-size: 13px;
+    }
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      vertical-align: top;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .PASS {
+      color: #166534;
+      font-weight: bold;
+    }
+    .WARNING, .CHECK {
+      color: #92400e;
+      font-weight: bold;
+    }
+    .FAIL {
+      color: #991b1b;
+      font-weight: bold;
+    }
+    .btn {
+      display: inline-block;
+      margin: 14px 8px 0 0;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: #111827;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .note {
+      background: #fff8dc;
+      border-left: 5px solid #d4af37;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 5px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Mr.IR Scan Results</h1>
+      <p><strong>Automated Route Health Check</strong></p>
+      <p>Mr.IR checked key app pages and listed possible issues with suggested fixes.</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>Route</th>
+          <th>Status</th>
+          <th>Result</th>
+          <th>Possible Issue</th>
+          <th>Suggested Fix</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>
+            <strong>{{ r.name }}</strong><br>
+            {{ r.purpose }}
+          </td>
+          <td><code>{{ r.path }}</code></td>
+          <td>{{ r.status_code }}</td>
+          <td class="{{ r.result }}">{{ r.result }}</td>
+          <td>{{ r.possible_issue }}</td>
+          <td>{{ r.suggested_fix }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="note">
+      PASS means the route opened. WARNING usually means missing route or changed URL. FAIL means the route crashed or Python raised an error.
+    </div>
+
+    <a class="btn" href="/mr-ir">Back to Mr.IR</a>
+    <a class="btn" href="/mr-ir/scan">Run Scan Again</a>
+  </div>
+</body>
+</html>
