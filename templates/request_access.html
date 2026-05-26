@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NILPF Housing OS Access Request</title>
+  <style>
+    body {
+      background: #050505;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 30px;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 0 20px rgba(212,175,55,.18);
+    }
+    h1, h2 {
+      color: #d4af37;
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin-top: 14px;
+      font-weight: bold;
+      color: #f3df9b;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 11px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #555;
+      background: #fff;
+      color: #000;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+    textarea {
+      min-height: 90px;
+    }
+    button, .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      background: #d4af37;
+      color: #000;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .notice {
+      background: #1b1b1b;
+      border-left: 5px solid #d4af37;
+      padding: 14px;
+      margin: 18px 0;
+      line-height: 1.5;
+    }
+    .success {
+      background: #102615;
+      border: 1px solid #45c267;
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    .small {
+      color: #ccc;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>NILPF Housing OS Access Request</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="notice">
+          {% for message in messages %}
+            <div>{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% if submitted_request %}
+      <div class="success">
+        <h2>Access Request Received</h2>
+        <p><strong>License Number:</strong> {{ submitted_request.license_number }}</p>
+        <p><strong>Status:</strong> Pending payment verification</p>
+        <p><strong>PayPal Email:</strong> {{ submitted_request.paypal_email }}</p>
+        <p><strong>Licensed Site Address:</strong> {{ submitted_request.site_address }}, {{ submitted_request.city }}, {{ submitted_request.state }} {{ submitted_request.zip_code }}</p>
+        <p class="small">Save this license number. NILPF Housing OS access is tied to the physical site/property address submitted on this request.</p>
+      </div>
+      <a class="btn" href="/login">Go to Login</a>
+    {% else %}
+
+      <div class="notice">
+        NILPF Housing OS access is licensed per physical site/property address. Enter the same email used for your PayPal subscription and the physical address connected to this license.
+      </div>
+
+      <form method="POST">
+        <label>Full Name *</label>
+        <input type="text" name="full_name" required>
+
+        <label>Business / Organization Name *</label>
+        <input type="text" name="business_name" required>
+
+        <label>Email Used for PayPal Subscription *</label>
+        <input type="email" name="paypal_email" required>
+
+        <label>Physical Site / Property Address *</label>
+        <input type="text" name="site_address" required>
+
+        <label>City *</label>
+        <input type="text" name="city" required>
+
+        <label>State *</label>
+        <input type="text" name="state" required>
+
+        <label>ZIP Code *</label>
+        <input type="text" name="zip_code" required>
+
+        <label>Phone Number</label>
+        <input type="text" name="phone">
+
+        <label>Notes</label>
+        <textarea name="notes" placeholder="Optional notes about your property, program type, or access request."></textarea>
+
+        <button type="submit">Submit Access Request</button>
+      </form>
+
+      <p class="small">Submitting this form creates a pending NILPF license request. Full access depends on subscription/payment verification.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

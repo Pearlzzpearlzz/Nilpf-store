@@ -20,7 +20,7 @@ def add_idle_logout_script(response):
             return response
 
         if response.content_type and "text/html" in response.content_type:
-            skip_paths = ["/login", "/logout", "/activate", "/static"]
+            skip_paths = ["/login", "/logout", "/activate", "/request-access", "/static"]
             if any(request.path.startswith(path) for path in skip_paths):
                 return response
 
@@ -294,6 +294,7 @@ CORE_DOCS_BY_PROGRAM = {
         {"title": "Security Camera Disclosure", "file": "/security-camera/{id}"},
         {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"},
         {"title": "Incident Report", "file": "/incident-report/{id}"},
+          {"title": "🔒 Sensitivity Vault", "file": "/sensitive-identity-record/{id}", "vault": True},
         {"title": "Release of Information / Authorization to Communicate", "file": "/release-of-information/{id}"},
         {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"},
         {"title": "ILH Master License Agreement", "file": "/ilh-mla/{id}"},
@@ -303,6 +304,7 @@ CORE_DOCS_BY_PROGRAM = {
         {"title": "Master License Agreement", "file": "/mla/{id}"},
         {"title": "Program Compliance Addendum", "file": "/program-compliance-addendum/{id}"},
         {"title": "Program Participation Agreement", "file": "/program-participation-agreement/{id}"},
+          {"title": "🔒 Sensitivity Vault", "file": "/sensitive-identity-record/{id}", "vault": True},
         {"title": "Release of Information / Authorization to Communicate", "file": "/release-of-information/{id}"},
     ],
     "VA_GPD_Aligned": [
@@ -358,6 +360,26 @@ def save_participants(data):
     os.makedirs("data", exist_ok=True)
     with open(PARTICIPANTS_FILE, "w") as f:
         json.dump(data, f)
+
+
+LICENSE_REQUESTS_FILE = "data/license_requests.json"
+
+def load_license_requests():
+    os.makedirs("data", exist_ok=True)
+    if os.path.exists(LICENSE_REQUESTS_FILE):
+        with open(LICENSE_REQUESTS_FILE, "r") as f:
+            return json.load(f)
+    return []
+
+def save_license_requests(data):
+    os.makedirs("data", exist_ok=True)
+    with open(LICENSE_REQUESTS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+def generate_license_number(existing_requests):
+    year = datetime.now().year
+    next_number = len(existing_requests) + 1
+    return f"NILPF-{year}-{next_number:04d}"
 
 
 AUDIT_LOG_FILE = "data/audit_log.json"
@@ -423,6 +445,75 @@ def activate():
         return redirect(url_for("login"))
 
     return render_template("activation.html")
+
+@app.route("/request-access", methods=["GET", "POST"])
+def request_access():
+    submitted_request = None
+
+    if request.method == "POST":
+        requests_data = load_license_requests()
+
+        full_name = request.form.get("full_name", "").strip()
+        business_name = request.form.get("business_name", "").strip()
+        paypal_email = request.form.get("paypal_email", "").strip().lower()
+        site_address = request.form.get("site_address", "").strip()
+        city = request.form.get("city", "").strip()
+        state = request.form.get("state", "").strip()
+        zip_code = request.form.get("zip_code", "").strip()
+        phone = request.form.get("phone", "").strip()
+        notes = request.form.get("notes", "").strip()
+
+        if not full_name or not business_name or not paypal_email or not site_address or not city or not state or not zip_code:
+            flash("Name, business name, PayPal email, and full physical site address are required.")
+            return redirect(url_for("request_access"))
+
+        license_number = generate_license_number(requests_data)
+
+        submitted_request = {
+            "license_number": license_number,
+            "status": "pending_payment_verification",
+            "full_name": full_name,
+            "business_name": business_name,
+            "paypal_email": paypal_email,
+            "site_address": site_address,
+            "city": city,
+            "state": state,
+            "zip_code": zip_code,
+            "phone": phone,
+            "notes": notes,
+            "created_at": datetime.now().isoformat(timespec="seconds")
+        }
+
+        requests_data.append(submitted_request)
+        save_license_requests(requests_data)
+
+        # Carry only public-facing license display info into the active app record.
+        # Full address and request details stay stored behind the scenes in license_requests.json.
+        activated_system = load_activation()
+        activated_system["property_name"] = business_name
+        activated_system["license_number"] = license_number
+        activated_system["email"] = paypal_email
+        activated_system["license_status"] = "pending_payment_verification"
+        activated_system["business_name"] = business_name
+        activated_system["licensed_site_address"] = site_address
+        activated_system["licensed_site_city"] = city
+        activated_system["licensed_site_state"] = state
+        activated_system["licensed_site_zip"] = zip_code
+
+        # Do not change the customer's selected housing/program type.
+        if not activated_system.get("program_type"):
+            activated_system["program_type"] = "Transitional"
+
+        # Do not change the existing password behavior.
+        if "password" not in activated_system:
+            activated_system["password"] = ""
+
+        save_activation(activated_system)
+
+        return render_template("request_access.html", submitted_request=submitted_request)
+
+    return render_template("request_access.html", submitted_request=submitted_request)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -662,7 +753,10 @@ def packet_builder(id):
         forms_status = participant.get("forms", {}).get(form_key, {})
         legacy_status = participant.get("form_data", {}).get(doc["file"], {})
         completed = "Completed" if forms_status.get("completed") or legacy_status.get("completed") else "Not Completed"
-        items += f"<li><a href='{link}'>{doc['title']} ({doc['file']})</a> - {completed}</li>"
+        if doc.get("vault"):
+            items += f"<li class='vault-card'><a href='{link}'>🔒 ⛓️ {doc['title']}</a><div class='vault-subtitle'>Restricted Identity / PII Record</div><div class='vault-status'>Status: {completed}</div></li>"
+        else:
+            items += f"<li><a href='{link}'>{doc['title']} ({doc['file']})</a> - {completed}</li>"
 
     return f"""
     <html>
@@ -712,6 +806,10 @@ def packet_builder(id):
                 color: #4b2aa8;
                 font-weight: bold;
             }}
+              .vault-card {{ list-style:none; margin:16px 0; padding:16px 18px; background:#050505; border:2px solid #D4AF37; border-radius:14px; }}
+              .vault-card a {{ color:#D4AF37; font-size:20px; text-decoration:none; }}
+              .vault-subtitle {{ color:white; font-size:13px; margin-top:6px; font-weight:bold; }}
+              .vault-status {{ color:#D4AF37; font-size:13px; margin-top:6px; }}
             .bottom-buttons {{
                 display: flex;
                 justify-content: space-between;
@@ -1737,6 +1835,13 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
                 f"{form_key}_true_to_sight.pdf"
             )
             print(f"TRUE-TO-SIGHT PDF CREATED: {pdf_file}")
+            if form_key == "sensitive_identity_record":
+                import shutil
+                vault_dir = os.path.join("static", "filled", f"participant_{id}", "sensitivity_vault")
+                os.makedirs(vault_dir, exist_ok=True)
+                vault_path = os.path.join(vault_dir, "sensitive_identity_record_true_to_sight.pdf")
+                shutil.copy2(pdf_file, vault_path)
+                print(f"SENSITIVITY VAULT COPY CREATED: {vault_path}")
         except Exception as e:
             print(f"TRUE-TO-SIGHT PDF ERROR for {form_key}: {e}")
 
@@ -1761,6 +1866,7 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
 
 
 # STANDARD ROUTE REGISTRATION FOR REMAINING FORMS
+make_standard_routes("sensitive-identity-record", "sensitive_identity_record", "sensitive_identity_record")
 make_standard_routes("release-of-information", "release_of_information", "release_of_information")
 make_standard_routes("emergency-contact", "emergency_contact", "emergency_contact")
 make_standard_routes("emergency-evacuation", "emergency_evacuation", "emergency_evacuation")

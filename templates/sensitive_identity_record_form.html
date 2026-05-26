@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sensitivity Vault</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      padding: 24px;
+    }
+    .page {
+      max-width: 850px;
+      margin: auto;
+      background: white;
+      padding: 34px;
+      border: 1px solid #222;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 4px;
+      letter-spacing: .5px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+    .notice {
+      border: 2px solid #111;
+      padding: 14px;
+      margin: 18px 0;
+      font-size: 14px;
+      line-height: 1.45;
+      background: #fafafa;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 14px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 9px;
+      margin-top: 5px;
+      border: 1px solid #555;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+    textarea {
+      min-height: 85px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .small {
+      font-size: 12px;
+      color: #333;
+      line-height: 1.4;
+    }
+    .buttons {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+    }
+    button, a.btn {
+      background: #111;
+      color: white;
+      border: none;
+      padding: 11px 16px;
+      text-decoration: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .footer {
+      margin-top: 28px;
+      font-size: 10px;
+      text-align: center;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <h1>SENSITIVITY VAULT</h1>
+
+  <div class="notice" style="font-size:12px; line-height:1.45; margin:10px 0 16px 0; padding:10px; border:1px solid #bbb; border-radius:8px; background:#f8f8f8;">
+    <strong>Sensitivity Vault:</strong> This record contains restricted identity information and should be handled as confidential personally identifiable information (PII). 
+    Reference standard: Privacy Act of 1974, 5 U.S.C. § 552a, and Social Security number disclosure notice principles under Privacy Act § 7, 5 U.S.C. § 552a note. 
+    Use only for identity verification, eligibility review, program administration, or authorized recordkeeping.
+  </div>
+  <div class="subtitle">PID-Linked Optional Identifier Record</div>
+
+  <div class="notice">
+    <strong>Use Notice:</strong> This form is for programs or referral pathways that require identity identifiers for enrollment, referral, funding, reporting, DOC/reentry coordination, TSH documentation, or similar administrative purposes. Operators should collect only what is necessary for their lawful program use. Social Security information should be protected and masked when displayed.
+  </div>
+
+  <form method="POST">
+    <div class="row">
+      <div>
+        <label>Participant Name</label>
+        <input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}">
+      </div>
+      <div>
+        <label>Participant ID / PID</label>
+        <input type="text" name="participant_pid" value="{{ id }}" readonly>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Date of Birth</label>
+        <input type="date" name="date_of_birth" value="{{ d.get('date_of_birth','') }}">
+      </div>
+      <div>
+        <label>DOB Data Quality</label>
+        <select name="dob_data_quality">
+          {% set dobq = d.get('dob_data_quality','') %}
+          <option value="">Select</option>
+          <option value="Full DOB reported" {% if dobq == 'Full DOB reported' %}selected{% endif %}>Full DOB reported</option>
+          <option value="Approximate or partial DOB reported" {% if dobq == 'Approximate or partial DOB reported' %}selected{% endif %}>Approximate or partial DOB reported</option>
+          <option value="Client does not know" {% if dobq == 'Client does not know' %}selected{% endif %}>Client does not know</option>
+          <option value="Client prefers not to answer" {% if dobq == 'Client prefers not to answer' %}selected{% endif %}>Client prefers not to answer</option>
+          <option value="Data not collected" {% if dobq == 'Data not collected' %}selected{% endif %}>Data not collected</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Social Security Number or Last Four Digits</label>
+    <input type="text" name="ssn" value="{{ d.get('ssn','') }}" placeholder="Full SSN or last four digits only">
+    <div class="small">The system may accept a full SSN or partial SSN when appropriate. Review pages should display SSN in masked form.</div>
+
+    <label>SSN Data Quality</label>
+    {% set ssnq = d.get('ssn_data_quality','') %}
+    <select name="ssn_data_quality">
+      <option value="">Select</option>
+      <option value="Full SSN reported" {% if ssnq == 'Full SSN reported' %}selected{% endif %}>Full SSN reported</option>
+      <option value="Approximate or partial SSN reported" {% if ssnq == 'Approximate or partial SSN reported' %}selected{% endif %}>Approximate or partial SSN reported</option>
+      <option value="Client does not know" {% if ssnq == 'Client does not know' %}selected{% endif %}>Client does not know</option>
+      <option value="Client prefers not to answer" {% if ssnq == 'Client prefers not to answer' %}selected{% endif %}>Client prefers not to answer</option>
+      <option value="Data not collected" {% if ssnq == 'Data not collected' %}selected{% endif %}>Data not collected</option>
+    </select>
+
+    <label>Operator Notes</label>
+    <textarea name="operator_notes">{{ d.get('operator_notes','') }}</textarea>
+
+    <div class="notice">
+      <strong>Security Reminder:</strong> This record contains sensitive identifiers. Keep it separate from general packet sharing unless it is specifically required. Do not print, download, or distribute this information unless there is a lawful program reason.
+    </div>
+
+    <div class="buttons">
+      <button type="submit">Save & Review</button>
+      <a class="btn" href="/packet-builder/{{ id }}">Back to Packet Builder</a>
+    </div>
+  </form>
+
+  <div class="footer">Sensitivity Vault</div>
+</div>
+</body>
+</html>
