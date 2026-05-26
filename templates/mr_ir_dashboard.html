@@ -83,6 +83,20 @@
       </div>
 
       <div class="card">
+        <h2>Environment Key Status</h2>
+        <p>Mr.IR checks whether important app keys are loaded without showing the secret values.</p>
+        {% if env_status %}
+          <ul>
+            {% for key, status in env_status.items() %}
+              <li><strong>{{ key }}:</strong> {{ status }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No environment status available.</p>
+        {% endif %}
+      </div>
+
+      <div class="card">
         <h2>PDF Diagnostic</h2>
         <p>Checks whether Render/Docker can create app PDFs properly.</p>
         <a class="btn" href="/render-pdf-diagnostic">Open PDF Diagnostic</a>

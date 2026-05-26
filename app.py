@@ -2448,7 +2448,17 @@ def mr_ir_scan():
 
 @app.route("/mr-ir")
 def mr_ir_dashboard():
-    return render_template("mr_ir_dashboard.html")
+    import os
+
+    env_status = {
+        "PAYPAL_SECRET": "✅ Loaded" if os.environ.get("PAYPAL_SECRET") else "❌ MISSING",
+        "WEBHOOK_VERIFY_KEY": "✅ Loaded" if os.environ.get("WEBHOOK_VERIFY_KEY") else "❌ MISSING",
+        "DATABASE_URL": "✅ Loaded" if os.environ.get("DATABASE_URL") else "⚠️ Not Found / Local File Mode",
+        "PAYPAL_CLIENT_ID": "✅ Loaded" if os.environ.get("PAYPAL_CLIENT_ID") else "❌ MISSING",
+        "PAYPAL_PLAN_ID": "✅ Loaded" if os.environ.get("PAYPAL_PLAN_ID") else "❌ MISSING",
+    }
+
+    return render_template("mr_ir_dashboard.html", env_status=env_status)
 
 
 if __name__ == "__main__":
