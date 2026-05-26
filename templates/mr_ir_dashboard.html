@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mr.IR Internal Repairman</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f1ea;
+      margin: 0;
+      padding: 24px;
+      color: #1f2937;
+    }
+    .wrap { max-width: 1100px; margin: auto; }
+    .hero {
+      background: #111827;
+      color: white;
+      padding: 22px;
+      border-radius: 16px;
+      margin-bottom: 18px;
+      border: 3px solid #d4af37;
+    }
+    .hero h1 { margin: 0 0 8px 0; font-size: 30px; }
+    .hero p { margin: 4px 0; color: #e5e7eb; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #d6c9a8;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .card h2 { font-size: 18px; margin: 0 0 10px 0; color: #111827; }
+    .card p, .card li { font-size: 14px; line-height: 1.45; }
+    .btn {
+      display: inline-block;
+      margin: 8px 6px 0 0;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: #111827;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .gold { color: #9a6b00; font-weight: bold; }
+    .note {
+      background: #fff8dc;
+      border-left: 5px solid #d4af37;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .footer {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 5px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Mr.IR — Mr. Internal Repairman</h1>
+      <p><strong>Private App Repair & Diagnostic Room</strong></p>
+      <p>This area is for bug notes, test links, repair steps, backups, and future self-repair logic.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>System Status</h2>
+        <p><span class="gold">Starter status:</span> Mr.IR dashboard installed.</p>
+        <p>Use this room before and after major edits to keep the app stable.</p>
+      </div>
+
+      <div class="card">
+        <h2>PDF Diagnostic</h2>
+        <p>Checks whether Render/Docker can create app PDFs properly.</p>
+        <a class="btn" href="/render-pdf-diagnostic">Open PDF Diagnostic</a>
+      </div>
+
+      <div class="card">
+        <h2>Repair Notes</h2>
+        <ul>
+          <li>Record broken routes here later.</li>
+          <li>Record missing buttons here later.</li>
+          <li>Record packet download issues here later.</li>
+          <li>Record PayPal/webhook issues here later.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Backup Habit</h2>
+        <p>Before major changes, create a backup copy of <strong>app.py</strong>.</p>
+        <p>After changes, run:</p>
+        <p><code>python3 -m py_compile app.py</code></p>
+      </div>
+
+      <div class="card">
+        <h2>Testing Links</h2>
+        <p>Quick access points can be added here as the app grows.</p>
+        <a class="btn" href="/operations">Operations</a>
+        <a class="btn" href="/packet-builder/0">Packet Builder PID 0</a>
+      </div>
+
+      <div class="card">
+        <h2>Future Mr.IR Upgrades</h2>
+        <ul>
+          <li>Bug report form</li>
+          <li>Repair log storage</li>
+          <li>Route checker</li>
+          <li>Packet export checker</li>
+          <li>License/payment checker</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note">
+      Mr.IR is installed as a private support room. It does not change participant records, forms, packets, payments, or public access.
+    </div>
+
+    <div class="footer">
+      NILPF Housing OS · Internal Repairman Dashboard
+    </div>
+  </div>
+</body>
+</html>

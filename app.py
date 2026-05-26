@@ -2344,5 +2344,10 @@ def rolodex():
     return render_template("rolodex.html", contacts=contacts)
 
 
+@app.route("/mr-ir")
+def mr_ir_dashboard():
+    return render_template("mr_ir_dashboard.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True)
