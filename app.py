@@ -2567,7 +2567,11 @@ def mr_ir_dashboard():
 def owner_license_approval():
     owner_key = request.args.get("key", "").strip()
     expected_key = os.environ.get("OWNER_APPROVAL_KEY", "owner-test-key")
-    approved_owner = bool(owner_key and owner_key == expected_key)
+
+    if owner_key and owner_key == expected_key:
+        session["owner_approval_logged_in"] = True
+
+    approved_owner = bool(session.get("owner_approval_logged_in"))
 
     requests_data = []
     if approved_owner:
@@ -2586,7 +2590,10 @@ def owner_license_approval_activate():
     owner_key = request.form.get("key", "").strip()
     expected_key = os.environ.get("OWNER_APPROVAL_KEY", "owner-test-key")
 
-    if not owner_key or owner_key != expected_key:
+    if owner_key and owner_key == expected_key:
+        session["owner_approval_logged_in"] = True
+
+    if not session.get("owner_approval_logged_in"):
         flash("Owner approval key required.")
         return redirect(url_for("owner_license_approval"))
 
@@ -2628,7 +2635,7 @@ def owner_license_approval_activate():
     else:
         flash("License number not found.")
 
-    return redirect(url_for("owner_license_approval", key=owner_key))
+    return redirect(url_for("owner_license_approval"))
 
 
 if __name__ == "__main__":
