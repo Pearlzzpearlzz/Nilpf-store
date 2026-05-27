@@ -100,7 +100,15 @@
         <p><strong>Licensed Site Address:</strong> {{ submitted_request.site_address }}, {{ submitted_request.city }}, {{ submitted_request.state }} {{ submitted_request.zip_code }}</p>
         <p class="small">Save this license number. NILPF Housing OS access is tied to the physical site/property address submitted on this request.</p>
       </div>
-      <a class="btn" href="/login">Go to Login</a>
+      <a class="btn" href="https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-0UC82853EV1679549NILP4CI" target="_blank" rel="noopener">
+        Continue to PayPal Payment
+      </a>
+
+      <p class="small">
+        After completing payment, return to this system. Access remains pending until payment verification is completed.
+      </p>
+
+      <a class="btn" href="/login" style="background:#333; margin-top:10px;">I Already Paid / Go to Login</a>
     {% else %}
 
       <div class="notice">
