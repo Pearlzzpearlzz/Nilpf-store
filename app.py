@@ -1,7 +1,7 @@
 from reportlab.pdfgen import canvas
 import fitz
 from pathlib import Path
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import json
 import os
 from datetime import date, datetime
@@ -201,7 +201,7 @@ app.secret_key = "nilpf_secret_key"
 
 @app.before_request
 def require_login():
-    public_routes = ["login", "activate", "logout"]
+    public_routes = ["login", "activate", "logout", "request_access", "paypal_webhook"]
     if request.endpoint in public_routes or request.path == "/favicon.ico" or (request.path and request.path.startswith("/static/")):
         return
 
@@ -513,6 +513,108 @@ def request_access():
         return render_template("request_access.html", submitted_request=submitted_request)
 
     return render_template("request_access.html", submitted_request=submitted_request)
+
+
+
+@app.route("/paypal-webhook", methods=["POST"])
+def paypal_webhook():
+    """
+    PayPal webhook receiver for NILPF Housing OS.
+
+    Purpose:
+    - Receives PayPal subscription/payment events.
+    - Saves a local webhook log for Mr. IR / admin review.
+    - Matches buyer email to license_requests.json when possible.
+    - Marks matching license request as payment_received / active.
+    """
+
+    payload = request.get_json(silent=True) or {}
+    event_type = payload.get("event_type", "UNKNOWN_PAYPAL_EVENT")
+    resource = payload.get("resource", {}) or {}
+
+    payer_email = (
+        resource.get("subscriber", {}).get("email_address")
+        or resource.get("payer", {}).get("email_address")
+        or resource.get("payer_email")
+        or ""
+    ).strip().lower()
+
+    subscription_id = (
+        resource.get("id")
+        or resource.get("billing_agreement_id")
+        or resource.get("subscription_id")
+        or ""
+    )
+
+    os.makedirs("data", exist_ok=True)
+    webhook_log_file = "data/paypal_webhook_events.json"
+
+    try:
+        if os.path.exists(webhook_log_file):
+            with open(webhook_log_file, "r") as f:
+                webhook_events = json.load(f)
+        else:
+            webhook_events = []
+    except Exception:
+        webhook_events = []
+
+    webhook_record = {
+        "received_at": datetime.now().isoformat(timespec="seconds"),
+        "event_type": event_type,
+        "payer_email": payer_email,
+        "subscription_id": subscription_id,
+        "raw_event": payload
+    }
+
+    webhook_events.append(webhook_record)
+
+    with open(webhook_log_file, "w") as f:
+        json.dump(webhook_events, f, indent=2)
+
+    updated_license = None
+
+    paid_event_types = {
+        "BILLING.SUBSCRIPTION.ACTIVATED",
+        "BILLING.SUBSCRIPTION.RE-ACTIVATED",
+        "PAYMENT.SALE.COMPLETED",
+        "CHECKOUT.ORDER.APPROVED",
+        "PAYMENT.CAPTURE.COMPLETED"
+    }
+
+    if payer_email and event_type in paid_event_types:
+        requests_data = load_license_requests()
+
+        for item in requests_data:
+            if item.get("paypal_email", "").strip().lower() == payer_email:
+                item["status"] = "payment_received_active"
+                item["paypal_event_type"] = event_type
+                item["paypal_subscription_id"] = subscription_id
+                item["payment_verified_at"] = datetime.now().isoformat(timespec="seconds")
+                updated_license = item.get("license_number")
+                break
+
+        save_license_requests(requests_data)
+
+        activated_system = load_activation()
+        if activated_system.get("email", "").strip().lower() == payer_email:
+            activated_system["license_status"] = "payment_received_active"
+            activated_system["paypal_event_type"] = event_type
+            activated_system["paypal_subscription_id"] = subscription_id
+            activated_system["payment_verified_at"] = datetime.now().isoformat(timespec="seconds")
+            save_activation(activated_system)
+
+    write_audit(
+        "paypal_webhook_received",
+        form_key="paypal_webhook",
+        details=f"event={event_type}; payer_email={payer_email}; updated_license={updated_license}"
+    )
+
+    return jsonify({
+        "status": "received",
+        "event_type": event_type,
+        "payer_email_found": bool(payer_email),
+        "updated_license": updated_license
+    }), 200
 
 
 @app.route("/login", methods=["GET", "POST"])
