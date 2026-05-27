@@ -201,7 +201,7 @@ app.secret_key = "nilpf_secret_key"
 
 @app.before_request
 def require_login():
-    public_routes = ["login", "activate", "logout", "request_access", "paypal_webhook"]
+    public_routes = ["login", "activate", "logout", "request_access", "paypal_webhook", "owner_license_approval", "owner_license_approval_activate"]
     if request.endpoint in public_routes or request.path == "/favicon.ico" or (request.path and request.path.startswith("/static/")):
         return
 
@@ -2561,6 +2561,74 @@ def mr_ir_dashboard():
     }
 
     return render_template("mr_ir_dashboard.html", env_status=env_status)
+
+
+@app.route("/owner-license-approval", methods=["GET"])
+def owner_license_approval():
+    owner_key = request.args.get("key", "").strip()
+    expected_key = os.environ.get("OWNER_APPROVAL_KEY", "owner-test-key")
+    approved_owner = bool(owner_key and owner_key == expected_key)
+
+    requests_data = []
+    if approved_owner:
+        requests_data = load_license_requests()
+
+    return render_template(
+        "owner_license_approval.html",
+        approved_owner=approved_owner,
+        owner_key=owner_key,
+        requests_data=requests_data
+    )
+
+
+@app.route("/owner-license-approval/activate", methods=["POST"])
+def owner_license_approval_activate():
+    owner_key = request.form.get("key", "").strip()
+    expected_key = os.environ.get("OWNER_APPROVAL_KEY", "owner-test-key")
+
+    if not owner_key or owner_key != expected_key:
+        flash("Owner approval key required.")
+        return redirect(url_for("owner_license_approval"))
+
+    license_number = request.form.get("license_number", "").strip()
+    requests_data = load_license_requests()
+    matched_request = None
+
+    for item in requests_data:
+        if item.get("license_number") == license_number:
+            item["status"] = "payment_received_active"
+            item["manual_payment_verified_at"] = datetime.now().isoformat(timespec="seconds")
+            item["manual_payment_verified_by"] = "owner_license_approval"
+            matched_request = item
+            break
+
+    if matched_request:
+        save_license_requests(requests_data)
+
+        activated_system = load_activation()
+        activated_system["property_name"] = matched_request.get("business_name", activated_system.get("property_name", ""))
+        activated_system["business_name"] = matched_request.get("business_name", "")
+        activated_system["license_number"] = matched_request.get("license_number", "")
+        activated_system["email"] = matched_request.get("paypal_email", "")
+        activated_system["license_status"] = "payment_received_active"
+        activated_system["payment_verified_at"] = datetime.now().isoformat(timespec="seconds")
+        activated_system["licensed_site_address"] = matched_request.get("site_address", "")
+        activated_system["licensed_site_city"] = matched_request.get("city", "")
+        activated_system["licensed_site_state"] = matched_request.get("state", "")
+        activated_system["licensed_site_zip"] = matched_request.get("zip_code", "")
+
+        if not activated_system.get("program_type"):
+            activated_system["program_type"] = "Transitional"
+
+        if "password" not in activated_system:
+            activated_system["password"] = ""
+
+        save_activation(activated_system)
+        flash("License activated after manual payment verification.")
+    else:
+        flash("License number not found.")
+
+    return redirect(url_for("owner_license_approval", key=owner_key))
 
 
 if __name__ == "__main__":

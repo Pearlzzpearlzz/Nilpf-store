@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Owner License Approval</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #050505;
+      color: #f5f5f5;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .hero, .card {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    h1, h2 {
+      color: #d4af37;
+      margin-top: 0;
+    }
+    .small {
+      color: #ccc;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #2b2208;
+      color: #ffd86b;
+      font-size: 13px;
+      margin: 6px 0;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px 14px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 10px;
+      background: #d4af37;
+      color: #050505;
+      font-weight: bold;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-dark {
+      background: #333;
+      color: #fff;
+    }
+    .empty {
+      background: #111;
+      border: 1px dashed #555;
+      padding: 18px;
+      border-radius: 12px;
+      color: #ccc;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 8px 0 12px;
+      border-radius: 8px;
+      border: 1px solid #555;
+      background: #050505;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Owner License Approval</h1>
+      <p>This private page is for reviewing pending NILPF Housing OS access requests on your phone.</p>
+      <p class="small">Check PayPal first. Only activate a license after payment or subscription has been confirmed.</p>
+    </div>
+
+    {% if not approved_owner %}
+      <div class="card">
+        <h2>Owner Access Required</h2>
+        <p class="small">Enter your private owner approval key to view pending license requests.</p>
+        <form method="GET">
+          <label>Owner Key</label>
+          <input type="password" name="key" required>
+          <button class="btn" type="submit">Open Approval Panel</button>
+        </form>
+      </div>
+    {% else %}
+      {% if requests_data %}
+        {% for item in requests_data %}
+          <div class="card">
+            <h2>{{ item.get("business_name", "Business Name Missing") }}</h2>
+            <p><strong>License:</strong> {{ item.get("license_number", "") }}</p>
+            <p><strong>Name:</strong> {{ item.get("full_name", "") }}</p>
+            <p><strong>PayPal Email:</strong> {{ item.get("paypal_email", "") }}</p>
+            <p><strong>Site:</strong> {{ item.get("site_address", "") }}, {{ item.get("city", "") }}, {{ item.get("state", "") }} {{ item.get("zip_code", "") }}</p>
+            <p><strong>Created:</strong> {{ item.get("created_at", "") }}</p>
+            <p><span class="status">{{ item.get("status", "unknown") }}</span></p>
+            {% if item.get("status") != "payment_received_active" %}
+              <form method="POST" action="/owner-license-approval/activate">
+                <input type="hidden" name="key" value="{{ owner_key }}">
+                <input type="hidden" name="license_number" value="{{ item.get('license_number', '') }}">
+                <button class="btn" type="submit">Mark Payment Verified / Activate License</button>
+              </form>
+            {% else %}
+              <p class="small">This license is already active.</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty">No license requests found yet.</div>
+      {% endif %}
+      <a class="btn btn-dark" href="/request-access">Open Access Request Page</a>
+    {% endif %}
+  </div>
+</body>
+</html>
