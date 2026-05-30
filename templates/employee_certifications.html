@@ -151,6 +151,34 @@
       </div>
     </div>
 
+    <div class="panel">
+      <h2 style="color:#d4af37; margin-top:0;">Add Employee Certification / Training Standard</h2>
+
+      <form method="POST" action="/employee-certifications">
+        <div class="form-grid">
+          <div>
+            <label>Employee Name</label>
+            <input name="employee_name" placeholder="Enter employee name" required>
+          </div>
+
+          <div>
+            <label>Certification / Training Standard</label>
+            <input name="certification_name" placeholder="CPR, First Aid, Mandated Reporter" required>
+          </div>
+
+          <div>
+            <label>Expiration Date</label>
+            <input type="date" name="expiration_date">
+          </div>
+        </div>
+
+        <label>Alert / Renewal Note</label>
+        <textarea name="alert" placeholder="Renewal needed, proof uploaded, paper copy on file, or other compliance note"></textarea>
+
+        <button class="button" type="submit">Save Employee Certification</button>
+      </form>
+    </div>
+
     <a class="button" href="/operations">Back to Operations</a>
 
     <table>

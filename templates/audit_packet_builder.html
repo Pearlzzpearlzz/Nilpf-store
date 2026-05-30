@@ -77,40 +77,114 @@
       font-weight: 900;
       margin: 8px;
     }
+
+    select,
+    input[type="date"] {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 7px 0 12px;
+      padding: 9px;
+      border-radius: 8px;
+      border: 1px solid #8a680f;
+      background: #050505;
+      color: #fff;
+    }
+
+    label {
+      display: block;
+      margin: 7px 0;
+      color: #e8e8e8;
+      font-size: 13px;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 7px;
+    }
+
+    .notice {
+      margin-top: 18px;
+      background: #0b0b0b;
+      border-left: 5px solid #d4af37;
+      padding: 14px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    .disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
   </style>
 </head>
 <body>
   <main class="wrap">
-    <h1>Audit Packet Builder</h1>
+    <h1>HMIS / CoC Readiness + Audit Packet Builder</h1>
     <p class="subtitle">
-      Build audit-ready review packets by participant, date range, form activity, service records, uploads, and program documentation.
+      Prepare HMIS / CoC readiness reviews and audit-ready summaries by participant, timeframe, requesting entity, record type, service activity, uploads, and program documentation.
     </p>
 
     <section class="panel">
-      <h2>Audit Packet Builder Starter</h2>
+      <h2>HMIS / CoC Readiness Control Room</h2>
       <p>
-        This section is prepared as the audit control area. The first version is a safe starter page.
-        The next build step will add filters and packet export logic in small pieces.
+        This section helps the operator prepare a readiness summary before any HMIS / CoC connection is built.
+        The first version collects review choices and displays what will be checked.
       </p>
 
+      <form method="GET" action="/audit-packet-builder-summary">
       <div class="grid">
         <div class="item">
-          <strong>Participant Records</strong>
-          Pull completed participant forms and packet documents by PID.
+          <strong>Select Participant</strong>
+          <select name="participant_scope">
+            <option value="all">All Participants</option>
+            <option value="single">Single Participant</option>
+          </select>
         </div>
         <div class="item">
-          <strong>Date Range Review</strong>
-          Prepare future audit packets for a selected timeframe.
+          <strong>Select Timeframe</strong>
+          <label>Start Date</label>
+          <input type="date" name="start_date">
+          <label>End Date</label>
+          <input type="date" name="end_date">
         </div>
         <div class="item">
-          <strong>Service Coordination</strong>
-          Include ISP, dated activity logs, reviews, and exit/discharge records.
+          <strong>Requesting Entity</strong>
+          <select name="requesting_entity">
+            <option value="">Select Entity</option>
+            <option value="internal_review">Internal Program Review</option>
+            <option value="hmis">HMIS</option>
+            <option value="coc">CoC</option>
+            <option value="funding_agency">Funding Agency</option>
+            <option value="referral_partner">Referral Partner</option>
+            <option value="audit_reviewer">Audit Reviewer</option>
+          </select>
         </div>
         <div class="item">
-          <strong>Program Proof Records</strong>
-          Include check-in/check-out history, occurrences, uploads, and certification records.
+          <strong>Record Types</strong>
+          <label><input type="checkbox" name="record_types" value="intake_entry"> Intake / Entry Records</label>
+          <label><input type="checkbox" name="record_types" value="service_coordination"> Service Coordination Records</label>
+          <label><input type="checkbox" name="record_types" value="exit_discharge"> Exit / Discharge Records</label>
+          <label><input type="checkbox" name="record_types" value="check_in_out"> Check-In / Check-Out Records</label>
+          <label><input type="checkbox" name="record_types" value="uploads_proof"> Uploads / Proof Records</label>
+          <label><input type="checkbox" name="record_types" value="audit_log"> Audit Log Activity</label>
         </div>
       </div>
+
+      <div class="notice">
+        <strong>HMIS / CoC Readiness Purpose</strong>
+        This tool prepares a readiness review. It does not directly connect to HMIS or CoC yet.
+        It helps the operator see what records exist, what may be missing, and what can be printed for review.
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="button">Create Printable Readiness Summary</button>
+        <span class="button disabled">CSV Export Later</span>
+      </div>
+      </form>
     </section>
 
     <a class="button" href="/tsh-program-tools">Back to TSH Program Tools</a>

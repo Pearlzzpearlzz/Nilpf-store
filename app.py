@@ -799,6 +799,27 @@ def employee_cert_status(expiration_date):
 def audit_packet_builder():
     return render_template("audit_packet_builder.html")
 
+@app.route("/audit-packet-builder-summary")
+def audit_packet_builder_summary():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participant_scope = request.args.get("participant_scope", "")
+    start_date = request.args.get("start_date", "")
+    end_date = request.args.get("end_date", "")
+    requesting_entity = request.args.get("requesting_entity", "")
+    record_types = request.args.getlist("record_types")
+
+    return render_template(
+        "audit_packet_builder_summary.html",
+        participant_scope=participant_scope,
+        start_date=start_date,
+        end_date=end_date,
+        requesting_entity=requesting_entity,
+        record_types=record_types
+    )
+
+
 @app.route("/employee-certifications", methods=["GET", "POST"])
 def employee_certifications():
     if not session.get("logged_in"):
@@ -812,10 +833,10 @@ def employee_certifications():
         record = {
             "employee_name": request.form.get("employee_name", "").strip(),
             "role": request.form.get("role", "").strip(),
-            "credential": request.form.get("credential", "").strip(),
+            "certification_name": request.form.get("certification_name", "").strip(),
             "completed_date": request.form.get("completed_date", "").strip(),
             "expiration_date": request.form.get("expiration_date", "").strip(),
-            "notes": request.form.get("notes", "").strip(),
+            "alert": request.form.get("alert", "").strip(),
             "created_at": datetime.now().strftime("%Y-%m-%d %I:%M %p")
         }
 

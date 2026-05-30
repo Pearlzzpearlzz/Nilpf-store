@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HMIS / CoC Readiness Summary</title>
+  <style>
+    body {
+      background: #fff;
+      color: #111;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 28px;
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #444;
+    }
+
+    .box {
+      border: 1px solid #333;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .box h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .row {
+      margin: 8px 0;
+    }
+
+    .label {
+      font-weight: bold;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .button {
+      display: inline-block;
+      background: #111;
+      color: #fff;
+      text-decoration: none;
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 4px;
+    }
+
+    @media print {
+      .actions {
+        display: none;
+      }
+
+      body {
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>HMIS / CoC Readiness Summary</h1>
+    <p class="subtitle">Printable review summary for audit, HMIS, CoC, funding, or internal readiness review.</p>
+
+    <div class="box">
+      <h2>Selected Review Filters</h2>
+
+      <div class="row">
+        <span class="label">Participant Scope:</span>
+        {{ participant_scope or "Not selected" }}
+      </div>
+
+      <div class="row">
+        <span class="label">Start Date:</span>
+        {{ start_date or "Not selected" }}
+      </div>
+
+      <div class="row">
+        <span class="label">End Date:</span>
+        {{ end_date or "Not selected" }}
+      </div>
+
+      <div class="row">
+        <span class="label">Requesting Entity:</span>
+        {{ requesting_entity or "Not selected" }}
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Selected Record Types</h2>
+      {% if record_types %}
+        <ul>
+          {% for item in record_types %}
+            <li>{{ item.replace("_", " ").title() }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No record types selected.</p>
+      {% endif %}
+    </div>
+
+    <div class="box">
+      <h2>Readiness Notes</h2>
+      <p>
+        This starter summary confirms the selected HMIS / CoC readiness filters.
+        The next build step will pull participant records, service coordination records,
+        exit/discharge records, check-in/check-out records, uploads/proof records,
+        and audit log activity into this printable summary.
+      </p>
+    </div>
+
+    <div class="actions">
+      <button class="button" onclick="window.print()">Print Readiness Summary</button>
+      <a class="button" href="/audit-packet-builder">Back to Builder</a>
+      <a class="button" href="/tsh-program-tools">Back to TSH Program Tools</a>
+    </div>
+  </div>
+</body>
+</html>
