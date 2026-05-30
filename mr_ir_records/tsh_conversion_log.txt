@@ -66,6 +66,5 @@ Git Ignore / Local Storage Protection:
 Next TSH build items still pending:
 - Employee Certifications & Alerts
 - Audit Packet Builder
-- Participant File Center / PID uploads cleanup and polish
 - 24-hour appointment/program obligation dashboard scan
 - Final PayPal/domain pricing and public access polish
