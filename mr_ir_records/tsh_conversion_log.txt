@@ -11,3 +11,61 @@
   - app_TSH_CHECKIN_CHECKOUT_WORKING.py
   - templates/participant_checkin_checkout_WORKING.html
   - templates/tsh_program_tools_CHECKIN_CARD_WORKING.html
+
+2026-05-30 - TSH Conversion Git Checkpoint Summary
+
+Current clean status:
+- Final git status checked clean after TSH conversion commits.
+
+Protected Git commits:
+- de35257 - Add TSH service coordination and participant check-in checkout tools
+- e46b0c3 - Add Mr IR ISP service coordination test note
+- 7480291 - Ignore local upload and cleanup backup folders
+- bc09392 - Add compact CSS for TSH service coordination pages
+
+TSH Program Tools:
+- Added /tsh-program-tools route and page.
+- Operations page links to TSH Tools.
+- TSH Tools now uses compact Operations-style card sizing.
+- TSH Tools layout now includes:
+  - Service Coordination
+  - Participant Check-In / Check-Out
+  - Employee Certifications
+  - Audit Packet Builder
+
+Service Coordination:
+- Service Coordination page added.
+- Individual Service Plan files added.
+- Service Activity Record files added.
+- Quick Service Update added.
+- Participant Program Adherence Review added.
+- ISP local browser test passed and was documented in mr_ir_notes.
+
+Participant Check-In / Check-Out:
+- Added /participant-checkin-checkout route.
+- Added participant_checkin_checkout.html template.
+- Tracks participant Check In / Check Out by PID.
+- Stores timestamp, action, destination/reason, expected return, and staff notes.
+- Updates current participant status to Checked In or Checked Out.
+- Browser tested successfully with Check Out and Check In entries.
+
+CSS / Styling:
+- Added static/css/nilpf_compact.css.
+- Confirmed compact CSS is referenced by:
+  - templates/service_coordination.html
+  - templates/service_activity_record_form.html
+  - templates/service_activity_record_print.html
+  - templates/quick_service_update.html
+
+Git Ignore / Local Storage Protection:
+- Added ignore rules for:
+  - static/uploads/
+  - static/filled_BEFORE_PUBLIC_CLEANUP/
+- These folders remain local and should not be committed because they contain uploaded/generated files.
+
+Next TSH build items still pending:
+- Employee Certifications & Alerts
+- Audit Packet Builder
+- Participant File Center / PID uploads cleanup and polish
+- 24-hour appointment/program obligation dashboard scan
+- Final PayPal/domain pricing and public access polish
