@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Audit Packet Builder</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 35px 22px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #d4af37;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #e8e8e8;
+      line-height: 1.5;
+      margin-bottom: 26px;
+    }
+
+    .panel {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 14px;
+      padding: 22px;
+      text-align: left;
+      box-shadow: 0 0 18px rgba(212,175,55,0.12);
+      margin-bottom: 18px;
+    }
+
+    .panel h2 {
+      color: #d4af37;
+      margin-top: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .item {
+      background: #0b0b0b;
+      border: 1px solid #8a680f;
+      border-radius: 10px;
+      padding: 14px;
+      line-height: 1.45;
+    }
+
+    .item strong {
+      color: #f2cf5a;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      color: #050505;
+      background: linear-gradient(180deg, #f4d55f, #d4af37);
+      border: 2px solid #b88d1b;
+      border-radius: 9px;
+      padding: 9px 15px;
+      font-size: 13px;
+      font-weight: 900;
+      margin: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Audit Packet Builder</h1>
+    <p class="subtitle">
+      Build audit-ready review packets by participant, date range, form activity, service records, uploads, and program documentation.
+    </p>
+
+    <section class="panel">
+      <h2>Audit Packet Builder Starter</h2>
+      <p>
+        This section is prepared as the audit control area. The first version is a safe starter page.
+        The next build step will add filters and packet export logic in small pieces.
+      </p>
+
+      <div class="grid">
+        <div class="item">
+          <strong>Participant Records</strong>
+          Pull completed participant forms and packet documents by PID.
+        </div>
+        <div class="item">
+          <strong>Date Range Review</strong>
+          Prepare future audit packets for a selected timeframe.
+        </div>
+        <div class="item">
+          <strong>Service Coordination</strong>
+          Include ISP, dated activity logs, reviews, and exit/discharge records.
+        </div>
+        <div class="item">
+          <strong>Program Proof Records</strong>
+          Include check-in/check-out history, occurrences, uploads, and certification records.
+        </div>
+      </div>
+    </section>
+
+    <a class="button" href="/tsh-program-tools">Back to TSH Program Tools</a>
+    <a class="button" href="/operations">Back to Operations</a>
+  </main>
+</body>
+</html>

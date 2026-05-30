@@ -794,6 +794,11 @@ def employee_cert_status(expiration_date):
     return "Current"
 
 
+
+@app.route("/audit-packet-builder")
+def audit_packet_builder():
+    return render_template("audit_packet_builder.html")
+
 @app.route("/employee-certifications", methods=["GET", "POST"])
 def employee_certifications():
     if not session.get("logged_in"):
