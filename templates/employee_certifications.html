@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Employee Certifications & Alerts</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 18px;
+    }
+
+    h1 {
+      color: #d4af37;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #e8e8e8;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .panel {
+      background: #101010;
+      border: 2px solid #d4af37;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.35);
+    }
+
+    label {
+      display: block;
+      color: #d4af37;
+      font-weight: bold;
+      margin: 8px 0 4px;
+      font-size: 13px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #050505;
+      color: #fff;
+      border: 1px solid #b88d1b;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    textarea {
+      min-height: 55px;
+      resize: vertical;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .counts {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .count-card {
+      background: #0b0b0b;
+      border: 1px solid #8a680f;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .count-card strong {
+      display: block;
+      color: #d4af37;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      color: #050505;
+      background: linear-gradient(180deg, #f4d55f, #d4af37);
+      border: 2px solid #b88d1b;
+      border-radius: 9px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 900;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      color: #d4af37;
+      border-bottom: 1px solid #8a680f;
+      padding: 8px;
+      text-align: left;
+    }
+
+    td {
+      border-bottom: 1px solid #333;
+      padding: 8px;
+      vertical-align: top;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Employee Certifications & Alerts</h1>
+    <p class="subtitle">
+      Track employee training, certification status, renewal dates, and upcoming compliance alerts.
+    </p>
+
+    <div class="counts">
+      <div class="count-card">
+        <strong>{{ records|length }}</strong>
+        Total Employees
+      </div>
+      <div class="count-card">
+        <strong>{{ counts.get('Current', 0) }}</strong>
+        Active Certifications
+      </div>
+      <div class="count-card">
+        <strong>{{ counts.get('Expiring Soon', 0) }}</strong>
+        Expiring Soon
+      </div>
+      <div class="count-card">
+        <strong>{{ counts.get('Expired', 0) }}</strong>
+        Expired
+      </div>
+    </div>
+
+    <a class="button" href="/operations">Back to Operations</a>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Certification</th>
+          <th>Status</th>
+          <th>Expiration Date</th>
+          <th>Alert</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if records %}
+          {% for cert in records %}
+            <tr>
+              <td>{{ cert.get('employee_name','') }}</td>
+              <td>{{ cert.get('certification_name','') }}</td>
+              <td>{{ cert.get('status','') }}</td>
+              <td>{{ cert.get('expiration_date','') }}</td>
+              <td>{{ cert.get('alert','') }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5">No employee certification records have been added yet.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

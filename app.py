@@ -760,6 +760,78 @@ def tsh_program_tools():
 
 
 
+EMPLOYEE_CERTS_FILE = "data/employee_certifications.json"
+
+def load_employee_certs():
+    import json, os
+    if not os.path.exists(EMPLOYEE_CERTS_FILE):
+        return []
+    with open(EMPLOYEE_CERTS_FILE, "r") as f:
+        return json.load(f)
+
+def save_employee_certs(records):
+    import json, os
+    os.makedirs("data", exist_ok=True)
+    with open(EMPLOYEE_CERTS_FILE, "w") as f:
+        json.dump(records, f, indent=2)
+
+def employee_cert_status(expiration_date):
+    from datetime import datetime, date
+    if not expiration_date:
+        return "No Expiration"
+    try:
+        exp = datetime.strptime(expiration_date, "%Y-%m-%d").date()
+    except ValueError:
+        return "Date Error"
+
+    today = date.today()
+    days_left = (exp - today).days
+
+    if days_left < 0:
+        return "Expired"
+    if days_left <= 30:
+        return "Expiring Soon"
+    return "Current"
+
+
+@app.route("/employee-certifications", methods=["GET", "POST"])
+def employee_certifications():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    from datetime import datetime
+
+    records = load_employee_certs()
+
+    if request.method == "POST":
+        record = {
+            "employee_name": request.form.get("employee_name", "").strip(),
+            "role": request.form.get("role", "").strip(),
+            "credential": request.form.get("credential", "").strip(),
+            "completed_date": request.form.get("completed_date", "").strip(),
+            "expiration_date": request.form.get("expiration_date", "").strip(),
+            "notes": request.form.get("notes", "").strip(),
+            "created_at": datetime.now().strftime("%Y-%m-%d %I:%M %p")
+        }
+
+        record["status"] = employee_cert_status(record["expiration_date"])
+        records.append(record)
+        save_employee_certs(records)
+        return redirect(url_for("employee_certifications"))
+
+    for record in records:
+        record["status"] = employee_cert_status(record.get("expiration_date", ""))
+
+    counts = {
+        "Current": sum(1 for r in records if r.get("status") == "Current"),
+        "Expiring Soon": sum(1 for r in records if r.get("status") == "Expiring Soon"),
+        "Expired": sum(1 for r in records if r.get("status") == "Expired"),
+        "No Expiration": sum(1 for r in records if r.get("status") == "No Expiration")
+    }
+
+    return render_template("employee_certifications.html", records=records, counts=counts)
+
+
 @app.route("/participant-checkin-checkout", methods=["GET", "POST"])
 def participant_checkin_checkout():
     if not session.get("logged_in"):
