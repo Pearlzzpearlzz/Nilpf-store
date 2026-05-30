@@ -1,0 +1,32 @@
+MR. INTERNAL REPAIRMAN NOTE
+
+Date: May 28, 2026
+Area: Service Coordination / Individual Service Plan
+
+Status:
+PASSED LOCAL BROWSER TEST
+
+Verified:
+- Individual Service Plan opens.
+- Form saves participant-linked data.
+- Save & Review redirects to the review/print page.
+- Review/print page displays saved data.
+- Print button is visible.
+- Final Lock works.
+- FINAL LOCKED DOCUMENT displays after lock.
+- Locked edit protection works.
+- Attempting to reopen /individual-service-plan/0 after final lock redirects to /individual-service-plan-print/0.
+
+Observed terminal proof:
+- POST /individual-service-plan/0 returned 302
+- GET /individual-service-plan-print/0 returned 200
+- GET /individual-service-plan/0 returned 302 after lock
+- GET /individual-service-plan-print/0 returned 200 after redirect
+
+Checkpoint files:
+- app_ISP_COMPLETE_LOCK_PROTECTED_WORKING.py
+- individual_service_plan_form_COMPLETE_WORKING.html
+- individual_service_plan_print_COMPLETE_WORKING.html
+
+Next planned build:
+Service Activity Records under Service Coordination.
