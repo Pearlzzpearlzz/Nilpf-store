@@ -35,3 +35,42 @@
   - templates/tsh_program_tools_AUDIT_LINK_WORKING.html
   - app_AUDIT_PACKET_BUILDER_ROUTE_WORKING.py
 - Status: Starter doorway page working and ready for future filter/export build.
+
+## APB / HMIS Readiness Pull Logic Completed
+- Date: 2026-05-30
+- Area: Audit Packet Builder / HMIS-CoC Readiness Summary
+- Starting checkpoint:
+  - 2323106 Add HMIS CoC readiness summary and employee certification entry
+- Final checkpoint:
+  - 4f6d383 Build real APB HMIS readiness pull logic
+- Completed:
+  - Added backend scanner helper: build_apb_hmis_readiness_summary().
+  - Connected /audit-packet-builder-summary to real readiness data.
+  - Pulled total participant count from data/participants.json.
+  - Pulled program counts by program_type.
+  - Counted completed forms and final locked forms.
+  - Counted intake / entry records.
+  - Counted service coordination records from service_activity_record and individual_service_plan.
+  - Counted exit / discharge records when present.
+  - Counted check-in/check-out records from checkin_checkout_logs.
+  - Counted uploads/proof records from participant uploads.
+  - Counted audit log activity from available audit/Mr. IR/change log files.
+  - Added missing HMIS-style readiness scan per participant.
+  - Added participant readiness detail table to printable summary.
+  - Added print-friendly table styling.
+  - Updated old starter summary language so the page states it pulls live saved records.
+- Tested:
+  - Ran python3 -m py_compile app.py successfully.
+  - Opened local Audit Packet Builder in browser.
+  - Confirmed printable summary showed real pulled counts.
+  - Confirmed visible pulled counts included participants, completed/locked forms, intake/entry, service coordination, check-in/check-out, uploads/proof, audit activity, and missing items.
+  - Render auto-deployed final commit 4f6d383 live on 2026-05-30 at approximately 8:11 AM.
+- Important repair note:
+  - data/audit_log.json is ignored by Git because .gitignore includes data/*.json.
+  - Runtime audit notes placed in data/audit_log.json do not travel with GitHub/Render deploys.
+  - Permanent Mr. IR build and repair notes must be kept in tracked MR_IR_RECORD.md unless a future tracked Mr. IR record system is added.
+- Files changed:
+  - app.py
+  - templates/audit_packet_builder_summary.html
+  - MR_IR_RECORD.md
+- Status: Real APB/HMIS readiness pull logic completed, tested, deployed, and now documented in tracked Mr. IR record.
