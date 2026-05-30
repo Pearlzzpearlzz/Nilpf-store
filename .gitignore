@@ -104,3 +104,7 @@ Dockerfile_BEFORE_PLAYWRIGHT_160_FIX
 Dockerfile_RENDER_PLAYWRIGHT_160_WORKING
 requirements_BEFORE_PLAYWRIGHT_PIN.txt
 requirements_RENDER_PLAYWRIGHT_160_WORKING.txt
+
+# Local uploaded files and public cleanup backups
+static/uploads/
+static/filled_BEFORE_PUBLIC_CLEANUP/
