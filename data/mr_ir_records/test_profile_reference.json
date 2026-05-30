@@ -1,0 +1,24 @@
+{
+  "record_type": "test_profile_reference",
+  "created_date": "2026-05-30",
+  "area": "Payment / Access Testing",
+  "purpose": "Safe retained test profile for future NILPF Housing OS access/payment testing.",
+  "note": "This is a Mr. IR reference record only. It should not remain active inside live activation.json or participants.json.",
+  "test_buyer": {
+    "business_name": "PleasantviewLlc",
+    "email": "theboy@gmail.com",
+    "license_number": "NILPF-2026-0003",
+    "program_type": "Transitional",
+    "site_address": "35 parkway",
+    "city": "huntington",
+    "state": "NY",
+    "zip_code": "11987",
+    "test_password": "1234",
+    "status_used_during_test": "pending_payment_verification"
+  },
+  "test_participant_note": {
+    "participant_name_examples": ["q", "Q"],
+    "fake_form_values_used": ["m", "q"],
+    "warning": "Do not restore this participant data into production unless intentionally testing."
+  }
+}
