@@ -96,11 +96,11 @@
         <h2>Access Request Received</h2>
         <p><strong>License Number:</strong> {{ submitted_request.license_number }}</p>
         <p><strong>Status:</strong> Pending payment verification</p>
-        <p><strong>PayPal Email:</strong> {{ submitted_request.paypal_email }}</p>
+        <p><strong>Email Address:</strong> {{ submitted_request.paypal_email }}</p>
         <p><strong>Licensed Site Address:</strong> {{ submitted_request.site_address }}, {{ submitted_request.city }}, {{ submitted_request.state }} {{ submitted_request.zip_code }}</p>
         <p class="small">Save this license number. NILPF Housing OS access is tied to the physical site/property address submitted on this request.</p>
       </div>
-      <a class="btn" href="https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-0UC82853EV1679549NILP4CI" target="_blank" rel="noopener">
+      <a class="btn" href="https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-2WF21045XJ714223BNIKUDYQ" target="_blank" rel="noopener">
         Continue to PayPal Payment
       </a>
 
@@ -121,14 +121,15 @@
         <p><strong>NILPF Housing OS is licensed per physical site/property address.</strong></p>
 
         <p>
-          This access request is for one physical site/property location. The email submitted here should match the email used for your PayPal subscription or payment.
+          This request is for one physical site/property location. Please use the same email address in this app that you use when completing your PayPal payment/subscription.
         </p>
 
         <p>
-          Access is not automatically active after submitting this request. Your license will remain pending until payment/subscription verification is completed.
+          Access is not activated immediately after submitting this form. Your license will remain pending until payment verification is completed.
         </p>
 
         <p><strong>License Type:</strong> Single-site access</p>
+        <p><strong>Payment Structure:</strong> $297 setup/access payment + $49.99 monthly ongoing access</p>
         <p><strong>Status After Submission:</strong> Pending payment verification</p>
 
         <p class="small">
@@ -143,7 +144,7 @@
         <label>Business / Organization Name *</label>
         <input type="text" name="business_name" required>
 
-        <label>Email Used for PayPal Subscription *</label>
+        <label>Email Address Used in App and for Payment *</label>
         <input type="email" name="paypal_email" required>
 
         <label>Physical Site / Property Address *</label>
