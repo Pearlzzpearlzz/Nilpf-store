@@ -795,6 +795,149 @@ def employee_cert_status(expiration_date):
 
 
 
+def build_apb_hmis_readiness_summary():
+    import json
+    from pathlib import Path
+    from datetime import datetime
+
+    participants_path = Path("data/participants.json")
+    participants = []
+    if participants_path.exists():
+        try:
+            participants = json.loads(participants_path.read_text() or "[]")
+        except Exception:
+            participants = []
+
+    summary = {
+        "generated_at": datetime.now().strftime("%Y-%m-%d %I:%M %p"),
+        "total_participants": len(participants),
+        "program_counts": {},
+        "completed_forms": 0,
+        "locked_forms": 0,
+        "intake_entry_records": 0,
+        "service_coordination_records": 0,
+        "exit_discharge_records": 0,
+        "checkin_checkout_records": 0,
+        "uploads_proof_records": 0,
+        "audit_log_activity": 0,
+        "participants": [],
+        "missing_field_total": 0,
+    }
+
+    audit_files = [
+        Path("data/audit_log.json"),
+        Path("data/audit_logs.json"),
+        Path("data/mr_ir_log.json"),
+        Path("data/mr_ir_records.json"),
+        Path("data/change_log.json"),
+    ]
+
+    for audit_file in audit_files:
+        if audit_file.exists():
+            try:
+                audit_data = json.loads(audit_file.read_text() or "[]")
+                if isinstance(audit_data, list):
+                    summary["audit_log_activity"] += len(audit_data)
+                elif isinstance(audit_data, dict):
+                    summary["audit_log_activity"] += len(audit_data.keys())
+            except Exception:
+                pass
+
+    for pid, person in enumerate(participants):
+        if not isinstance(person, dict):
+            continue
+
+        name = person.get("name") or person.get("participant_name") or ""
+        program = person.get("program_type") or "Not Selected"
+        forms = person.get("forms") or {}
+        uploads = person.get("uploads") or []
+        check_logs = person.get("checkin_checkout_logs") or []
+
+        summary["program_counts"][program] = summary["program_counts"].get(program, 0) + 1
+
+        completed_keys = []
+        locked_keys = []
+
+        for form_key, record in forms.items():
+            if not isinstance(record, dict):
+                continue
+            if record.get("completed"):
+                summary["completed_forms"] += 1
+                completed_keys.append(form_key)
+            if record.get("locked"):
+                summary["locked_forms"] += 1
+                locked_keys.append(form_key)
+
+        intake = forms.get("intake_assessment") or forms.get("entry_screening") or {}
+        intake_data = intake.get("data") if isinstance(intake, dict) else {}
+        service = forms.get("service_activity_record") or {}
+        service_data = service.get("data") if isinstance(service, dict) else {}
+        isp = forms.get("individual_service_plan") or {}
+        exit_record = forms.get("exit_discharge_summary") or forms.get("exit_summary") or forms.get("discharge_summary") or {}
+
+        if isinstance(intake, dict) and intake.get("completed"):
+            summary["intake_entry_records"] += 1
+
+        if isinstance(service, dict) and service.get("completed"):
+            summary["service_coordination_records"] += 1
+
+        if isinstance(isp, dict) and isp.get("completed"):
+            summary["service_coordination_records"] += 1
+
+        if isinstance(exit_record, dict) and exit_record.get("completed"):
+            summary["exit_discharge_records"] += 1
+
+        if isinstance(check_logs, list):
+            summary["checkin_checkout_records"] += len(check_logs)
+        elif isinstance(check_logs, dict):
+            summary["checkin_checkout_records"] += len(check_logs.keys())
+
+        if isinstance(uploads, list):
+            summary["uploads_proof_records"] += len(uploads)
+        elif isinstance(uploads, dict):
+            summary["uploads_proof_records"] += len(uploads.keys())
+
+        missing = []
+
+        if not name:
+            missing.append("Participant name")
+        if not program or program == "Not Selected":
+            missing.append("Program type")
+        if not (isinstance(intake, dict) and intake.get("completed")):
+            missing.append("Intake / entry record")
+        if not (intake_data or {}).get("assessment_date"):
+            missing.append("Intake / entry date")
+        if not (intake_data or {}).get("housing_status"):
+            missing.append("Housing status")
+        if not (isinstance(service, dict) and service.get("completed")) and not (isinstance(isp, dict) and isp.get("completed")):
+            missing.append("Service coordination record")
+        if not (isinstance(exit_record, dict) and exit_record.get("completed")):
+            missing.append("Exit / discharge record")
+        if not check_logs:
+            missing.append("Check-in / check-out records")
+        if not uploads:
+            missing.append("Uploads / proof records")
+
+        summary["missing_field_total"] += len(missing)
+
+        summary["participants"].append({
+            "pid": pid,
+            "name": name or "Unnamed Participant",
+            "program": program,
+            "completed_count": len(completed_keys),
+            "locked_count": len(locked_keys),
+            "intake_status": "Present" if isinstance(intake, dict) and intake.get("completed") else "Missing",
+            "service_status": "Present" if ((isinstance(service, dict) and service.get("completed")) or (isinstance(isp, dict) and isp.get("completed"))) else "Missing",
+            "exit_status": "Present" if isinstance(exit_record, dict) and exit_record.get("completed") else "Missing",
+            "checkin_count": len(check_logs) if hasattr(check_logs, "__len__") else 0,
+            "upload_count": len(uploads) if hasattr(uploads, "__len__") else 0,
+            "missing": missing,
+        })
+
+    return summary
+
+
+
 @app.route("/audit-packet-builder")
 def audit_packet_builder():
     return render_template("audit_packet_builder.html")
@@ -810,13 +953,16 @@ def audit_packet_builder_summary():
     requesting_entity = request.args.get("requesting_entity", "")
     record_types = request.args.getlist("record_types")
 
+    readiness = build_apb_hmis_readiness_summary()
+
     return render_template(
         "audit_packet_builder_summary.html",
         participant_scope=participant_scope,
         start_date=start_date,
         end_date=end_date,
         requesting_entity=requesting_entity,
-        record_types=record_types
+        record_types=record_types,
+        readiness=readiness
     )
 
 

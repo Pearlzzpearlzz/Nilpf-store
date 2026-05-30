@@ -42,6 +42,23 @@
       margin: 8px 0;
     }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #444;
+      padding: 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+
     .label {
       font-weight: bold;
     }
@@ -117,13 +134,82 @@
       {% endif %}
     </div>
 
+
+    <div class="box">
+      <h2>Real Record Counts</h2>
+
+      <div class="row"><span class="label">Generated:</span> {{ readiness.generated_at }}</div>
+      <div class="row"><span class="label">Total Participants:</span> {{ readiness.total_participants }}</div>
+      <div class="row"><span class="label">Completed Forms:</span> {{ readiness.completed_forms }}</div>
+      <div class="row"><span class="label">Final Locked Forms:</span> {{ readiness.locked_forms }}</div>
+      <div class="row"><span class="label">Missing HMIS-Style Readiness Items:</span> {{ readiness.missing_field_total }}</div>
+    </div>
+
+    <div class="box">
+      <h2>Program Counts</h2>
+      {% if readiness.program_counts %}
+        <ul>
+          {% for program, count in readiness.program_counts.items() %}
+            <li>{{ program.replace("_", " ") }}: {{ count }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No participants found.</p>
+      {% endif %}
+    </div>
+
+    <div class="box">
+      <h2>Readiness Category Pulls</h2>
+
+      <div class="row"><span class="label">Intake / Entry Records:</span> {{ readiness.intake_entry_records }}</div>
+      <div class="row"><span class="label">Service Coordination Records:</span> {{ readiness.service_coordination_records }}</div>
+      <div class="row"><span class="label">Exit / Discharge Records:</span> {{ readiness.exit_discharge_records }}</div>
+      <div class="row"><span class="label">Check-In / Check-Out Records:</span> {{ readiness.checkin_checkout_records }}</div>
+      <div class="row"><span class="label">Uploads / Proof Records:</span> {{ readiness.uploads_proof_records }}</div>
+      <div class="row"><span class="label">Audit Log Activity:</span> {{ readiness.audit_log_activity }}</div>
+    </div>
+
+    <div class="box">
+      <h2>Participant Readiness Detail</h2>
+
+      {% if readiness.participants %}
+        <table>
+          <tr>
+            <th>PID</th>
+            <th>Name</th>
+            <th>Program</th>
+            <th>Completed</th>
+            <th>Locked</th>
+            <th>Missing Items</th>
+          </tr>
+          {% for p in readiness.participants %}
+          <tr>
+            <td>{{ p.pid }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.program.replace("_", " ") }}</td>
+            <td>{{ p.completed_count }}</td>
+            <td>{{ p.locked_count }}</td>
+            <td>
+              {% if p.missing %}
+                {{ p.missing|join(", ") }}
+              {% else %}
+                Ready
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p>No participant records found.</p>
+      {% endif %}
+    </div>
+
     <div class="box">
       <h2>Readiness Notes</h2>
       <p>
-        This starter summary confirms the selected HMIS / CoC readiness filters.
-        The next build step will pull participant records, service coordination records,
-        exit/discharge records, check-in/check-out records, uploads/proof records,
-        and audit log activity into this printable summary.
+        This readiness summary pulls live saved records from the system, including participant records,
+        intake or entry documentation, service coordination records, exit or discharge status,
+        check-in/check-out activity, uploads/proof records, and audit log activity when available.
       </p>
     </div>
 
