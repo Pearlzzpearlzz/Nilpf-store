@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Single Form Print Center</title>
+  <title>Single Form Print / Upload Center</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     * { box-sizing: border-box; }
@@ -124,8 +124,8 @@
 </head>
 <body>
   <main class="wrap">
-    <h1>Single Form Print Center</h1>
-    <div class="subtitle">Choose a participant, choose a form, then open the saved review/print copy.</div>
+    <h1>Single Form Print / Upload Center</h1>
+    <div class="subtitle">Choose a participant, print a saved form, or upload a participant-linked document by PID.</div>
 
     <section class="panel">
       <label for="participantSelect">Select Participant</label>
@@ -158,6 +158,76 @@
         <a class="button secondary" href="/operations">Back to Operations</a>
         <a class="button secondary" href="/">Back to Dashboard</a>
       </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin-top:0;">Upload Participant Document</h2>
+      <div class="subtitle" style="margin-bottom:18px;">
+        Upload outside or supporting documents and attach them to the participant PID file.
+      </div>
+
+      <form action="/single-form-upload" method="POST" enctype="multipart/form-data">
+        <label for="upload_pid">Select Participant / PID</label>
+        <select id="upload_pid" name="upload_pid" required>
+          <option value="">-- Choose Participant --</option>
+          {% for person in participants %}
+            <option value="{{ loop.index0 }}">
+              PID {{ loop.index0 }} - {{ person.name or "Unnamed Participant" }} - {{ person.program_type or "No Program" }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <label for="document_category">Document Category</label>
+        <select id="document_category" name="document_category" required>
+          <option value="ID / Demographics">ID / Demographics</option>
+          <option value="Referral Documents">Referral Documents</option>
+          <option value="Agency / Sponsorship">Agency / Sponsorship</option>
+          <option value="Income / Benefits">Income / Benefits</option>
+          <option value="Homelessness Documentation">Homelessness Documentation</option>
+          <option value="Self-Certification">Self-Certification</option>
+          <option value="Court / Reentry Documents">Court / Reentry Documents</option>
+          <option value="Program Correspondence">Program Correspondence</option>
+          <option value="Signed Documents">Signed Documents</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <label for="participant_document">Choose File</label>
+        <input id="participant_document" name="participant_document" type="file" required>
+
+        <label for="upload_note">Upload Note</label>
+        <textarea id="upload_note" name="upload_note" rows="3" placeholder="Optional note about this uploaded document."></textarea>
+
+        <div class="button-row">
+          <button class="button" type="submit">Upload to PID File</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin-top:0;">Uploaded PID Documents</h2>
+      <div class="subtitle" style="margin-bottom:18px;">
+        View uploaded documents saved to participant files.
+      </div>
+
+      {% for person in participants %}
+        {% set participant_pid = loop.index0 %}
+        {% if person.get("uploads") %}
+          <div class="status" style="margin-bottom:14px;">
+            <strong>PID {{ participant_pid }} - {{ person.name or "Unnamed Participant" }}</strong>
+            {% for item in person.get("uploads", []) %}
+              <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(212,175,55,.25);">
+                <strong>{{ item.get("category", "Other") }}</strong><br>
+                {{ item.get("original_name", item.get("stored_name", "Uploaded file")) }}<br>
+                <small>{{ item.get("uploaded_at", "") }}</small><br>
+                {% if item.get("note") %}
+                  <small>Note: {{ item.get("note") }}</small><br>
+                {% endif %}
+                <a class="button secondary" style="margin-top:8px;" href="/participant-upload/{{ participant_pid }}/{{ item.get("stored_name") }}" target="_blank">Open Upload</a>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
     </section>
 
     <div class="footer">NILPF-OS 2026</div>

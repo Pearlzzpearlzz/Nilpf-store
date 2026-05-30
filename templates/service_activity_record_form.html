@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service Activity Record</title>
+  <style>
+    body { margin:0; background:#050505; color:#f5f5f5; font-family:Arial, sans-serif; }
+    .wrap { max-width:950px; margin:0 auto; padding:28px 20px; }
+    h1 { color:#d4af37; text-align:center; letter-spacing:1px; }
+    .note { text-align:center; color:#ddd; line-height:1.5; margin-bottom:20px; }
+    .box { background:#111; border:1px solid #d4af37; border-radius:12px; padding:18px; margin:16px 0; }
+    label { display:block; color:#d4af37; font-weight:bold; margin-top:12px; }
+    input, select, textarea {
+      width:100%; padding:10px; margin-top:6px; border-radius:8px;
+      border:1px solid #777; background:#fff; color:#000; box-sizing:border-box;
+    }
+    textarea { min-height:95px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .checks label { color:#f5f5f5; font-weight:normal; display:block; margin:8px 0; }
+    .checks input { width:auto; margin-right:8px; }
+    .actions { text-align:center; margin-top:22px; }
+    button, .btn {
+      display:inline-block; padding:11px 16px; border-radius:8px; border:none;
+      background:#d4af37; color:#050505; font-weight:bold; text-decoration:none; cursor:pointer;
+      margin:5px;
+    }
+    @media(max-width:750px){ .row{grid-template-columns:1fr;} }
+  </style>
+  <link rel="stylesheet" href="/static/css/nilpf_compact.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>SERVICE ACTIVITY RECORD</h1>
+  <p class="note">
+    Participant-linked retention record for dated service contacts, case coordination,
+    referrals, follow-up activity, barriers, progress notes, and next steps.
+  </p>
+
+  <form method="POST">
+    <div class="box">
+      <div class="row">
+        <div>
+          <label>Participant Name</label>
+          <input name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}" readonly>
+        </div>
+        <div>
+          <label>PID</label>
+          <input name="participant_pid" value="{{ id }}" readonly>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Date of Service</label>
+          <input type="date" name="service_date" value="{{ d.get('service_date', today) }}">
+        </div>
+        <div>
+          <label>Time of Contact</label>
+          <input name="contact_time" value="{{ d.get('contact_time','') }}" placeholder="Example: 10:30 AM">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Staff / Service Coordinator Name</label>
+          <input name="staff_name" value="{{ d.get('staff_name','') }}">
+        </div>
+        <div>
+          <label>Method of Contact</label>
+          {% set method = d.get('contact_method','') %}
+          <select name="contact_method">
+            <option value=""></option>
+            <option value="In person" {% if method == 'In person' %}selected{% endif %}>In person</option>
+            <option value="Phone" {% if method == 'Phone' %}selected{% endif %}>Phone</option>
+            <option value="Text/message" {% if method == 'Text/message' %}selected{% endif %}>Text/message</option>
+            <option value="Email" {% if method == 'Email' %}selected{% endif %}>Email</option>
+            <option value="Agency contact" {% if method == 'Agency contact' %}selected{% endif %}>Agency contact</option>
+            <option value="Other" {% if method == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Type of Service Activity</label>
+      {% set atype = d.get('activity_type','') %}
+      <select name="activity_type">
+        <option value=""></option>
+        <option value="Case management meeting" {% if atype == 'Case management meeting' %}selected{% endif %}>Case management meeting</option>
+        <option value="Housing support" {% if atype == 'Housing support' %}selected{% endif %}>Housing support</option>
+        <option value="Referral follow-up" {% if atype == 'Referral follow-up' %}selected{% endif %}>Referral follow-up</option>
+        <option value="Benefits or document assistance" {% if atype == 'Benefits or document assistance' %}selected{% endif %}>Benefits or document assistance</option>
+        <option value="Employment or education support" {% if atype == 'Employment or education support' %}selected{% endif %}>Employment or education support</option>
+        <option value="Medical or behavioral health coordination" {% if atype == 'Medical or behavioral health coordination' %}selected{% endif %}>Medical or behavioral health coordination</option>
+        <option value="Crisis support" {% if atype == 'Crisis support' %}selected{% endif %}>Crisis support</option>
+        <option value="Missed appointment or no contact" {% if atype == 'Missed appointment or no contact' %}selected{% endif %}>Missed appointment or no contact</option>
+        <option value="General progress note" {% if atype == 'General progress note' %}selected{% endif %}>General progress note</option>
+        <option value="Other" {% if atype == 'Other' %}selected{% endif %}>Other</option>
+      </select>
+
+      <label>Service Details / Progress Note</label>
+      <textarea name="service_details">{{ d.get('service_details','') }}</textarea>
+
+      <label>Participant Response / Progress Observed</label>
+      <textarea name="participant_response">{{ d.get('participant_response','') }}</textarea>
+    </div>
+
+    <div class="box">
+      <label>Referrals / Agencies Contacted</label>
+      <textarea name="referrals_contacted">{{ d.get('referrals_contacted','') }}</textarea>
+
+      <label>Barriers / Concerns Noted</label>
+      <textarea name="barriers_noted">{{ d.get('barriers_noted','') }}</textarea>
+
+      <label>Follow-Up Needed</label>
+      <textarea name="follow_up_needed">{{ d.get('follow_up_needed','') }}</textarea>
+    </div>
+
+    <div class="box">
+      <div class="row">
+        <div>
+          <label>Next Contact / Follow-Up Date</label>
+          <input type="date" name="next_contact_date" value="{{ d.get('next_contact_date','') }}">
+        </div>
+        <div>
+          <label>Staff Signature / Name</label>
+          <input name="staff_signature" value="{{ d.get('staff_signature','') }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit">Save & Review</button>
+      <a class="btn" href="/service-coordination">Back to Service Coordination</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

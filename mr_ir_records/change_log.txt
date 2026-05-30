@@ -1,0 +1,37 @@
+
+2026-05-29 - Participant Program Adherence Review print template added.
+- Issue found: app.py route was calling participant_program_adherence_review_print.html, but the template file did not exist.
+- Fix completed: created templates/participant_program_adherence_review_print.html in small chunks.
+- Verified present: title, final locked banner, participant signature, staff signature, Final Lock button, Back to Service Coordination button, and closing HTML.
+- Safety check passed: python3 -m py_compile app.py returned clean.
+
+2026-05-29 - Participant Program Adherence Review locked-variable patch completed.
+- Browser test found a 500 error on /participant-program-adherence-review-print/0.
+- Cause: print template referenced record.get("locked"), but app.py passed locked=locked instead of record=record.
+- Fix completed: updated templates/participant_program_adherence_review_print.html to use {% if locked %} and {% if not locked %}.
+- Verified present: line 106 uses if locked; line 172 uses if not locked.
+- Safety check passed: python3 -m py_compile app.py returned clean.
+
+2026-05-29 - Quick Occurrence / Service Update visual page added
+- Added Quick Occurrence / Service Update card to Service Coordination.
+- Added route: /quick-service-update
+- Created template: templates/quick_service_update.html
+- Local test confirmed page opens successfully with HTTP 200.
+- Backup saved:
+  - app_QUICK_SERVICE_UPDATE_VISUAL_WORKING.py
+  - templates/quick_service_update_VISUAL_WORKING.html
+- Current status: Visual page works.
+- Not connected yet: Save Update does not save to PID history yet.
+- Next task: connect Quick Service Update to participant records as repeatable dated PID-linked service history.
+
+2026-05-29 - Quick Occurrence / Service Update visual page added
+- Added Quick Occurrence / Service Update card to Service Coordination.
+- Added route: /quick-service-update
+- Created template: templates/quick_service_update.html
+- Local test confirmed page opens successfully with HTTP 200.
+- Backup saved:
+  - app_QUICK_SERVICE_UPDATE_VISUAL_WORKING.py
+  - templates/quick_service_update_VISUAL_WORKING.html
+- Current status: Visual page works.
+- Not connected yet: Save Update does not save to PID history yet.
+- Next task: connect Quick Service Update to participant records as repeatable dated PID-linked service history.

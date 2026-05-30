@@ -1,0 +1,13 @@
+
+2026-05-30 - TSH Participant Check-In / Check-Out Added
+- Added route: /participant-checkin-checkout
+- Added template: templates/participant_checkin_checkout.html
+- Added PID-linked check-in/check-out history under each participant record
+- Tracks Check In / Check Out, timestamp, destination/reason, expected return, and staff notes
+- Current participant status updates to Checked In or Checked Out
+- Added compact TSH Program Tools card linking to the new page
+- Browser tested successfully with Check Out and Check In entries
+- Working backups saved:
+  - app_TSH_CHECKIN_CHECKOUT_WORKING.py
+  - templates/participant_checkin_checkout_WORKING.html
+  - templates/tsh_program_tools_CHECKIN_CARD_WORKING.html

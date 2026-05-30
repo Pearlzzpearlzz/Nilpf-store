@@ -195,6 +195,13 @@
       border-radius: 12px;
     }
 
+    .bottom-action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 18px;
+    }
+
     .footer {
       margin-top: 20px;
       color: #d4af37;
@@ -288,15 +295,18 @@
       <article class="card">
         <div>
           <div class="icon">🖨️</div>
-          <h2>Single Form Print</h2>
+          <h2>Single Form Upload / Print</h2>
           <div class="gold-line"></div>
-          <p>Open one completed participant form for printing.</p>
+          <p>Print completed forms or upload participant documents by PID.</p>
         </div>
         <a class="button" href="/single-form-print">Enter</a>
       </article>
     </section>
 
-    <a class="button back" href="/">Back to Dashboard</a>
+    <div class="bottom-action-row">
+      <a class="button back" href="/tsh-program-tools">TSH Tools</a>
+      <a class="button back" href="/">Back to Dashboard</a>
+    </div>
 
     <footer class="app-footer">
   <div>© 2026 NILPF Housing OS. All rights reserved.</div>

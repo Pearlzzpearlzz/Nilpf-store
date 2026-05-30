@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Individual Service Plan</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 950px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    h1 {
+      color: #d4af37;
+      text-align: center;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #ddd;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .section {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .section {
+      margin-bottom: 18px;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+    }
+
+    .section h2 {
+      color: #d4af37;
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: #f0f0f0;
+      font-weight: bold;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      border-radius: 7px;
+    }
+
+    input, textarea, select {
+      border: 1px solid #777;
+      background: #f7f7f7;
+      color: #111;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #d4af37;
+      color: #050505;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn.secondary {
+      background: #333;
+      color: #f5f5f5;
+      border: 1px solid #d4af37;
+    }
+
+    @media (max-width: 750px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Individual Service Plan</h1>
+    <p class="subtitle">
+      Participant-linked planning record for needs, goals, supports, referrals,
+      action steps, and follow-up coordination.
+    </p>
+
+    <form method="POST">
+      <div class="section">
+        <h2>Participant Information</h2>
+
+        <div class="row">
+          <div>
+            <label>Participant Name</label>
+            <input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}">
+          </div>
+
+          <div>
+            <label>Plan Date</label>
+            <input type="date" name="plan_date" value="{{ d.get('plan_date', today) }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Current Needs</h2>
+
+        <label>Immediate Needs / Concerns</label>
+        <textarea name="immediate_needs">{{ d.get('immediate_needs','') }}</textarea>
+
+        <label>Barriers to Stability</label>
+        <textarea name="barriers">{{ d.get('barriers','') }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>Goals and Action Steps</h2>
+
+        <label>Primary Goal</label>
+        <textarea name="primary_goal">{{ d.get('primary_goal','') }}</textarea>
+
+        <label>Action Steps</label>
+        <textarea name="action_steps">{{ d.get('action_steps','') }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>Supports and Referrals</h2>
+
+        <label>Support Services / Referrals Needed</label>
+        <textarea name="support_services">{{ d.get('support_services','') }}</textarea>
+
+        <label>Responsible Person / Agency</label>
+        <textarea name="responsible_party">{{ d.get('responsible_party','') }}</textarea>
+      </div>
+
+      <div class="section">
+        <h2>Follow-Up Plan</h2>
+
+        <div class="row">
+          <div>
+            <label>Next Follow-Up Date</label>
+            <input type="date" name="follow_up_date" value="{{ d.get('follow_up_date','') }}">
+          </div>
+
+          <div>
+            <label>Coordinator / Staff Name</label>
+            <input type="text" name="coordinator_name" value="{{ d.get('coordinator_name','') }}">
+          </div>
+        </div>
+
+        <label>Follow-Up Notes</label>
+        <textarea name="follow_up_notes">{{ d.get('follow_up_notes','') }}</textarea>
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="submit">Save & Review</button>
+        <a class="btn secondary" href="/service-coordination">Back to Service Coordination</a>
+      </div>
+
+    </form>
+  </div>
+</body>
+</html>

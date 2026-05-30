@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Individual Service Plan Review</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f4f4f4;
+      color: #111;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 25px auto;
+      background: white;
+      padding: 35px;
+      border: 1px solid #ccc;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+
+    .section {
+      border: 1px solid #999;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .section h2 {
+      font-size: 17px;
+      margin-top: 0;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    .label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .value {
+      min-height: 22px;
+      white-space: pre-wrap;
+    }
+
+    .actions {
+      text-align: center;
+      margin: 25px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 14px;
+      background: #111;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn.gold {
+      background: #d4af37;
+      color: #111;
+      font-weight: bold;
+    }
+
+    @media print {
+      .actions {
+        display: none;
+      }
+
+      body {
+        background: white;
+      }
+
+      .page {
+        margin: 0;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="actions">
+    <button class="btn gold" onclick="window.print()">Print</button>
+    {% if not locked %}
+    <a class="btn" href="/individual-service-plan/{{ id }}">Edit</a>
+    <a class="btn gold" href="/individual-service-plan-final/{{ id }}">Final Lock</a>
+    {% else %}
+    <span class="btn gold">FINAL LOCKED DOCUMENT</span>
+    {% endif %}
+    <a class="btn" href="/service-coordination">Back to Service Coordination</a>
+  </div>
+
+  <div class="page">
+    <h1>Individual Service Plan</h1>
+    <div class="subtitle">
+      Participant-linked service coordination and retention record.
+    </div>
+
+    <div class="section">
+      <h2>Participant Information</h2>
+
+      <div class="field">
+        <span class="label">Participant Name</span>
+        <div class="value">{{ d.get('participant_name','') }}</div>
+      </div>
+
+      <div class="field">
+        <span class="label">Plan Date</span>
+        <div class="value">{{ d.get('plan_date','') }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Current Needs</h2>
+
+      <div class="field">
+        <span class="label">Immediate Needs / Concerns</span>
+        <div class="value">{{ d.get('immediate_needs','') }}</div>
+      </div>
+
+      <div class="field">
+        <span class="label">Barriers to Stability</span>
+        <div class="value">{{ d.get('barriers','') }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Goals and Action Steps</h2>
+
+      <div class="field">
+        <span class="label">Primary Goal</span>
+        <div class="value">{{ d.get('primary_goal','') }}</div>
+      </div>
+
+      <div class="field">
+        <span class="label">Action Steps</span>
+        <div class="value">{{ d.get('action_steps','') }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Supports and Referrals</h2>
+
+      <div class="field">
+        <span class="label">Support Services / Referrals Needed</span>
+        <div class="value">{{ d.get('support_services','') }}</div>
+      </div>
+
+      <div class="field">
+        <span class="label">Responsible Person / Agency</span>
+        <div class="value">{{ d.get('responsible_party','') }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Follow-Up Plan</h2>
+
+      <div class="field">
+        <span class="label">Next Follow-Up Date</span>
+        <div class="value">{{ d.get('follow_up_date','') }}</div>
+      </div>
+
+      <div class="field">
+        <span class="label">Coordinator / Staff Name</span>
+        <div class="value">{{ d.get('coordinator_name','') }}</div>
+      </div>
+
+      <div class="field">
+        <span class="label">Follow-Up Notes</span>
+        <div class="value">{{ d.get('follow_up_notes','') }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Record Footer</h2>
+      <div class="field">
+        <span class="label">Document Name</span>
+        <div class="value">Individual Service Plan - Service Coordination Record</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service Activity Record - Review</title>
+  <style>
+    body { margin:0; background:#f4f4f4; color:#111; font-family:Arial, sans-serif; }
+    .page { max-width:900px; margin:25px auto; background:#fff; padding:34px; border:1px solid #999; }
+    h1 { text-align:center; margin-bottom:6px; }
+    .sub { text-align:center; font-size:13px; margin-bottom:22px; }
+    .section { border:1px solid #333; margin:14px 0; padding:14px; }
+    .section h2 { margin:0 0 10px 0; font-size:17px; border-bottom:1px solid #333; padding-bottom:5px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .field { margin:8px 0; }
+    .label { font-weight:bold; }
+    .value { border-bottom:1px solid #aaa; min-height:22px; padding:4px 0; white-space:pre-wrap; }
+    .actions { text-align:center; margin:20px auto; }
+    .btn {
+      display:inline-block; padding:10px 14px; border-radius:8px;
+      background:#111; color:#fff; text-decoration:none; font-weight:bold; margin:5px;
+    }
+    .gold { background:#d4af37; color:#050505; }
+    .locked { color:#0a7a20; font-weight:bold; text-align:center; margin-bottom:12px; }
+    .entry-status {
+      border:2px solid #d4af37;
+      background:#fff8dc;
+      padding:12px;
+      margin:14px 0 18px 0;
+      text-align:center;
+      font-weight:bold;
+    }
+    .entry-status span {
+      display:inline-block;
+      margin:4px 10px;
+    }
+    @media print {
+      .actions { display:none; }
+      body { background:#fff; }
+      .page { border:none; margin:0; }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/css/nilpf_compact.css">
+</head>
+<body>
+<div class="page">
+  <h1>SERVICE ACTIVITY RECORD</h1>
+  <div class="sub">
+    Participant-linked retention record for dated service coordination, referrals,
+    follow-up activity, progress notes, and next steps.
+  </div>
+
+  <div class="entry-status">
+    <span>Service Activity Entry {{ current_entry + 1 if entries else 0 }} of {{ entries|length }}</span>
+    <span>Status: {{ "Locked" if locked else "Draft / Not Final Locked" }}</span>
+  </div>
+
+  {% if locked %}
+    <div class="locked">FINAL LOCKED DOCUMENT</div>
+  {% endif %}
+
+  <div class="section">
+    <h2>Participant / Service Contact</h2>
+    <div class="row">
+      <div class="field">
+        <div class="label">Participant Name</div>
+        <div class="value">{{ d.get('participant_name', participant.get('name','')) }}</div>
+      </div>
+      <div class="field">
+        <div class="label">PID</div>
+        <div class="value">{{ d.get('participant_pid', id) }}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <div class="label">Date of Service</div>
+        <div class="value">{{ d.get('service_date','') }}</div>
+      </div>
+      <div class="field">
+        <div class="label">Time of Contact</div>
+        <div class="value">{{ d.get('contact_time','') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Service Activity Details</h2>
+    <div class="row">
+      <div class="field">
+        <div class="label">Staff / Service Coordinator Name</div>
+        <div class="value">{{ d.get('staff_name','') }}</div>
+      </div>
+      <div class="field">
+        <div class="label">Method of Contact</div>
+        <div class="value">{{ d.get('contact_method','') }}</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">Type of Service Activity</div>
+      <div class="value">{{ d.get('activity_type','') }}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Service Details / Progress Note</div>
+      <div class="value">{{ d.get('service_details','') }}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Participant Response / Progress Observed</div>
+      <div class="value">{{ d.get('participant_response','') }}</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Referrals / Follow-Up</h2>
+
+    <div class="field">
+      <div class="label">Referrals / Agencies Contacted</div>
+      <div class="value">{{ d.get('referrals_contacted','') }}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Barriers / Concerns Noted</div>
+      <div class="value">{{ d.get('barriers_noted','') }}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Follow-Up Needed</div>
+      <div class="value">{{ d.get('follow_up_needed','') }}</div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <div class="label">Next Contact / Follow-Up Date</div>
+        <div class="value">{{ d.get('next_contact_date','') }}</div>
+      </div>
+      <div class="field">
+        <div class="label">Staff Signature / Name</div>
+        <div class="value">{{ d.get('staff_signature','') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    {% if not locked %}
+      <a class="btn gold" href="/service-activity-record-final/{{ id }}">Final Lock This Entry</a>
+    {% endif %}
+    <a class="btn" href="/service-activity-record/{{ id }}">Add New Service Activity Record</a>
+    <a class="btn" href="/service-coordination">Back to Service Coordination</a>
+    <a class="btn" href="javascript:window.print()">Print</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Participant Program Adherence Review</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f1ea;
+      color: #111;
+      padding: 30px;
+    }
+    .page {
+      background: white;
+      max-width: 900px;
+      margin: auto;
+      padding: 35px;
+      border: 2px solid #111;
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .sub {
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 25px;
+    }
+    .box {
+      border: 1px solid #333;
+      padding: 14px;
+      margin: 14px 0;
+    }
+    .label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .value {
+      min-height: 22px;
+      border-bottom: 1px solid #aaa;
+      padding: 5px 0;
+      white-space: pre-wrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .checkline {
+      margin: 6px 0;
+    }
+    .locked {
+      background: #111;
+      color: #d4af37;
+      border: 2px solid #d4af37;
+      text-align: center;
+      padding: 12px;
+      margin: 18px 0;
+      font-weight: bold;
+    }
+    .actions {
+      margin-top: 25px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn, button {
+      background: #111;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      text-decoration: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .gold {
+      background: #d4af37;
+      color: #111;
+      font-weight: bold;
+    }
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .page {
+        border: none;
+        padding: 20px;
+      }
+      .actions {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <h1>PARTICIPANT PROGRAM ADHERENCE REVIEW</h1>
+  <div class="sub">Program adherence, participant rights, corrective action, and review record</div>
+
+  {% if locked %}
+    <div class="locked">FINAL LOCKED DOCUMENT</div>
+  {% endif %}
+
+  <div class="box">
+    <div class="grid">
+      <div>
+        <span class="label">Participant Name</span>
+        <div class="value">{{ d.get('participant_name', participant.get('name','')) }}</div>
+      </div>
+      <div>
+        <span class="label">Review Date</span>
+        <div class="value">{{ d.get('review_date','') }}</div>
+      </div>
+      <div>
+        <span class="label">Participant PID</span>
+        <div class="value">{{ d.get('participant_pid', id) }}</div>
+      </div>
+      <div>
+        <span class="label">Reviewer Name</span>
+        <div class="value">{{ d.get('reviewer_name','') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <span class="label">Adherence Areas Reviewed</span>
+    <div class="checkline">{% if d.get('rule_drugs_alcohol') %}☑{% else %}☐{% endif %} Drugs/alcohol compliance</div>
+    <div class="checkline">{% if d.get('rule_intoxication') %}☑{% else %}☐{% endif %} Intoxication concerns</div>
+    <div class="checkline">{% if d.get('rule_weapons') %}☑{% else %}☐{% endif %} Weapons possession or threats</div>
+    <div class="checkline">{% if d.get('rule_violence') %}☑{% else %}☐{% endif %} Violence, aggression, intimidation, or unsafe behavior</div>
+    <div class="checkline">{% if d.get('rule_curfew') %}☑{% else %}☐{% endif %} Curfew compliance</div>
+    <div class="checkline">{% if d.get('rule_check_in_out') %}☑{% else %}☐{% endif %} Check-in/check-out compliance</div>
+    <div class="checkline">{% if d.get('rule_visitors') %}☑{% else %}☐{% endif %} Visitor rule compliance</div>
+    <div class="checkline">{% if d.get('rule_room_property') %}☑{% else %}☐{% endif %} Room/property care</div>
+    <div class="checkline">{% if d.get('rule_case_management') %}☑{% else %}☐{% endif %} Required case management attendance</div>
+    <div class="checkline">{% if d.get('rule_referral_followthrough') %}☑{% else %}☐{% endif %} Referral follow-through</div>
+    <div class="checkline">{% if d.get('rule_appointments') %}☑{% else %}☐{% endif %} Employment, treatment, benefits, or appointment follow-through</div>
+    <div class="checkline">{% if d.get('rule_respect') %}☑{% else %}☐{% endif %} Respect toward staff/participants/property</div>
+    <div class="checkline">{% if d.get('rule_safety_plan') %}☑{% else %}☐{% endif %} Safety plan compliance, if applicable</div>
+  </div>
+
+  <div class="box">
+    <span class="label">Review Outcome</span>
+    <div class="checkline">{% if d.get('outcome_compliant') %}☑{% else %}☐{% endif %} Compliant</div>
+    <div class="checkline">{% if d.get('outcome_minor_concern') %}☑{% else %}☐{% endif %} Minor concern noted</div>
+    <div class="checkline">{% if d.get('outcome_repeated_concern') %}☑{% else %}☐{% endif %} Repeated concern</div>
+    <div class="checkline">{% if d.get('outcome_serious_violation') %}☑{% else %}☐{% endif %} Serious violation</div>
+    <div class="checkline">{% if d.get('outcome_immediate_safety') %}☑{% else %}☐{% endif %} Immediate safety concern</div>
+    <div class="checkline">{% if d.get('outcome_corrective_action') %}☑{% else %}☐{% endif %} Corrective action needed</div>
+    <div class="checkline">{% if d.get('outcome_referral_needed') %}☑{% else %}☐{% endif %} Referral needed</div>
+    <div class="checkline">{% if d.get('outcome_supervisor_review') %}☑{% else %}☐{% endif %} Supervisor review needed</div>
+    <div class="checkline">{% if d.get('outcome_discharge_review') %}☑{% else %}☐{% endif %} Discharge review needed</div>
+  </div>
+
+  <div class="box">
+    <span class="label">Corrective Action / Sanction Section</span>
+    <div class="checkline">{% if d.get('action_verbal_warning') %}☑{% else %}☐{% endif %} Verbal warning</div>
+    <div class="checkline">{% if d.get('action_written_warning') %}☑{% else %}☐{% endif %} Written warning</div>
+    <div class="checkline">{% if d.get('action_behavior_agreement') %}☑{% else %}☐{% endif %} Behavior agreement</div>
+    <div class="checkline">{% if d.get('action_case_meeting') %}☑{% else %}☐{% endif %} Case management meeting scheduled</div>
+    <div class="checkline">{% if d.get('action_referral_made') %}☑{% else %}☐{% endif %} Referral made</div>
+    <div class="checkline">{% if d.get('action_restriction') %}☑{% else %}☐{% endif %} Restriction applied</div>
+    <div class="checkline">{% if d.get('action_probation') %}☑{% else %}☐{% endif %} Probationary review period</div>
+    <div class="checkline">{% if d.get('action_emergency') %}☑{% else %}☐{% endif %} Emergency action taken</div>
+    <div class="checkline">{% if d.get('action_none') %}☑{% else %}☐{% endif %} No action needed at this time</div>
+  </div>
+
+  <div class="box">
+    <span class="label">Participant Rights Acknowledgment</span>
+    <div class="checkline">{% if d.get('rights_grievance') %}☑{% else %}☐{% endif %} Participant was informed of grievance rights</div>
+    <div class="checkline">{% if d.get('rights_appeal') %}☑{% else %}☐{% endif %} Participant was informed of appeal/review process</div>
+    <div class="checkline">{% if d.get('rights_response') %}☑{% else %}☐{% endif %} Participant was given opportunity to respond</div>
+    <div class="checkline">{% if d.get('rights_next_steps') %}☑{% else %}☐{% endif %} Participant was informed of next steps</div>
+    <div class="checkline">{% if d.get('rights_corrective_action') %}☑{% else %}☐{% endif %} Required corrective action was explained</div>
+    <div class="checkline">{% if d.get('rights_consequences') %}☑{% else %}☐{% endif %} Possible consequences were explained if issue continues</div>
+  </div>
+
+  <div class="box">
+    <span class="label">Review Notes / Details</span>
+    <div class="value">{{ d.get('review_notes','') }}</div>
+  </div>
+
+  <div class="box">
+    <span class="label">Participant Response, If Any</span>
+    <div class="value">{{ d.get('participant_response','') }}</div>
+  </div>
+
+  <div class="box">
+    <div class="grid">
+      <div>
+        <span class="label">Participant Signature / Name</span>
+        <div class="value">{{ d.get('participant_signature','') }}</div>
+      </div>
+      <div>
+        <span class="label">Staff Signature / Name</span>
+        <div class="value">{{ d.get('staff_signature','') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button onclick="window.print()">Print</button>
+
+    {% if not locked %}
+      <a class="btn gold" href="/participant-program-adherence-review-final/{{ id }}">Final Lock</a>
+      <a class="btn" href="/participant-program-adherence-review/{{ id }}">Edit</a>
+    {% endif %}
+
+    <a class="btn" href="/service-coordination">Back to Service Coordination</a>
+  </div>
+
+</div>
+</body>
+</html>

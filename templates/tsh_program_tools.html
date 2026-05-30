@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TSH Program Tools</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 35px 22px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #d4af37;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #e8e8e8;
+      margin-bottom: 26px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .card {
+      background: #101010;
+      border: 2px solid #d4af37;
+      border-radius: 14px;
+      padding: 12px 10px;
+      min-height: 132px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.35);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .icon {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      color: #d4af37;
+      font-size: 20px;
+      margin: 6px 0;
+    }
+
+    p {
+      font-size: 13px;
+      line-height: 1.4;
+      color: #f0f0f0;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      color: #050505;
+      background: linear-gradient(180deg, #f4d55f, #d4af37);
+      border: 2px solid #b88d1b;
+      border-radius: 9px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 900;
+      margin-top: 10px;
+    }
+
+    .bottom-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 850px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>TSH Program Tools</h1>
+    <div class="subtitle">Service coordination, participant check-in/check-out, employee certifications, and audit packet tools.</div>
+
+    <section class="grid">
+      <article class="card">
+        <div>
+          <div class="icon">🧭</div>
+          <h2>Service Coordination</h2>
+          <p>ISP, dated activity logs, and exit / discharge summary.</p>
+        </div>
+        <a class="button" href="/service-coordination">Open Service Coordination</a>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="icon">🕒</div>
+          <h2>Participant Check-In / Check-Out</h2>
+          <p>Track participant movement, status, destinations, return times, and PID-linked history.</p>
+        </div>
+        <a class="button" href="/participant-checkin-checkout">Open Check-In / Check-Out</a>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="icon">📋</div>
+          <h2>Employee Certifications</h2>
+          <p>Staff certifications, expiration dates, and alert status.</p>
+        </div>
+        <a class="button" href="#">Coming Soon</a>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="icon">🗂️</div>
+          <h2>Audit Packet Builder</h2>
+          <p>Pull records by participant, date range, admin, service, and uploads.</p>
+        </div>
+        <a class="button" href="#">Coming Soon</a>
+      </article>
+    </section>
+
+    <div class="bottom-row">
+      <a class="button" href="/operations">Back to Operations</a>
+      <a class="button" href="/">Back to Dashboard</a>
+    </div>
+  </main>
+</body>
+</html>

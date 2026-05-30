@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Participant Program Adherence Review</title>
+  <style>
+    body { margin:0; background:#050505; color:#f5f5f5; font-family:Arial, sans-serif; }
+    .wrap { max-width:950px; margin:0 auto; padding:28px 20px; }
+    h1 { color:#d4af37; text-align:center; letter-spacing:1px; }
+    .note { text-align:center; color:#ddd; line-height:1.5; margin-bottom:20px; }
+    .box { background:#111; border:1px solid #d4af37; border-radius:12px; padding:18px; margin:16px 0; }
+    label { display:block; color:#d4af37; font-weight:bold; margin-top:12px; }
+    input, select, textarea {
+      width:100%; padding:10px; margin-top:6px; border-radius:8px;
+      border:1px solid #777; background:#fff; color:#000; box-sizing:border-box;
+    }
+    textarea { min-height:95px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .checks label { color:#f5f5f5; font-weight:normal; display:block; margin:8px 0; }
+    .checks input { width:auto; margin-right:8px; }
+    .actions { text-align:center; margin-top:22px; }
+    button, .btn {
+      display:inline-block; padding:11px 16px; border-radius:8px; border:none;
+      background:#d4af37; color:#050505; font-weight:bold; text-decoration:none; cursor:pointer;
+      margin:5px;
+    }
+    @media(max-width:750px){ .row{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PARTICIPANT PROGRAM ADHERENCE REVIEW</h1>
+
+  <p class="note">
+    Participant-linked retention record documenting whether the participant was or was not following program rules,
+    and that the organization reviewed the matter fairly.
+  </p>
+
+  <form method="POST">
+    <div class="box">
+      <div class="row">
+        <div>
+          <label>Participant Name</label>
+          <input name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}" readonly>
+        </div>
+        <div>
+          <label>PID</label>
+          <input name="participant_pid" value="{{ id }}" readonly>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Review Date</label>
+          <input type="date" name="review_date" value="{{ d.get('review_date', today) }}">
+        </div>
+        <div>
+          <label>Reviewer / Staff Name</label>
+          <input name="reviewer_name" value="{{ d.get('reviewer_name','') }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Program Rule Areas Reviewed</label>
+      <div class="checks">
+        <label><input type="checkbox" name="rule_drugs_alcohol" {% if d.get('rule_drugs_alcohol') %}checked{% endif %}> Drugs/alcohol compliance</label>
+        <label><input type="checkbox" name="rule_intoxication" {% if d.get('rule_intoxication') %}checked{% endif %}> Intoxication concerns</label>
+        <label><input type="checkbox" name="rule_weapons" {% if d.get('rule_weapons') %}checked{% endif %}> Weapons possession or threats</label>
+        <label><input type="checkbox" name="rule_violence" {% if d.get('rule_violence') %}checked{% endif %}> Violence, aggression, intimidation, or unsafe behavior</label>
+        <label><input type="checkbox" name="rule_curfew" {% if d.get('rule_curfew') %}checked{% endif %}> Curfew compliance</label>
+        <label><input type="checkbox" name="rule_check_in_out" {% if d.get('rule_check_in_out') %}checked{% endif %}> Check-in/check-out compliance</label>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Additional Program Rule Areas Reviewed</label>
+      <div class="checks">
+        <label><input type="checkbox" name="rule_visitors" {% if d.get('rule_visitors') %}checked{% endif %}> Visitor rule compliance</label>
+        <label><input type="checkbox" name="rule_room_property" {% if d.get('rule_room_property') %}checked{% endif %}> Room/property care</label>
+        <label><input type="checkbox" name="rule_case_management" {% if d.get('rule_case_management') %}checked{% endif %}> Required case management attendance</label>
+        <label><input type="checkbox" name="rule_referral_followthrough" {% if d.get('rule_referral_followthrough') %}checked{% endif %}> Referral follow-through</label>
+        <label><input type="checkbox" name="rule_appointments" {% if d.get('rule_appointments') %}checked{% endif %}> Employment, treatment, benefits, or appointment follow-through</label>
+        <label><input type="checkbox" name="rule_respect" {% if d.get('rule_respect') %}checked{% endif %}> Respect toward staff/participants/property</label>
+        <label><input type="checkbox" name="rule_safety_plan" {% if d.get('rule_safety_plan') %}checked{% endif %}> Safety plan compliance, if applicable</label>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Review Outcome</label>
+      <div class="checks">
+        <label><input type="checkbox" name="outcome_compliant" {% if d.get('outcome_compliant') %}checked{% endif %}> Compliant</label>
+        <label><input type="checkbox" name="outcome_minor_concern" {% if d.get('outcome_minor_concern') %}checked{% endif %}> Minor concern noted</label>
+        <label><input type="checkbox" name="outcome_repeated_concern" {% if d.get('outcome_repeated_concern') %}checked{% endif %}> Repeated concern</label>
+        <label><input type="checkbox" name="outcome_serious_violation" {% if d.get('outcome_serious_violation') %}checked{% endif %}> Serious violation</label>
+        <label><input type="checkbox" name="outcome_immediate_safety" {% if d.get('outcome_immediate_safety') %}checked{% endif %}> Immediate safety concern</label>
+        <label><input type="checkbox" name="outcome_corrective_action" {% if d.get('outcome_corrective_action') %}checked{% endif %}> Corrective action needed</label>
+        <label><input type="checkbox" name="outcome_referral_needed" {% if d.get('outcome_referral_needed') %}checked{% endif %}> Referral needed</label>
+        <label><input type="checkbox" name="outcome_supervisor_review" {% if d.get('outcome_supervisor_review') %}checked{% endif %}> Supervisor review needed</label>
+        <label><input type="checkbox" name="outcome_discharge_review" {% if d.get('outcome_discharge_review') %}checked{% endif %}> Discharge review needed</label>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Corrective Action / Sanction Section</label>
+      <div class="checks">
+        <label><input type="checkbox" name="action_verbal_warning" {% if d.get('action_verbal_warning') %}checked{% endif %}> Verbal warning</label>
+        <label><input type="checkbox" name="action_written_warning" {% if d.get('action_written_warning') %}checked{% endif %}> Written warning</label>
+        <label><input type="checkbox" name="action_behavior_agreement" {% if d.get('action_behavior_agreement') %}checked{% endif %}> Behavior agreement</label>
+        <label><input type="checkbox" name="action_case_meeting" {% if d.get('action_case_meeting') %}checked{% endif %}> Case management meeting scheduled</label>
+        <label><input type="checkbox" name="action_referral_made" {% if d.get('action_referral_made') %}checked{% endif %}> Referral made</label>
+        <label><input type="checkbox" name="action_restriction" {% if d.get('action_restriction') %}checked{% endif %}> Restriction applied</label>
+        <label><input type="checkbox" name="action_probation" {% if d.get('action_probation') %}checked{% endif %}> Probationary review period</label>
+        <label><input type="checkbox" name="action_emergency" {% if d.get('action_emergency') %}checked{% endif %}> Emergency action taken</label>
+        <label><input type="checkbox" name="action_none" {% if d.get('action_none') %}checked{% endif %}> No action needed at this time</label>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Participant Rights Acknowledgment</label>
+      <div class="checks">
+        <label><input type="checkbox" name="rights_grievance" {% if d.get('rights_grievance') %}checked{% endif %}> Participant was informed of grievance rights</label>
+        <label><input type="checkbox" name="rights_appeal" {% if d.get('rights_appeal') %}checked{% endif %}> Participant was informed of appeal/review process</label>
+        <label><input type="checkbox" name="rights_response" {% if d.get('rights_response') %}checked{% endif %}> Participant was given opportunity to respond</label>
+        <label><input type="checkbox" name="rights_next_steps" {% if d.get('rights_next_steps') %}checked{% endif %}> Participant was informed of next steps</label>
+        <label><input type="checkbox" name="rights_corrective_action" {% if d.get('rights_corrective_action') %}checked{% endif %}> Required corrective action was explained</label>
+        <label><input type="checkbox" name="rights_consequences" {% if d.get('rights_consequences') %}checked{% endif %}> Possible consequences were explained if issue continues</label>
+      </div>
+
+      <label>Details / Incident Summary / Notes</label>
+      <textarea name="review_notes">{{ d.get('review_notes','') }}</textarea>
+
+      <label>Participant Response, If Any</label>
+      <textarea name="participant_response">{{ d.get('participant_response','') }}</textarea>
+    </div>
+
+    <div class="box">
+      <div class="row">
+        <div>
+          <label>Participant Signature / Name</label>
+          <input name="participant_signature" value="{{ d.get('participant_signature','') }}">
+        </div>
+        <div>
+          <label>Staff Signature / Name</label>
+          <input name="staff_signature" value="{{ d.get('staff_signature','') }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit">Save & Review</button>
+      <a class="btn" href="/service-coordination">Back to Service Coordination</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

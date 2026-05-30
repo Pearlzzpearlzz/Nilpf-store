@@ -1,10 +1,11 @@
 from reportlab.pdfgen import canvas
 import fitz
 from pathlib import Path
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 import json
 import os
 from datetime import date, datetime
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -750,6 +751,315 @@ def property_papers():
     return render_template("property_papers.html")
 
 
+@app.route("/tsh-program-tools")
+def tsh_program_tools():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("tsh_program_tools.html")
+
+
+
+
+@app.route("/participant-checkin-checkout", methods=["GET", "POST"])
+def participant_checkin_checkout():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    from datetime import datetime
+
+    participants = load_participants()
+
+    if request.method == "POST":
+        pid = request.form.get("participant_id", "").strip()
+        action = request.form.get("action", "").strip()
+        notes = request.form.get("notes", "").strip()
+        destination = request.form.get("destination", "").strip()
+        expected_return = request.form.get("expected_return", "").strip()
+
+        if pid.isdigit() and int(pid) < len(participants):
+            participant = participants[int(pid)]
+            logs = participant.setdefault("checkin_checkout_logs", [])
+
+            logs.append({
+                "timestamp": datetime.now().strftime("%Y-%m-%d %I:%M %p"),
+                "action": action,
+                "destination": destination,
+                "expected_return": expected_return,
+                "notes": notes
+            })
+
+            if action == "Check In":
+                participant["current_check_status"] = "Checked In"
+            elif action == "Check Out":
+                participant["current_check_status"] = "Checked Out"
+
+            save_participants(participants)
+            return redirect(url_for("participant_checkin_checkout"))
+
+    return render_template("participant_checkin_checkout.html", participants=participants)
+
+
+@app.route("/individual-service-plan/<int:id>", methods=["GET", "POST"])
+def individual_service_plan(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    forms = participant.setdefault("forms", {})
+    record = forms.setdefault("individual_service_plan", {})
+    d = record.get("data", {})
+
+    if record.get("locked"):
+        return redirect(url_for("individual_service_plan_print", id=id))
+
+    if request.method == "POST":
+        d = request.form.to_dict()
+        record["data"] = d
+        record["completed"] = True
+        record["locked"] = False
+        save_participants(participants)
+        return redirect(url_for("individual_service_plan_print", id=id))
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    return render_template(
+        "individual_service_plan_form.html",
+        id=id,
+        participant=participant,
+        d=d,
+        today=today
+    )
+
+
+
+@app.route("/individual-service-plan-print/<int:id>")
+def individual_service_plan_print(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    record = participant.get("forms", {}).get("individual_service_plan", {})
+    d = record.get("data", {})
+    locked = record.get("locked", False)
+
+    return render_template(
+        "individual_service_plan_print.html",
+        id=id,
+        participant=participant,
+        d=d,
+        locked=locked
+    )
+
+
+
+@app.route("/individual-service-plan-final/<int:id>")
+def individual_service_plan_final(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    forms = participant.setdefault("forms", {})
+    record = forms.setdefault("individual_service_plan", {})
+    record["locked"] = True
+    record["completed"] = True
+    save_participants(participants)
+
+    return redirect(url_for("individual_service_plan_print", id=id))
+
+
+@app.route("/service-activity-record/<int:id>", methods=["GET", "POST"])
+def service_activity_record(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    forms = participant.setdefault("forms", {})
+    record = forms.setdefault("service_activity_record", {})
+
+    # Repeatable PID-linked record:
+    # Service Activity is an ongoing dated log, so each save creates a new entry.
+    entries = record.setdefault("entries", [])
+
+    # Safety migration: preserve any older single saved record before switching to entries.
+    if record.get("data") and not entries:
+        old_entry = dict(record.get("data", {}))
+        old_entry.setdefault("locked", record.get("locked", False))
+        entries.append(old_entry)
+        record["current_entry"] = 0
+        record.pop("data", None)
+
+    if request.method == "POST":
+        d = request.form.to_dict()
+        d["locked"] = False
+        entries.append(d)
+        record["current_entry"] = len(entries) - 1
+        record["completed"] = True
+        record["locked"] = False
+        save_participants(participants)
+        return redirect(url_for("service_activity_record_print", id=id))
+
+    # Blank form for each new service activity entry.
+    d = {}
+    today = datetime.now().strftime("%Y-%m-%d")
+    return render_template(
+        "service_activity_record_form.html",
+        id=id,
+        participant=participant,
+        d=d,
+        today=today
+    )
+
+
+@app.route("/service-activity-record-print/<int:id>")
+def service_activity_record_print(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    record = participant.get("forms", {}).get("service_activity_record", {})
+    entries = record.get("entries", [])
+
+    # Safety fallback for old saved data.
+    if not entries and record.get("data"):
+        entries = [record.get("data", {})]
+
+    current_entry = record.get("current_entry", len(entries) - 1 if entries else 0)
+    if entries:
+        try:
+            current_entry = int(current_entry)
+        except Exception:
+            current_entry = len(entries) - 1
+        current_entry = max(0, min(current_entry, len(entries) - 1))
+        d = entries[current_entry]
+    else:
+        d = {}
+
+    locked = d.get("locked", False)
+
+    return render_template(
+        "service_activity_record_print.html",
+        id=id,
+        participant=participant,
+        d=d,
+        locked=locked,
+        entries=entries,
+        current_entry=current_entry
+    )
+
+
+@app.route("/service-activity-record-final/<int:id>")
+def service_activity_record_final(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    forms = participant.setdefault("forms", {})
+    record = forms.setdefault("service_activity_record", {})
+    entries = record.setdefault("entries", [])
+
+    # Safety migration for old single-record data.
+    if record.get("data") and not entries:
+        old_entry = dict(record.get("data", {}))
+        entries.append(old_entry)
+        record["current_entry"] = 0
+        record.pop("data", None)
+
+    current_entry = record.get("current_entry", len(entries) - 1 if entries else 0)
+    if entries:
+        try:
+            current_entry = int(current_entry)
+        except Exception:
+            current_entry = len(entries) - 1
+        current_entry = max(0, min(current_entry, len(entries) - 1))
+        entries[current_entry]["locked"] = True
+
+    record["completed"] = True
+    record["locked"] = False
+    save_participants(participants)
+
+    return redirect(url_for("service_activity_record_print", id=id))
+
+
+@app.route("/participant-program-adherence-review/<int:id>", methods=["GET", "POST"])
+def participant_program_adherence_review(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    forms = participant.setdefault("forms", {})
+    record = forms.setdefault("participant_program_adherence_review", {})
+    d = record.get("data", {})
+
+    if record.get("locked"):
+        return redirect(url_for("participant_program_adherence_review_print", id=id))
+
+    if request.method == "POST":
+        d = request.form.to_dict()
+        record["data"] = d
+        record["completed"] = True
+        record["locked"] = False
+        save_participants(participants)
+        return redirect(url_for("participant_program_adherence_review_print", id=id))
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    return render_template(
+        "participant_program_adherence_review_form.html",
+        id=id,
+        participant=participant,
+        d=d,
+        today=today
+    )
+
+
+@app.route("/participant-program-adherence-review-print/<int:id>")
+def participant_program_adherence_review_print(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    record = participant.get("forms", {}).get("participant_program_adherence_review", {})
+    d = record.get("data", {})
+    locked = record.get("locked", False)
+
+    return render_template(
+        "participant_program_adherence_review_print.html",
+        id=id,
+        participant=participant,
+        d=d,
+        locked=locked
+    )
+
+
+@app.route("/participant-program-adherence-review-final/<int:id>")
+def participant_program_adherence_review_final(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+    participant = participants[id]
+    forms = participant.setdefault("forms", {})
+    record = forms.setdefault("participant_program_adherence_review", {})
+    record["locked"] = True
+    record["completed"] = True
+    save_participants(participants)
+
+    return redirect(url_for("participant_program_adherence_review_print", id=id))
+
+
+@app.route("/service-coordination")
+def service_coordination():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("service_coordination.html")
+
+
 @app.route("/single-form-print")
 def single_form_print_center():
     activated_system = load_activation()
@@ -790,6 +1100,72 @@ def single_form_print_center():
         participants=current_participants,
         single_form_routes=single_form_routes
     )
+
+
+@app.route("/single-form-upload", methods=["POST"])
+def single_form_upload():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+
+    pid_raw = request.form.get("upload_pid", "").strip()
+    category = request.form.get("document_category", "Other").strip() or "Other"
+    note = request.form.get("upload_note", "").strip()
+    uploaded_file = request.files.get("participant_document")
+
+    if not pid_raw.isdigit():
+        return redirect(url_for("single_form_print_center"))
+
+    pid = int(pid_raw)
+    if pid < 0 or pid >= len(participants):
+        return redirect(url_for("single_form_print_center"))
+
+    if not uploaded_file or uploaded_file.filename == "":
+        return redirect(url_for("single_form_print_center"))
+
+    original_name = uploaded_file.filename
+    safe_name = secure_filename(original_name)
+
+    if not safe_name:
+        return redirect(url_for("single_form_print_center"))
+
+    allowed_extensions = {"pdf", "png", "jpg", "jpeg", "doc", "docx", "txt"}
+    ext = safe_name.rsplit(".", 1)[-1].lower() if "." in safe_name else ""
+
+    if ext not in allowed_extensions:
+        return redirect(url_for("single_form_print_center"))
+
+    upload_dir = Path("static/uploads") / f"participant_{pid}"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stored_name = f"{timestamp}_{safe_name}"
+    upload_path = upload_dir / stored_name
+    uploaded_file.save(upload_path)
+
+    participants[pid].setdefault("uploads", [])
+    participants[pid]["uploads"].append({
+        "category": category,
+        "note": note,
+        "original_name": original_name,
+        "stored_name": stored_name,
+        "path": str(upload_path),
+        "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+    save_participants(participants)
+    return redirect(url_for("single_form_print_center"))
+
+
+@app.route("/participant-upload/<int:pid>/<path:filename>")
+def participant_upload_file(pid, filename):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    folder = Path("static/uploads") / f"participant_{pid}"
+    return send_from_directory(folder, filename)
+
 
 
 @app.route("/admin-forms")
@@ -2636,6 +3012,44 @@ def owner_license_approval_activate():
         flash("License number not found.")
 
     return redirect(url_for("owner_license_approval"))
+
+
+
+@app.route("/quick-service-update", methods=["GET", "POST"])
+def quick_service_update():
+    participants = load_participants()
+    message = ""
+
+    if request.method == "POST":
+        d = request.form.to_dict(flat=False)
+        participant_pid = request.form.get("participant_pid", "").strip()
+
+        try:
+            pid = int(participant_pid.split()[0].replace("PID", "").replace("-", "").strip())
+        except Exception:
+            pid = None
+
+        if pid is None or pid < 0 or pid >= len(participants):
+            message = "Please enter a valid PID number before saving."
+        else:
+            entry = {
+                "participant_pid": participant_pid,
+                "update_date": request.form.get("update_date", ""),
+                "update_type": request.form.get("update_type", ""),
+                "tags": d.get("tags", []),
+                "service_note": request.form.get("service_note", ""),
+                "follow_up": request.form.get("follow_up", ""),
+                "staff_name": request.form.get("staff_name", "")
+            }
+
+            participant = participants[pid]
+            forms = participant.setdefault("forms", {})
+            history = forms.setdefault("quick_service_updates", [])
+            history.append(entry)
+            save_participants(participants)
+            message = "Quick service update saved to participant history."
+
+    return render_template("quick_service_update.html", message=message, participants=participants)
 
 
 if __name__ == "__main__":

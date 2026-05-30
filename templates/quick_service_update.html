@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quick Occurrence / Service Update</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 22px 18px;
+    }
+
+    h1 {
+      color: #d4af37;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #e8e8e8;
+      line-height: 1.5;
+      margin-bottom: 25px;
+    }
+
+    .box {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      color: #d4af37;
+      font-weight: bold;
+      margin-top: 9px;
+      margin-bottom: 4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #777;
+      background: #f7f7f7;
+      color: #111;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      min-height: 75px;
+    }
+
+    .tag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      background: #181818;
+      border: 1px solid #444;
+      border-radius: 10px;
+      padding: 10px;
+      color: #fff;
+    }
+
+    .tag input {
+      width: auto;
+      margin-right: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    .button, button {
+      background: #d4af37;
+      color: #111;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .ghost {
+      background: #222;
+      color: #f5f5f5;
+      border: 1px solid #777;
+    }
+
+    .note {
+      color: #ddd;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  
+    /* COMPACT QUICK UPDATE OVERRIDE */
+    .wrap {
+      max-width: 680px !important;
+      padding: 12px 16px !important;
+    }
+
+    h1 {
+      font-size: 24px !important;
+      margin-bottom: 6px !important;
+      letter-spacing: 1px !important;
+    }
+
+    .subtitle {
+      font-size: 14px !important;
+      margin-bottom: 14px !important;
+      line-height: 1.35 !important;
+    }
+
+    .box {
+      padding: 10px !important;
+      margin-bottom: 10px !important;
+      border-radius: 10px !important;
+    }
+
+    label {
+      font-size: 14px !important;
+      margin-top: 7px !important;
+      margin-bottom: 3px !important;
+    }
+
+    input, select, textarea {
+      padding: 7px !important;
+      font-size: 14px !important;
+      border-radius: 6px !important;
+    }
+
+    textarea {
+      min-height: 58px !important;
+    }
+
+    .tag-grid {
+      grid-template-columns: repeat(3, minmax(120px, 1fr)) !important;
+      gap: 7px !important;
+    }
+
+    .tag {
+      padding: 7px !important;
+      font-size: 14px !important;
+      border-radius: 8px !important;
+    }
+
+    .actions {
+      margin-top: 12px !important;
+    }
+
+    .button, button {
+      padding: 8px 12px !important;
+      font-size: 14px !important;
+    }
+
+  </style>
+  <link rel="stylesheet" href="/static/css/nilpf_compact.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Quick Occurrence / Service Update</h1>
+  <p class="subtitle">
+    Use this screen for quick participant updates, service notes,
+    appointment activity, recovery support, transportation, court,
+    benefits, prescriptions, and program compliance reminders.
+  </p>
+
+  {% if message %}
+  <div class="box" style="text-align:center; color:#d4af37; font-weight:bold;">
+    {{ message }}
+  </div>
+  {% endif %}
+
+  <form method="POST">
+    <div class="box">
+      <label>Select Participant</label>
+      <select name="participant_pid" required>
+        <option value="">Choose participant</option>
+        {% for participant in participants %}
+        <option value="{{ loop.index0 }}">
+          {{ participant.get('name', 'Unnamed Participant') }} / PID {{ loop.index0 }}
+        </option>
+        {% endfor %}
+      </select>
+
+      <label>Update Date</label>
+      <input type="date" name="update_date">
+
+      <label>Update Type</label>
+      <select name="update_type">
+        <option value="">Select update type</option>
+        <option>General Service Update</option>
+        <option>Appointment Reminder</option>
+        <option>Appointment Completed</option>
+        <option>Missed Appointment</option>
+        <option>Recovery Support</option>
+        <option>Prescription / Medication Pickup</option>
+        <option>Transportation</option>
+        <option>Court / Legal</option>
+        <option>Benefits / Documents</option>
+        <option>Program Compliance</option>
+        <option>Incident Follow-Up</option>
+      </select>
+    </div>
+
+    <div class="box">
+      <label>Tags</label>
+      <div class="tag-grid">
+        <label class="tag"><input type="checkbox" name="tags" value="AA / Recovery">AA / Recovery</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Medical">Medical</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Court">Court</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Benefits">Benefits</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Transportation">Transportation</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Prescription">Prescription</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Counseling">Counseling</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Program Rules">Program Rules</label>
+        <label class="tag"><input type="checkbox" name="tags" value="Follow-Up Needed">Follow-Up Needed</label>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Service / Occurrence Note</label>
+      <textarea name="service_note" placeholder="Write the update here..."></textarea>
+
+      <label>Next Step / Follow-Up Needed</label>
+      <textarea name="follow_up" placeholder="Write what staff should do next, if anything..."></textarea>
+
+      <label>Staff Name</label>
+      <input name="staff_name" placeholder="Staff completing this update">
+    </div>
+
+    <p class="note">
+      Note: This page is the first visual screen. The next step will be connecting it to participant records so updates save by PID as repeatable dated history.
+    </p>
+
+    <div class="actions">
+      <button type="submit">Save Update</button>
+      <a class="button ghost" href="/service-coordination">Back to Service Coordination</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

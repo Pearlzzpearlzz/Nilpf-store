@@ -147,7 +147,10 @@
         {% for person in participants %}
           {% set saved_type = person.get("program_type") or person.get("housing_type") or activation.program_type %}
           {% set group_type = "ILH" if saved_type == "ILH" else "TH" %}
-          <option value="{{ loop.index0 }}" data-housing="{{ group_type }}">
+          {% set payor_record = person.get("forms", {}).get("payor_funding_record", {}) %}
+          {% set payor_data = payor_record.get("data", {}) %}
+          {% set program_entry_date = payor_data.get("program_entry_date", "") %}
+          <option value="{{ loop.index0 }}" data-housing="{{ group_type }}" data-entry-date="{{ program_entry_date }}">
             {{ person.get("name") or person.get("participant_name") or "Unnamed Participant" }}
           </option>
         {% endfor %}
@@ -159,13 +162,15 @@
         <option value="/agency-sponsorship-record/">Agency Sponsorship Record</option>
         <option value="/payor-funding-record/">Payor / Funding Record</option>
         <option value="/billing-invoice-setup/">Billing / Invoice Setup</option>
-          <option value="/sensitive-identity-record-print/">🔒 Sensitivity Vault / Restricted Identity Record</option>
+        <option value="/participant-program-adherence-review/">Participant Program Adherence Review</option>
+        <option value="/sensitive-identity-record-print/">🔒 Sensitivity Vault / Restricted Identity Record</option>
       </select>
 
       <div class="notice">
         Select the participant, choose the needed admin record, then open the selected form.
-
       </div>
+
+      <div id="adherenceAlert" class="notice" style="display:none; border-left:5px solid #d4af37; margin-top:12px;"></div>
 
       <a id="openSelected" class="open-btn" href="#">Open Selected Form</a>
     {% else %}
@@ -223,12 +228,55 @@
       var participantSelect = document.getElementById("participantSelect");
       var formSelect = document.getElementById("formSelect");
       var openLink = document.getElementById("openSelected");
+      var alertBox = document.getElementById("adherenceAlert");
 
       if (!participantSelect || !formSelect || !openLink) { return; }
 
       var pid = participantSelect.value;
       var route = formSelect.value;
       openLink.href = route + pid;
+
+      if (!alertBox) { return; }
+
+      if (route !== "/participant-program-adherence-review/") {
+        alertBox.style.display = "none";
+        alertBox.innerHTML = "";
+        return;
+      }
+
+      var selected = participantSelect.options[participantSelect.selectedIndex];
+      var entryDateText = selected.getAttribute("data-entry-date");
+
+      if (!entryDateText) {
+        alertBox.style.display = "block";
+        alertBox.innerHTML = "⚠️ Review alert: Add Program Entry Date in Payor / Funding Record.";
+        return;
+      }
+
+      var entryDate = new Date(entryDateText + "T00:00:00");
+      var today = new Date();
+      today.setHours(0,0,0,0);
+
+      var months = 3;
+      var nextReview = new Date(entryDate);
+
+      while (nextReview <= today) {
+        nextReview = new Date(entryDate);
+        nextReview.setMonth(entryDate.getMonth() + months);
+        months += 3;
+      }
+
+      var reviewLabel = (months - 3) + "-month";
+      var dueSoon = new Date(nextReview);
+      dueSoon.setDate(nextReview.getDate() - 14);
+
+      alertBox.style.display = "block";
+
+      if (today >= dueSoon) {
+        alertBox.innerHTML = "🔔 Review alert: " + reviewLabel + " review due by " + nextReview.toLocaleDateString() + ".";
+      } else {
+        alertBox.innerHTML = "✅ Next review: " + reviewLabel + " review due " + nextReview.toLocaleDateString() + ".";
+      }
     }
 
     window.onload = filterParticipants;

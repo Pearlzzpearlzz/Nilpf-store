@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service Coordination</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 35px 22px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #d4af37;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #e8e8e8;
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 14px;
+      padding: 18px;
+      min-height: 165px;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.18);
+      text-align: left;
+    }
+
+    .card h2 {
+      color: #d4af37;
+      margin-top: 0;
+      font-size: 19px;
+    }
+
+    .card p {
+      color: #ddd;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #d4af37;
+      color: #050505;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .back {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    @media (max-width: 850px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SERVICE COORDINATION</h1>
+
+    <p class="subtitle">
+      This section is for participant-linked service planning, dated service coordination notes,
+      progress activity records, and exit/discharge documentation.
+    </p>
+
+    <div class="grid">
+
+      <div class="card">
+        <h2>Individual Service Plan</h2>
+        <p>
+          Build and maintain a participant-specific service plan with goals,
+          needs, support areas, action steps, and follow-up items.
+        </p>
+        <a class="button" href="/individual-service-plan/0">Open ISP</a>
+      </div>
+
+      <div class="card">
+        <h2>Service Activity Records</h2>
+        <p>
+          Track dated contacts, case coordination notes, referrals, follow-ups,
+          barriers, progress updates, and retention records.
+        </p>
+        <a class="button" href="#">Coming Next</a>
+      </div>
+
+      <div class="card">
+        <h2>Exit / Discharge Summary</h2>
+        <p>
+          Complete the closing summary when a participant exits the program,
+          including reason for exit, final status, referrals, and notes.
+        </p>
+        <a class="button" href="#">Coming Next</a>
+      </div>
+
+    </div>
+
+    <div class="back">
+      <a class="button" href="/operations">Back to Operations</a>
+    </div>
+  </div>
+</body>
+</html>
