@@ -35,5 +35,13 @@
       "templates/shared_forms_FULL_BACKUP_BEFORE_LABEL_CLEANUP/"
     ],
     "status": "completed"
+  },
+  {
+    "date": "2026-05-31 13:51:43",
+    "area": "Operations",
+    "change": "Added permanent Packet Builder button to Operations page.",
+    "tested": "app.py compiled and Operations template shows Packet Builder button linking to /packet-builder/0.",
+    "backups": [],
+    "status": "completed"
   }
 ]
