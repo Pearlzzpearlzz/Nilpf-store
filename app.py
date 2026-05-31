@@ -3296,5 +3296,29 @@ def quick_service_update():
     return render_template("quick_service_update.html", message=message, participants=participants)
 
 
+
+@app.route('/exit-discharge-summary/<int:id>', methods=['GET', 'POST'])
+def exit_discharge_summary(id):
+    participants = load_participants()
+    participant = participants[id]
+    forms = participant.setdefault("forms", {})
+    record = forms.setdefault("exit_discharge_summary", {})
+    d = record.get("data", {})
+
+    if request.method == "POST":
+        d = request.form.to_dict()
+        record["data"] = d
+        record["completed"] = True
+        record["locked"] = False
+        save_participants(participants)
+        return redirect(url_for("service_coordination"))
+
+    return render_template(
+        "exit_discharge_summary_form.html",
+        participant=participant,
+        id=id,
+        d=d
+    )
+
 if __name__ == "__main__":
     app.run(debug=True)

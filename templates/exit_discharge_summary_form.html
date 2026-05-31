@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exit / Discharge Summary</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 950px;
+      margin: 0 auto;
+      padding: 30px 22px;
+    }
+
+    h1 {
+      color: #d4af37;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #ddd;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .box {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      color: #d4af37;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #777;
+      background: #fff;
+      color: #000;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 90px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    button, .btn {
+      display: inline-block;
+      background: #d4af37;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 18px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      margin: 6px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: #aaa;
+      font-size: 12px;
+      margin-top: 22px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>EXIT / DISCHARGE SUMMARY</h1>
+  <p class="subtitle">
+    Use this record when a participant exits the program. This summary helps document final status,
+    reason for exit, referrals, belongings, follow-up needs, and closing notes.
+  </p>
+
+  <form method="POST">
+    <div class="box">
+      <div class="row">
+        <div>
+          <label>Participant Name</label>
+          <input name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}">
+        </div>
+        <div>
+          <label>Participant ID</label>
+          <input name="participant_id" value="{{ id }}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Program Type</label>
+          <input name="program_type" value="{{ participant.get('program_type','') }}">
+        </div>
+        <div>
+          <label>Exit / Discharge Date</label>
+          <input type="date" name="exit_date" value="{{ d.get('exit_date','') }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <label>Reason for Exit / Discharge</label>
+      <select name="exit_reason">
+        {% set reason = d.get('exit_reason','') %}
+        <option value="">Select reason</option>
+        <option value="Successful completion" {% if reason == 'Successful completion' %}selected{% endif %}>Successful completion</option>
+        <option value="Participant choice" {% if reason == 'Participant choice' %}selected{% endif %}>Participant choice</option>
+        <option value="Program non-adherence" {% if reason == 'Program non-adherence' %}selected{% endif %}>Program non-adherence</option>
+        <option value="Transfer to another program" {% if reason == 'Transfer to another program' %}selected{% endif %}>Transfer to another program</option>
+        <option value="Hospitalization / higher level of care" {% if reason == 'Hospitalization / higher level of care' %}selected{% endif %}>Hospitalization / higher level of care</option>
+        <option value="Incarceration / justice-related removal" {% if reason == 'Incarceration / justice-related removal' %}selected{% endif %}>Incarceration / justice-related removal</option>
+        <option value="Unknown / left without notice" {% if reason == 'Unknown / left without notice' %}selected{% endif %}>Unknown / left without notice</option>
+        <option value="Other" {% if reason == 'Other' %}selected{% endif %}>Other</option>
+      </select>
+
+      <label>Explain Reason for Exit / Discharge</label>
+      <textarea name="exit_reason_notes">{{ d.get('exit_reason_notes','') }}</textarea>
+    </div>
+
+    <div class="box">
+      <label>Final Participant Status</label>
+      <textarea name="final_status">{{ d.get('final_status','') }}</textarea>
+
+      <label>Referrals / Follow-Up Provided</label>
+      <textarea name="referrals_followup">{{ d.get('referrals_followup','') }}</textarea>
+
+      <label>Property / Key / Belongings Notes</label>
+      <textarea name="property_belongings_notes">{{ d.get('property_belongings_notes','') }}</textarea>
+    </div>
+
+    <div class="box">
+      <label>Staff Closing Notes</label>
+      <textarea name="staff_closing_notes">{{ d.get('staff_closing_notes','') }}</textarea>
+
+      <div class="row">
+        <div>
+          <label>Prepared By</label>
+          <input name="prepared_by" value="{{ d.get('prepared_by','') }}">
+        </div>
+        <div>
+          <label>Prepared Date</label>
+          <input type="date" name="prepared_date" value="{{ d.get('prepared_date','') }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit">Save Record</button>
+      <a class="btn" href="/service-coordination">Back to Service Coordination</a>
+    </div>
+  </form>
+
+  <div class="footer-note">Exit / Discharge Summary</div>
+</div>
+</body>
+</html>
