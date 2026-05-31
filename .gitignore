@@ -75,6 +75,7 @@ secret_brain/REPORTS/
 # Ignore all real local JSON data
 data/*.json
 !data/.gitkeep
+!data/mr_ir_records.json
 
 # Ignore remaining app backup/helper scripts
 app_*.py

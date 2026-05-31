@@ -1,0 +1,28 @@
+[
+  {
+    "date": "2026-05-31 11:56:03",
+    "area": "Service Coordination",
+    "change": "Added Exit / Discharge Summary form and linked it from Service Coordination.",
+    "tested": "Confirmed form opens for PID 0, auto-fills participant name, PID, and program type, saves data to forms.exit_discharge_summary, and app.py compiles.",
+    "backups": [
+      "app_BEFORE_EXIT_DISCHARGE_SUMMARY.py",
+      "service_coordination_BEFORE_EXIT_DISCHARGE_LINK.html",
+      "app_EXIT_DISCHARGE_SUMMARY_WORKING.py",
+      "exit_discharge_summary_form_WORKING.html",
+      "service_coordination_EXIT_DISCHARGE_WORKING.html"
+    ],
+    "status": "completed"
+  },
+  {
+    "date": "2026-05-31 12:11:55",
+    "area": "Live Render Verification",
+    "change": "Verified Exit / Discharge Summary appears in HMIS / CoC Readiness Summary counts.",
+    "tested": "Live Render showed Exit / Discharge Records: 1 and print preview generated a 2-page readiness summary.",
+    "backups": [
+      "app_EXIT_DISCHARGE_SUMMARY_WORKING.py",
+      "exit_discharge_summary_form_WORKING.html",
+      "service_coordination_EXIT_DISCHARGE_WORKING.html"
+    ],
+    "status": "live verified"
+  }
+]
