@@ -86,9 +86,10 @@
 <h3>3. Additional Rules</h3>
 
 <div class="rule">{% if d.park_designated_spaces %}☑{% else %}☐{% endif %} Park only in designated spaces</div>
-<div class="rule">{% if d.keep_vehicle_registered %}☑{% else %}☐{% endif %} Keep vehicle registered, insured, and operational</div>
-<div class="rule">{% if d.no_blocking_driveways %}☑{% else %}☐{% endif %} Do not block driveways, exits, sidewalks, fire lanes, or other vehicles</div>
-<div class="rule">{% if d.report_vehicle_changes %}☑{% else %}☐{% endif %} Report vehicle, insurance, or license plate changes to the operator</div>
+<div class="rule">{% if d.keep_vehicle_registered %}☑{% else %}☐{% endif %} Maintain valid registration and insurance</div>
+<div class="rule">{% if d.no_inoperable_vehicles %}☑{% else %}☐{% endif %} Not store inoperable vehicles</div>
+<div class="rule">{% if d.no_mechanical_repairs %}☑{% else %}☐{% endif %} Not perform mechanical repairs on the property</div>
+<div class="rule">{% if d.report_vehicle_changes %}☑{% else %}☐{% endif %} Report changes in vehicle information</div>
 
 <p>Vehicles violating policies may be towed at the owner’s expense.</p>
 

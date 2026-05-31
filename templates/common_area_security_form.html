@@ -23,10 +23,10 @@ button { padding: 10px 18px; font-weight: bold; }
 <p>This disclosure explains expectations related to shared spaces, common areas, security, cameras if applicable, and participant responsibility in maintaining a safe housing environment.</p>
 
 <h3>COMMON AREA ACKNOWLEDGMENTS</h3>
-<p>☐ I understand that common areas are shared by participants <input type="checkbox" name="shared_common_areas" {% if d.get('shared_common_areas') %}checked{% endif %}></p>
-<p>☐ I understand that safety and security expectations apply in all shared spaces <input type="checkbox" name="security_expectations" {% if d.get('security_expectations') %}checked{% endif %}></p>
-<p>☐ I understand that common areas must not be blocked, damaged, or misused <input type="checkbox" name="no_misuse" {% if d.get('no_misuse') %}checked{% endif %}></p>
-<p>☐ I understand that any cameras, if present, are for property/common-area security only and not for private rooms or private areas <input type="checkbox" name="camera_acknowledgment" {% if d.get('camera_acknowledgment') %}checked{% endif %}></p>
+<p>I understand that common areas are shared by participants <input type="checkbox" name="shared_common_areas" {% if d.get('shared_common_areas') %}checked{% endif %}></p>
+<p>I understand that safety and security expectations apply in all shared spaces <input type="checkbox" name="security_expectations" {% if d.get('security_expectations') %}checked{% endif %}></p>
+<p>I understand that common areas must not be blocked, damaged, or misused <input type="checkbox" name="no_misuse" {% if d.get('no_misuse') %}checked{% endif %}></p>
+<p>I understand that any cameras, if present, are for property/common-area security only and not for private rooms or private areas <input type="checkbox" name="camera_acknowledgment" {% if d.get('camera_acknowledgment') %}checked{% endif %}></p>
 
 <h3>PARTICIPANT INFORMATION</h3>
 <label>Participant Name:</label><br>

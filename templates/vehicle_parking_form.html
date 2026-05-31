@@ -37,11 +37,11 @@ input { border: none; border-bottom: 1px solid black; width: 300px; }
 <div class="section">
 <p><strong>3. Additional Rules</strong></p>
 <p>Residents must:</p>
-<p>☐ Park only in designated spaces</p>
-<p>☐ Maintain valid registration and insurance</p>
-<p>☐ Not store inoperable vehicles</p>
-<p>☐ Not perform mechanical repairs on the property</p>
-<p>☐ Report changes in vehicle information</p>
+<p><input type="checkbox" name="park_designated_spaces" {% if d.park_designated_spaces %}checked{% endif %}> Park only in designated spaces</p>
+<p><input type="checkbox" name="keep_vehicle_registered" {% if d.keep_vehicle_registered %}checked{% endif %}> Maintain valid registration and insurance</p>
+<p><input type="checkbox" name="no_inoperable_vehicles" {% if d.no_inoperable_vehicles %}checked{% endif %}> Not store inoperable vehicles</p>
+<p><input type="checkbox" name="no_mechanical_repairs" {% if d.no_mechanical_repairs %}checked{% endif %}> Not perform mechanical repairs on the property</p>
+<p><input type="checkbox" name="report_vehicle_changes" {% if d.report_vehicle_changes %}checked{% endif %}> Report changes in vehicle information</p>
 <p>Vehicles violating policies may be towed at the owner’s expense.</p>
 </div>
 

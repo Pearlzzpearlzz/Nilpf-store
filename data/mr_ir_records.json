@@ -43,5 +43,13 @@
     "tested": "app.py compiled and Operations template shows Packet Builder button linking to /packet-builder/0.",
     "backups": [],
     "status": "completed"
+  },
+  {
+    "date": "2026-05-31 14:25:13",
+    "area": "Shared Housing Forms",
+    "change": "Removed fake left checkbox symbols from shared forms and converted Vehicle Parking rule items into real working checkbox inputs.",
+    "tested": "app.py compiled and grep confirmed no fake left checkbox symbols remain beside real checkbox inputs.",
+    "backups": [],
+    "status": "completed"
   }
 ]
