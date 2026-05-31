@@ -24,5 +24,16 @@
       "service_coordination_EXIT_DISCHARGE_WORKING.html"
     ],
     "status": "live verified"
+  },
+  {
+    "date": "2026-05-31 13:37:37",
+    "area": "Shared Housing Forms",
+    "change": "Removed visible Independent Living / IL wording from the 16 shared form families and cleaned Packet Builder display names so route placeholders do not show.",
+    "tested": "app.py compiled and final grep check confirmed no Independent Living, ILH, or visible IL wording remained in the 16 shared form families.",
+    "backups": [
+      "app_BEFORE_SHARED_FORM_LABEL_CLEANUP.py",
+      "templates/shared_forms_FULL_BACKUP_BEFORE_LABEL_CLEANUP/"
+    ],
+    "status": "completed"
   }
 ]

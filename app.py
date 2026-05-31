@@ -1478,7 +1478,7 @@ def packet_builder(id):
         if doc.get("vault"):
             items += f"<li class='vault-card'><a href='{link}'>🔒 ⛓️ {doc['title']}</a><div class='vault-subtitle'>Restricted Identity / PII Record</div><div class='vault-status'>Status: {completed}</div></li>"
         else:
-            items += f"<li><a href='{link}'>{doc['title']} ({doc['file']})</a> - {completed}</li>"
+            items += f"<li><a href='{link}'>{doc['title']}</a> - {completed}</li>"
 
     return f"""
     <html>
