@@ -191,10 +191,12 @@
 
   <div class="actions" style="text-align:center; margin-top:24px;">
     {% if not locked %}
-      <form method="POST" action="/property-paper-final/mou-partner-agreement/{{ id }}">
+      <form method="POST" action="/property-paper-final/mou-partner-agreement/{{ id }}" style="display:inline;">
         <button type="submit">Final Lock / Return to Property Papers</button>
       </form>
     {% endif %}
+    <a href="/property-paper-edit/mou-partner-agreement/{{ id }}">Edit / Unlock</a>
+    <a href="/property-papers">Back to Property Papers</a>
   </div>
 </body>
 </html>

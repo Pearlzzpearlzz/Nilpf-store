@@ -51,7 +51,11 @@ button{
 
 <p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
 
+{% if id != "" %}
+<form method="POST" action="/property-paper-edit/waiver-financial-justification/{{ id }}">
+{% else %}
 <form method="POST" action="/property-paper/waiver-financial-justification">
+{% endif %}
 
 <div class="section">
 <h3>1. PURPOSE OF REQUEST</h3>
