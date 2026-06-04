@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MOU / Partner Agreement</title>
+  <style>
+    body {
+      margin: 0;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    .wrap {
+      max-width: 950px;
+      margin: 0 auto;
+      padding: 32px 22px;
+    }
+    h1 {
+      color: #d4af37;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #e8e8e8;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .box {
+      background: #111;
+      border: 1px solid #d4af37;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      color: #d4af37;
+      font-weight: bold;
+      margin: 10px 0 5px;
+      font-size: 14px;
+    }
+    input, textarea, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #8a680f;
+      background: #050505;
+      color: #fff;
+      font-size: 14px;
+    }
+    textarea { min-height: 90px; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .actions {
+      text-align: center;
+      margin-top: 22px;
+    }
+    button, .btn {
+      display: inline-block;
+      background: #d4af37;
+      color: #050505;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      margin: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Memorandum of Understanding / Partner Agreement</h1>
+  <p class="subtitle">
+    Admin record for agency partnerships, referrals, service coordination,
+    sponsorship, housing support, and community partner agreements.
+  </p>
+  <form method="POST">
+    <div class="box">
+      <h2>Agreement Overview</h2>
+
+      <div class="row">
+        <div>
+          <label>Agreement Date</label>
+          <input type="date" name="agreement_date" value="{{ d.get('agreement_date','') }}">
+        </div>
+        <div>
+          <label>Agreement Type</label>
+          <select name="agreement_type">
+            <option value="">Select</option>
+            <option value="Referral Partnership" {% if d.get('agreement_type') == 'Referral Partnership' %}selected{% endif %}>Referral Partnership</option>
+            <option value="Service Coordination" {% if d.get('agreement_type') == 'Service Coordination' %}selected{% endif %}>Service Coordination</option>
+            <option value="Sponsorship / Payor Relationship" {% if d.get('agreement_type') == 'Sponsorship / Payor Relationship' %}selected{% endif %}>Sponsorship / Payor Relationship</option>
+            <option value="Housing Support Collaboration" {% if d.get('agreement_type') == 'Housing Support Collaboration' %}selected{% endif %}>Housing Support Collaboration</option>
+            <option value="Community Partner Agreement" {% if d.get('agreement_type') == 'Community Partner Agreement' %}selected{% endif %}>Community Partner Agreement</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Purpose of Agreement</label>
+      <textarea name="agreement_purpose">{{ d.get('agreement_purpose','') }}</textarea>
+    </div>
+    <div class="box">
+      <h2>Primary Organization</h2>
+
+      <label>Organization Name</label>
+      <input name="primary_org_name" value="{{ d.get('primary_org_name','') }}">
+
+      <div class="row">
+        <div>
+          <label>Contact Person</label>
+          <input name="primary_contact" value="{{ d.get('primary_contact','') }}">
+        </div>
+        <div>
+          <label>Title / Role</label>
+          <input name="primary_title" value="{{ d.get('primary_title','') }}">
+        </div>
+      </div>
+
+      <label>Phone</label>
+      <input name="primary_phone" value="{{ d.get('primary_phone','') }}">
+
+      <label>Email</label>
+      <input name="primary_email" value="{{ d.get('primary_email','') }}">
+    </div>
+    <div class="box">
+      <h2>Partner Organization</h2>
+
+      <label>Partner Organization Name</label>
+      <input name="partner_org_name" value="{{ d.get('partner_org_name','') }}">
+
+      <div class="row">
+        <div>
+          <label>Partner Contact Person</label>
+          <input name="partner_contact" value="{{ d.get('partner_contact','') }}">
+        </div>
+        <div>
+          <label>Partner Title / Role</label>
+          <input name="partner_title" value="{{ d.get('partner_title','') }}">
+        </div>
+      </div>
+
+      <label>Partner Phone</label>
+      <input name="partner_phone" value="{{ d.get('partner_phone','') }}">
+
+      <label>Partner Email</label>
+      <input name="partner_email" value="{{ d.get('partner_email','') }}">
+    </div>
+    <div class="box">
+      <h2>Responsibilities</h2>
+
+      <label>Primary Organization Responsibilities</label>
+      <textarea name="primary_responsibilities">{{ d.get('primary_responsibilities','') }}</textarea>
+
+      <label>Partner Organization Responsibilities</label>
+      <textarea name="partner_responsibilities">{{ d.get('partner_responsibilities','') }}</textarea>
+
+      <label>Shared Responsibilities</label>
+      <textarea name="shared_responsibilities">{{ d.get('shared_responsibilities','') }}</textarea>
+    </div>
+    <div class="box">
+      <h2>Term, Review, and Confidentiality</h2>
+
+      <div class="row">
+        <div>
+          <label>Start Date</label>
+          <input type="date" name="start_date" value="{{ d.get('start_date','') }}">
+        </div>
+        <div>
+          <label>Review / Renewal Date</label>
+          <input type="date" name="review_date" value="{{ d.get('review_date','') }}">
+        </div>
+      </div>
+
+      <label>Confidentiality / Information Sharing Notes</label>
+      <textarea name="confidentiality_notes">{{ d.get('confidentiality_notes','') }}</textarea>
+
+      <label>Termination / Amendment Terms</label>
+      <textarea name="termination_terms">{{ d.get('termination_terms','') }}</textarea>
+    </div>
+    <div class="box">
+      <h2>Signatures</h2>
+
+      <div class="row">
+        <div>
+          <label>Primary Organization Representative</label>
+          <input name="primary_signature" value="{{ d.get('primary_signature','') }}">
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" name="primary_signature_date" value="{{ d.get('primary_signature_date','') }}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Partner Organization Representative</label>
+          <input name="partner_signature" value="{{ d.get('partner_signature','') }}">
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" name="partner_signature_date" value="{{ d.get('partner_signature_date','') }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit">Save & Review</button>
+      <a class="btn" href="/admin-forms">Back to Admin Forms</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

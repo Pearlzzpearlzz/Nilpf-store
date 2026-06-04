@@ -746,9 +746,207 @@ def add_participant():
 
     return redirect("/")
 
+PROPERTY_PAPERS_FILE = "data/property_papers.json"
+
+def load_property_papers():
+    import json, os
+    default = {
+        "mou_partner_agreements": [],
+        "ilh_master_leases": [],
+        "th_master_leases": [],
+        "board_resolutions": [],
+        "waiver_financial_justifications": []
+    }
+    if not os.path.exists(PROPERTY_PAPERS_FILE):
+        return default
+    try:
+        with open(PROPERTY_PAPERS_FILE, "r") as f:
+            data = json.load(f)
+        for key, value in default.items():
+            data.setdefault(key, value)
+        return data
+    except Exception:
+        return default
+
+def save_property_papers(data):
+    import json, os
+    os.makedirs("data", exist_ok=True)
+    with open(PROPERTY_PAPERS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+def is_property_paper_route(route):
+    return route in [
+        "board-resolution",
+        "mou-partner-agreement",
+        "waiver-financial-justification",
+        "master-lease-transitional",
+        "ilh-master-lease"
+    ]
+
+def property_paper_bucket(route):
+    return {
+        "board-resolution": "board_resolutions",
+        "mou-partner-agreement": "mou_partner_agreements",
+        "waiver-financial-justification": "waiver_financial_justifications",
+        "master-lease-transitional": "th_master_leases",
+        "ilh-master-lease": "ilh_master_leases"
+    }.get(route)
+
+
+def save_locked_property_paper(route, form_data):
+    bucket = property_paper_bucket(route)
+    if not bucket:
+        return
+
+    papers = load_property_papers()
+    entry = dict(form_data or {})
+    entry["route"] = route
+    entry["doc_type"] = {
+        "board-resolution": "board",
+        "mou-partner-agreement": "mou",
+        "waiver-financial-justification": "waiver",
+        "master-lease-transitional": "lease",
+        "ilh-master-lease": "lease"
+    }.get(route, "")
+
+    papers.setdefault(bucket, []).append(entry)
+    save_property_papers(papers)
+
+
+def property_paper_templates(route):
+    return {
+        "ilh-master-lease": ("ilh_master_lease_form.html", "ilh_master_lease_print.html"),
+        "master-lease-transitional": ("master_lease_transitional_form.html", "master_lease_transitional_print.html"),
+        "board-resolution": ("board_resolution_form.html", "board_resolution_print.html"),
+        "mou-partner-agreement": ("mou_partner_agreement_form.html", "mou_partner_agreement_print.html"),
+        "waiver-financial-justification": ("waiver_financial_justification_form.html", "waiver_financial_justification_print.html")
+    }.get(route)
+
+
+@app.route("/property-paper/<route>", methods=["GET", "POST"])
+def property_paper_form(route):
+    if not is_property_paper_route(route):
+        return redirect("/property-papers")
+
+    templates = property_paper_templates(route)
+    if not templates:
+        return redirect("/property-papers")
+
+    form_template, print_template = templates
+    bucket = property_paper_bucket(route)
+    papers = load_property_papers()
+
+    if request.method == "POST":
+        record = request.form.to_dict()
+        record["route"] = route
+        record["doc_type"] = {
+            "board-resolution": "board",
+            "mou-partner-agreement": "mou",
+            "waiver-financial-justification": "waiver",
+            "master-lease-transitional": "lease",
+            "ilh-master-lease": "lease"
+        }.get(route, "")
+        record["completed"] = True
+        record["locked"] = False
+
+        papers.setdefault(bucket, []).append(record)
+        save_property_papers(papers)
+        record_id = len(papers[bucket]) - 1
+        return redirect(f"/property-paper-print/{route}/{record_id}")
+
+    return render_template(form_template, id="", participant={}, d={}, locked=False)
+
+
+@app.route("/property-paper-print/<route>/<int:record_id>")
+def property_paper_print(route, record_id):
+    if not is_property_paper_route(route):
+        return redirect("/property-papers")
+
+    templates = property_paper_templates(route)
+    if not templates:
+        return redirect("/property-papers")
+
+    form_template, print_template = templates
+    bucket = property_paper_bucket(route)
+    papers = load_property_papers()
+    records = papers.get(bucket, [])
+
+    if record_id < 0 or record_id >= len(records):
+        return redirect("/property-papers")
+
+    record = records[record_id]
+    return render_template(print_template, id=record_id, route=route, participant={}, d=record, locked=record.get("locked", False))
+
+
+@app.route("/property-paper-final/<route>/<int:record_id>", methods=["POST"])
+def property_paper_final(route, record_id):
+    if not is_property_paper_route(route):
+        return redirect("/property-papers")
+
+    bucket = property_paper_bucket(route)
+    papers = load_property_papers()
+    records = papers.get(bucket, [])
+
+    if record_id < 0 or record_id >= len(records):
+        return redirect("/property-papers")
+
+    records[record_id]["locked"] = True
+    records[record_id]["completed"] = True
+    save_property_papers(papers)
+
+    return redirect("/property-papers")
+
+
+@app.route("/property-paper-unlock/<route>/<int:record_id>", methods=["GET", "POST"])
+def property_paper_unlock(route, record_id):
+    if not is_property_paper_route(route):
+        return redirect("/property-papers")
+
+    bucket = property_paper_bucket(route)
+    papers = load_property_papers()
+    records = papers.get(bucket, [])
+
+    if record_id < 0 or record_id >= len(records):
+        return redirect("/property-papers")
+
+    records[record_id]["locked"] = False
+    save_property_papers(papers)
+
+    return redirect(f"/property-paper-print/{route}/{record_id}")
+
+
 @app.route("/property-papers")
 def property_papers():
-    return render_template("property_papers.html")
+    org = request.args.get("org", "").strip().lower()
+    doc_type = request.args.get("doc_type", "").strip().lower()
+
+    papers = load_property_papers()
+    results = []
+
+    for bucket, records in papers.items():
+        for idx, record in enumerate(records):
+            text = " ".join(str(v) for v in record.values()).lower()
+            record_doc_type = str(record.get("doc_type", "")).lower()
+            route = record.get("route", "")
+
+            if org and org not in text:
+                continue
+            if doc_type and doc_type != record_doc_type:
+                continue
+
+            results.append({
+                "bucket": bucket,
+                "record_id": idx,
+                "route": route,
+                "doc_type": record_doc_type,
+                "locked": record.get("locked", False),
+                "primary_org_name": record.get("primary_org_name", ""),
+                "partner_org_name": record.get("partner_org_name", ""),
+                "agreement_date": record.get("agreement_date", ""),
+                "agreement_type": record.get("agreement_type", "")
+            })
+
+    return render_template("property_papers.html", results=results, org=org, doc_type=doc_type)
 
 
 @app.route("/tsh-program-tools")
@@ -2609,6 +2807,10 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
         next_form = STANDARD_NEXT_FORMS.get(route_name)
         if next_form:
             return redirect(f"/{next_form}/{id}")
+        if is_property_paper_route(route):
+            save_locked_property_paper(route, state.get("data", {}))
+            return redirect("/property-papers")
+
         return redirect(f"/packet-builder/{id}")
 
     final_view.__name__ = endpoint_base + "_final"
@@ -2787,6 +2989,10 @@ def make_th_routes(route, key, form_template, print_template):
         if next_form:
             return redirect(f"/{next_form}/{id}")
 
+        if is_property_paper_route(route):
+            save_locked_property_paper(route, state.get("data", {}))
+            return redirect("/property-papers")
+
         return redirect(f"/packet-builder/{id}")
 
     @app.route(f"/{route}-unlock/<int:id>", methods=["GET", "POST"], endpoint=f"{route}_unlock")
@@ -2811,6 +3017,7 @@ make_th_routes("master-lease-transitional", "master_lease_transitional", "master
 make_th_routes("program-compliance-addendum", "program_compliance_addendum", "program_compliance_addendum_form.html", "program_compliance_addendum_print.html")
 make_th_routes("program-participation-agreement", "program_participation_agreement", "program_participation_agreement_form.html", "program_participation_agreement_print.html")
 make_th_routes("board-resolution", "board_resolution", "board_resolution_form.html", "board_resolution_print.html")
+make_th_routes("mou-partner-agreement", "mou_partner_agreement", "mou_partner_agreement_form.html", "mou_partner_agreement_print.html")
 make_th_routes("waiver-financial-justification", "waiver_financial_justification", "waiver_financial_justification_form.html", "waiver_financial_justification_print.html")
 make_th_routes("va-coordination-acknowledgment", "va_coordination_acknowledgment", "va_coordination_acknowledgment_form.html", "va_coordination_acknowledgment_print.html")
 

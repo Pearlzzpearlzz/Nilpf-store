@@ -31,9 +31,9 @@ button { padding: 12px 22px; font-size: 16px; }
 
 <hr>
 {% if not locked %}
-<a href="/ilh-master-lease-unlock/{{ id }}">Edit / Unlock</a>
+<a href="/property-paper-unlock/ilh-master-lease/{{ id }}">Edit / Unlock</a>
 <br><br>
-<form method="POST" action="/ilh-master-lease-final/{{ id }}">
+<form method="POST" action="/property-paper-final/ilh-master-lease/{{ id }}">
 <button type="submit">Finalize and Lock</button>
 </form>
 {% else %}

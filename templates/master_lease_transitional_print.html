@@ -336,12 +336,12 @@ days written notice.</p>
 <hr>
 <div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
     {% if not locked %}
-    <form method="POST" action="/master-lease-transitional-final/{{ id }}" style="display:inline;">
+    <form method="POST" action="/property-paper-final/master-lease-transitional/{{ id }}" style="display:inline;">
         <button type="submit">Final Lock</button>
     </form>
     {% else %}
     <p><strong>FINAL LOCKED DOCUMENT</strong></p>
-    <a href="/master-lease-transitional-unlock/{{ id }}">Edit / Unlock</a>
+    <a href="/property-paper-unlock/master-lease-transitional/{{ id }}">Edit / Unlock</a>
     {% endif %}
 
     <p style="margin-top:20px;">

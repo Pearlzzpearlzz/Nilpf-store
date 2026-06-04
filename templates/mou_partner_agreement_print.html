@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MOU / Partner Agreement Print</title>
+  <style>
+    body {
+      background: #fff;
+      color: #111;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 28px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 22px;
+    }
+    .section {
+      border: 1px solid #222;
+      padding: 12px;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+    }
+    h2 {
+      font-size: 15px;
+      margin: 0 0 8px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 4px;
+    }
+    .label {
+      font-weight: bold;
+      margin-top: 7px;
+    }
+    .value {
+      min-height: 18px;
+      border-bottom: 1px solid #bbb;
+      padding: 3px 0;
+      white-space: pre-wrap;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .footer {
+      margin-top: 22px;
+      font-size: 10px;
+      text-align: center;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Memorandum of Understanding / Partner Agreement</h1>
+  <div class="subtitle">
+    Admin / agency relationship record for NILPF Housing OS.
+  </div>
+  <div class="section">
+    <h2>Agreement Overview</h2>
+    <div class="row">
+      <div>
+        <div class="label">Agreement Date</div>
+        <div class="value">{{ d.get('agreement_date','') }}</div>
+      </div>
+      <div>
+        <div class="label">Agreement Type</div>
+        <div class="value">{{ d.get('agreement_type','') }}</div>
+      </div>
+    </div>
+    <div class="label">Purpose of Agreement</div>
+    <div class="value">{{ d.get('agreement_purpose','') }}</div>
+  </div>
+  <div class="section">
+    <h2>Primary Organization</h2>
+    <div class="label">Organization Name</div>
+    <div class="value">{{ d.get('primary_org_name','') }}</div>
+    <div class="row">
+      <div>
+        <div class="label">Contact Person</div>
+        <div class="value">{{ d.get('primary_contact','') }}</div>
+      </div>
+      <div>
+        <div class="label">Title / Role</div>
+        <div class="value">{{ d.get('primary_title','') }}</div>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <div class="label">Phone</div>
+        <div class="value">{{ d.get('primary_phone','') }}</div>
+      </div>
+      <div>
+        <div class="label">Email</div>
+        <div class="value">{{ d.get('primary_email','') }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <h2>Partner Organization</h2>
+    <div class="label">Partner Organization Name</div>
+    <div class="value">{{ d.get('partner_org_name','') }}</div>
+    <div class="row">
+      <div>
+        <div class="label">Partner Contact Person</div>
+        <div class="value">{{ d.get('partner_contact','') }}</div>
+      </div>
+      <div>
+        <div class="label">Partner Title / Role</div>
+        <div class="value">{{ d.get('partner_title','') }}</div>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <div class="label">Partner Phone</div>
+        <div class="value">{{ d.get('partner_phone','') }}</div>
+      </div>
+      <div>
+        <div class="label">Partner Email</div>
+        <div class="value">{{ d.get('partner_email','') }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <h2>Responsibilities</h2>
+
+    <div class="label">Primary Organization Responsibilities</div>
+    <div class="value">{{ d.get('primary_responsibilities','') }}</div>
+
+    <div class="label">Partner Organization Responsibilities</div>
+    <div class="value">{{ d.get('partner_responsibilities','') }}</div>
+
+    <div class="label">Shared Responsibilities</div>
+    <div class="value">{{ d.get('shared_responsibilities','') }}</div>
+  </div>
+  <div class="section">
+    <h2>Term, Review, and Confidentiality</h2>
+
+    <div class="row">
+      <div>
+        <div class="label">Start Date</div>
+        <div class="value">{{ d.get('start_date','') }}</div>
+      </div>
+      <div>
+        <div class="label">Review / Renewal Date</div>
+        <div class="value">{{ d.get('review_date','') }}</div>
+      </div>
+    </div>
+
+    <div class="label">Confidentiality / Information Sharing Notes</div>
+    <div class="value">{{ d.get('confidentiality_notes','') }}</div>
+
+    <div class="label">Termination / Amendment Terms</div>
+    <div class="value">{{ d.get('termination_terms','') }}</div>
+  </div>
+  <div class="section">
+    <h2>Signatures</h2>
+
+    <div class="row">
+      <div>
+        <div class="label">Primary Organization Representative</div>
+        <div class="value">{{ d.get('primary_signature','') }}</div>
+      </div>
+      <div>
+        <div class="label">Date</div>
+        <div class="value">{{ d.get('primary_signature_date','') }}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Partner Organization Representative</div>
+        <div class="value">{{ d.get('partner_signature','') }}</div>
+      </div>
+      <div>
+        <div class="label">Date</div>
+        <div class="value">{{ d.get('partner_signature_date','') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    NILPF-OS 2026 | Published by Pearlzz | Memorandum of Understanding / Partner Agreement
+  </div>
+
+  <div class="actions" style="text-align:center; margin-top:24px;">
+    {% if not locked %}
+      <form method="POST" action="/property-paper-final/mou-partner-agreement/{{ id }}">
+        <button type="submit">Final Lock / Return to Property Papers</button>
+      </form>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -3,38 +3,76 @@
 <head>
 <title>Property Papers</title>
 <style>
-body{font-family:Arial;background:#000;color:#fff;padding:40px;}
+body{font-family:Arial;background:#000;color:#fff;padding:28px;}
 h1{color:#d4af37;text-align:center;}
-.box{max-width:900px;margin:auto;background:#111;padding:25px;border-radius:15px;}
-.card{background:#222;border:1px solid #555;padding:20px;margin:15px 0;border-radius:12px;}
-.btn{display:inline-block;background:#d4af37;color:#000;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:bold;}
+.box{max-width:1050px;margin:auto;background:#111;padding:22px;border-radius:15px;}
+.card{background:#222;border:1px solid #555;padding:13px 16px;margin:9px 0;border-radius:12px;}
+.btn{display:inline-block;background:#d4af37;color:#000;padding:9px 14px;border-radius:8px;text-decoration:none;font-weight:bold;}
 a{color:#d4af37;}
-.note{color:#ccc;text-align:center;margin-bottom:25px;}
+.note{color:#ccc;text-align:center;margin-bottom:18px;} .searchbar{display:flex;justify-content:flex-end;margin:8px 0 18px;} .searchbar form{display:flex;gap:10px;align-items:center;} .searchbar input,.searchbar select{background:#000;color:#fff;border:1px solid #d4af37;border-radius:8px;padding:9px;} .searchbar input{width:280px;}
 </style>
 </head>
 <body>
 <div class="box">
 <h1>Property Papers</h1>
-<p class="note">Property-level and operator-level documents for ILH and Transitional Housing.</p>
+<div class="searchbar">
+<form method="GET" action="/property-papers">
+<input name="org" placeholder="Search by Org / Entity">
+<select name="doc_type">
+<option value="">All Doc Types</option>
+<option value="lease">Lease</option>
+<option value="mou">MOU / Partner Agreement</option>
+<option value="board">Board Resolution</option>
+<option value="waiver">Waiver / Justification</option>
+</select>
+<button class="btn" type="submit">Search</button>
+</form>
+</div>
+
+{% if results is defined %}
+<div class="card">
+<h2>Saved Property Paper Records</h2>
+{% if results %}
+  {% for r in results %}
+    <div style="border-top:1px solid #555;padding:10px 0;">
+      <strong>{{ r.primary_org_name or r.partner_org_name or 'Unnamed Record' }}</strong><br>
+      Type: {{ r.doc_type|upper }} | Status: {% if r.locked %}Locked{% else %}Open{% endif %}<br>
+      {% if r.partner_org_name %}Partner: {{ r.partner_org_name }}<br>{% endif %}
+      {% if r.agreement_date %}Date: {{ r.agreement_date }}<br>{% endif %}
+      {% if r.agreement_type %}Agreement: {{ r.agreement_type }}<br>{% endif %}
+      <a class="btn" href="/property-paper-print/{{ r.route }}/{{ r.record_id }}">Open Saved Record</a>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>No saved Property Paper records matched that search.</p>
+{% endif %}
+</div>
+{% endif %}
+
 <div class="card">
 <h2>ILH Master Lease</h2>
 <p>Independent Living Housing property lease document.</p>
-<a class="btn" href="/ilh-master-lease/0">Open Form</a>
+<a class="btn" href="/property-paper/ilh-master-lease">Open Form</a>
 </div>
 <div class="card">
 <h2>TH Master Lease</h2>
 <p>Transitional Housing master lease document.</p>
-<a class="btn" href="/master-lease-transitional/0">Open Form</a>
+<a class="btn" href="/property-paper/master-lease-transitional">Open Form</a>
 </div>
 <div class="card">
 <h2>Board Resolution</h2>
 <p>Standing authorization for property and program documents.</p>
-<a class="btn" href="/board-resolution/0">Open Form</a>
+<a class="btn" href="/property-paper/board-resolution">Open Form</a>
+</div>
+<div class="card">
+<h2>Memorandum of Understanding / Partner Agreement</h2>
+<p>Operator-level partner agreement for agencies, referrals, sponsors, and community relationships.</p>
+<a class="btn" href="/property-paper/mou-partner-agreement">Open Form</a>
 </div>
 <div class="card">
 <h2>Waiver Financial Justification</h2>
 <p>Property/program financial justification support document.</p>
-<a class="btn" href="/waiver-financial-justification/0">Open Form</a>
+<a class="btn" href="/property-paper/waiver-financial-justification">Open Form</a>
 </div>
 
 <p><a href="/operations">Back to Operations</a></p>
