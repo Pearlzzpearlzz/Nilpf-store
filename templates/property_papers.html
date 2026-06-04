@@ -13,6 +13,7 @@ h1{color:#d4af37;text-align:center;text-shadow:1px 1px 1px #000;letter-spacing:1
 .btn{display:block;background:linear-gradient(#f7d85a,#d4af37);color:#000;padding:8px 12px;border-radius:8px;text-decoration:none;font-weight:bold;text-align:center;border:1px solid #8a680f;}
 a{color:#d4af37;}
 .saved-card{overflow-y:auto;} .saved-scroll{max-height:78px;overflow-y:auto;padding-right:6px;}
+.close-saved{display:block;background:#222;color:#fff;border:1px solid #d4af37;border-radius:8px;padding:6px 8px;text-align:center;text-decoration:none;font-size:12px;margin:4px 0 8px;}
 .searchbar{display:flex;justify-content:center;margin:8px 0 14px;}
 .searchbar form{display:flex;gap:10px;align-items:center;}
 .searchbar input,.searchbar select{background:#000;color:#fff;border:1px solid #d4af37;border-radius:8px;padding:9px;}
@@ -38,8 +39,9 @@ a{color:#d4af37;}
 
 <div class="grid">
 {% if results is defined %}
-<div class="card saved-card">
+<div class="card saved-card" id="savedRecordsCard">
 <h2>Saved Property Paper Records</h2>
+<a class="close-saved" href="#" onclick="document.getElementById('savedRecordsCard').style.display='none'; return false;">Close Saved Records</a>
 {% if results %}
   {% for r in results %}
     <div style="border-top:1px solid #555;padding:10px 0;">
@@ -107,5 +109,15 @@ a{color:#d4af37;}
 </div>
 <p><a href="/operations">Back to Operations</a></p>
 </div>
+
+<script>
+  setTimeout(function(){
+    var box = document.getElementById('savedRecordsCard');
+    if (box) {
+      box.style.display = 'none';
+    }
+  }, 120000);
+</script>
+
 </body>
 </html>
