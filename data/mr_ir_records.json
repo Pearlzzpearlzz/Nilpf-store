@@ -66,5 +66,12 @@
     "status": "Working checkpoint",
     "note": "Property Papers converted away from participant/PID route pattern. Non-PID routes added for property-paper form, print, final lock, and unlock. Records save to data/property_papers.json, display on Property Papers page, search by org/entity and doc_type works, and saved MOU record opens successfully.",
     "backup": "app_PROPERTY_PAPERS_NON_PID_SEARCH_DISPLAY_WORKING.py and property_papers_NON_PID_SEARCH_DISPLAY_WORKING.html"
+  },
+  {
+    "date": "2026-06-04 00:53:24",
+    "area": "Mr. Internal Repairman Access",
+    "status": "Future required final feature",
+    "note": "Before the full NILPF Housing OS build is considered finished, the app must include a clear way to access Mr. IR. Mr. IR is part of the cleaning, maintenance, diagnostics, checkpoint, backup, and repair system and should be reachable from the app interface.",
+    "backup": "Pending final access/dashboard placement"
   }
 ]
