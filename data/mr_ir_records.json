@@ -94,5 +94,14 @@
     ],
     "git_commit": "7f981b7",
     "notes": "This follows the same controlled editable document pattern started with Triple Net Lease."
+  },
+  {
+    "date": "2026-06-04 17:34:47",
+    "area": "Property Papers",
+    "change": "Added Close Saved Records control and 2-minute auto-hide behavior for the Saved Property Paper Records panel.",
+    "tested": "app.py compiled; property_papers.html includes savedRecordsCard, close-saved button, and setTimeout auto-hide script.",
+    "backup": "templates/property_papers_BEFORE_CLOSE_SAVED_RECORDS.html",
+    "status": "completed / pushed",
+    "git_commit": "b028369"
   }
 ]
