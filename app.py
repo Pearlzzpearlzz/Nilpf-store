@@ -854,7 +854,9 @@ def property_paper_form(route):
             "mou-partner-agreement": "mou",
             "waiver-financial-justification": "waiver",
             "master-lease-transitional": "lease",
-            "ilh-master-lease": "lease"
+            "ilh-master-lease": "lease",
+            "triple-net-lease": "lease",
+            "program-housing-covenants": "covenant"
         }.get(route, "")
         record["completed"] = True
         record["locked"] = False
@@ -865,6 +867,46 @@ def property_paper_form(route):
         return redirect(f"/property-paper-print/{route}/{record_id}")
 
     return render_template(form_template, id="", participant={}, d={}, locked=False)
+
+
+@app.route("/property-paper-edit/<route>/<int:record_id>", methods=["GET", "POST"])
+def property_paper_edit(route, record_id):
+    if not is_property_paper_route(route):
+        return redirect("/property-papers")
+
+    templates = property_paper_templates(route)
+    if not templates:
+        return redirect("/property-papers")
+
+    form_template, print_template = templates
+    bucket = property_paper_bucket(route)
+    papers = load_property_papers()
+    records = papers.get(bucket, [])
+
+    if record_id < 0 or record_id >= len(records):
+        return redirect("/property-papers")
+
+    if request.method == "POST":
+        updated = request.form.to_dict()
+        updated["route"] = route
+        updated["doc_type"] = {
+            "board-resolution": "board",
+            "mou-partner-agreement": "mou",
+            "waiver-financial-justification": "waiver",
+            "master-lease-transitional": "lease",
+            "ilh-master-lease": "lease",
+            "triple-net-lease": "lease",
+            "program-housing-covenants": "covenant"
+        }.get(route, "")
+        updated["completed"] = True
+        updated["locked"] = False
+        records[record_id] = updated
+        save_property_papers(papers)
+        return redirect(f"/property-paper-print/{route}/{record_id}")
+
+    records[record_id]["locked"] = False
+    save_property_papers(papers)
+    return render_template(form_template, id=record_id, route=route, participant={}, d=records[record_id], locked=False)
 
 
 @app.route("/property-paper-print/<route>/<int:record_id>")
