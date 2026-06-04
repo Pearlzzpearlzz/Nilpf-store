@@ -1786,6 +1786,10 @@ def packet_builder(id):
             </div>
 
             <div class="bottom-buttons">
+                <a href="/operations">
+                    <button>Exit to Operations</button>
+                </a>
+
                 <a href="/billing-invoice-setup/{id}">
                     <button>Billing / Invoice Setup</button>
                 </a>
