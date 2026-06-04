@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Triple Net Lease Review</title>
+<style>
+body{font-family:Georgia,serif;background:#f4f4f4;color:#111;padding:30px;}
+.doc{max-width:900px;margin:auto;background:white;padding:45px;border:1px solid #222;line-height:1.55;}
+h1,h2{text-align:center;}
+.section{margin-top:22px;}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:35px;margin-top:40px;}
+.line{border-bottom:1px solid #000;height:28px;}
+.actions{text-align:center;margin:25px;}
+.btn{background:#d4af37;color:#000;padding:10px 16px;border:0;border-radius:6px;font-weight:bold;text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="doc">
+<h1>TRIPLE NET (NNN) MASTER PROPERTY LEASE AGREEMENT</h1>
+<p><strong>Effective Date:</strong> {{ d.get('effective_date','') }}</p>
+<p><strong>State:</strong> {{ d.get('state','Ohio') }}</p>
+
+<div class="section">
+<h2>Parties</h2>
+<p>This Triple Net Master Property Lease Agreement is entered into by and between:</p>
+<p><strong>Landlord:</strong> {{ d.get('landlord_name','') }}</p>
+<p><strong>Tenant:</strong> {{ d.get('tenant_name','') }}</p>
+<p><strong>Leased Premises:</strong><br>{{ d.get('property_address','') }}</p>
+</div>
+
+<div class="section">
+<h2>Term and Rent</h2>
+<p><strong>Lease Start Date:</strong> {{ d.get('start_date','') }}</p>
+<p><strong>Lease End Date:</strong> {{ d.get('end_date','') }}</p>
+<p><strong>Base Monthly Rent:</strong> {{ d.get('base_rent','') }}</p>
+<p><strong>Renewal Terms:</strong> {{ d.get('renewal_terms','') }}</p>
+</div>
+
+<div class="section">
+<h2>Sole Permitted Program Use</h2>
+<p>{{ d.get('permitted_use','') }}</p>
+</div>
+
+<div class="section">
+<h2>Triple Net Expense Responsibilities</h2>
+<p>{{ d.get('expense_responsibilities','') }}</p>
+</div>
+
+<div class="section">
+<h2>Insurance Requirements</h2>
+<p>{{ d.get('insurance_requirements','') }}</p>
+</div>
+
+<div class="section">
+<h2>Maintenance and Repair Requirements</h2>
+<p>{{ d.get('maintenance_requirements','') }}</p>
+</div>
+
+<div class="section">
+<h2>Participant Non-Tenancy</h2>
+<p>{{ d.get('participant_non_tenancy','') }}</p>
+</div>
+
+<div class="section">
+<h2>Default and Remedies</h2>
+<p>{{ d.get('default_notes','') }}</p>
+</div>
+
+<div class="sign">
+<div>
+<p><strong>LANDLORD</strong></p>
+<div class="line"></div>
+<p>{{ d.get('landlord_signer','') }}</p>
+<p>Date: ____________________</p>
+</div>
+<div>
+<p><strong>TENANT</strong></p>
+<div class="line"></div>
+<p>{{ d.get('tenant_signer','') }}</p>
+<p>Date: ____________________</p>
+</div>
+</div>
+
+</div>
+
+<div class="actions">
+<form method="POST" action="/property-paper-final/triple-net-lease/{{ id }}" style="display:inline;">
+<button class="btn" type="submit">Final Lock</button>
+</form>
+<a class="btn" href="/property-paper-unlock/triple-net-lease/{{ id }}">Edit / Unlock</a>
+<a class="btn" href="/property-papers">Back to Property Papers</a>
+</div>
+
+</body>
+</html>

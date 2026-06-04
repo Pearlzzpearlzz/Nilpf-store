@@ -755,7 +755,9 @@ def load_property_papers():
         "ilh_master_leases": [],
         "th_master_leases": [],
         "board_resolutions": [],
-        "waiver_financial_justifications": []
+        "waiver_financial_justifications": [],
+        "triple_net_leases": [],
+        "program_housing_covenants": []
     }
     if not os.path.exists(PROPERTY_PAPERS_FILE):
         return default
@@ -780,7 +782,9 @@ def is_property_paper_route(route):
         "mou-partner-agreement",
         "waiver-financial-justification",
         "master-lease-transitional",
-        "ilh-master-lease"
+        "ilh-master-lease",
+        "triple-net-lease",
+        "program-housing-covenants"
     ]
 
 def property_paper_bucket(route):
@@ -789,7 +793,9 @@ def property_paper_bucket(route):
         "mou-partner-agreement": "mou_partner_agreements",
         "waiver-financial-justification": "waiver_financial_justifications",
         "master-lease-transitional": "th_master_leases",
-        "ilh-master-lease": "ilh_master_leases"
+        "ilh-master-lease": "ilh_master_leases",
+        "triple-net-lease": "triple_net_leases",
+        "program-housing-covenants": "program_housing_covenants"
     }.get(route)
 
 
@@ -806,7 +812,9 @@ def save_locked_property_paper(route, form_data):
         "mou-partner-agreement": "mou",
         "waiver-financial-justification": "waiver",
         "master-lease-transitional": "lease",
-        "ilh-master-lease": "lease"
+        "ilh-master-lease": "lease",
+        "triple-net-lease": "lease",
+        "program-housing-covenants": "covenant"
     }.get(route, "")
 
     papers.setdefault(bucket, []).append(entry)
@@ -819,7 +827,9 @@ def property_paper_templates(route):
         "master-lease-transitional": ("master_lease_transitional_form.html", "master_lease_transitional_print.html"),
         "board-resolution": ("board_resolution_form.html", "board_resolution_print.html"),
         "mou-partner-agreement": ("mou_partner_agreement_form.html", "mou_partner_agreement_print.html"),
-        "waiver-financial-justification": ("waiver_financial_justification_form.html", "waiver_financial_justification_print.html")
+        "waiver-financial-justification": ("waiver_financial_justification_form.html", "waiver_financial_justification_print.html"),
+        "triple-net-lease": ("triple_net_lease_form.html", "triple_net_lease_print.html"),
+        "program-housing-covenants": ("program_housing_covenants_form.html", "program_housing_covenants_print.html")
     }.get(route)
 
 

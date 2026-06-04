@@ -73,5 +73,12 @@
     "status": "Future required final feature",
     "note": "Before the full NILPF Housing OS build is considered finished, the app must include a clear way to access Mr. IR. Mr. IR is part of the cleaning, maintenance, diagnostics, checkpoint, backup, and repair system and should be reachable from the app interface.",
     "backup": "Pending final access/dashboard placement"
+  },
+  {
+    "date": "2026-06-04 02:59:58",
+    "area": "Property Papers - Triple Net Lease",
+    "status": "Working checkpoint",
+    "note": "Triple Net Lease added as a bonus non-PID Property Paper. Backend helpers recognize triple-net-lease, records save under triple_net_leases in data/property_papers.json, form opens, save/review works, final lock returns to Property Papers, search works, and saved record reopens successfully.",
+    "backup": "app_TRIPLE_NET_LEASE_WORKING.py, property_papers_TRUE_2X4_TRIPLE_NET_WORKING.html, triple_net_lease_form_WORKING.html, triple_net_lease_print_WORKING.html"
   }
 ]

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Triple Net Lease</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;color:#111;padding:30px;}
+.wrap{max-width:900px;margin:auto;background:white;padding:35px;border:1px solid #222;}
+h1,h2{text-align:center;}
+label{font-weight:bold;display:block;margin-top:12px;}
+input,textarea{width:100%;padding:8px;margin-top:4px;border:1px solid #777;}
+textarea{min-height:80px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.btn{background:#d4af37;color:#000;padding:10px 16px;border:0;border-radius:6px;font-weight:bold;margin-top:20px;}
+.back{display:inline-block;margin-top:20px;color:#000;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>TRIPLE NET (NNN) MASTER PROPERTY LEASE AGREEMENT</h1>
+<p><strong>Bonus Property Paper</strong></p>
+
+<form method="POST" action="/property-paper/triple-net-lease">
+
+<div class="row">
+<div>
+<label>Effective Date</label>
+<input name="effective_date" value="{{ d.get('effective_date','') }}">
+</div>
+<div>
+<label>State</label>
+<input name="state" value="{{ d.get('state','Ohio') }}">
+</div>
+</div>
+
+<label>Landlord / Property LLC Name</label>
+<input name="landlord_name" value="{{ d.get('landlord_name','') }}">
+
+<label>Tenant / 501(c)(3) Nonprofit Name</label>
+<input name="tenant_name" value="{{ d.get('tenant_name','') }}">
+
+<label>Property Address</label>
+<textarea name="property_address">{{ d.get('property_address','') }}</textarea>
+
+<div class="row">
+<div>
+<label>Lease Start Date</label>
+<input name="start_date" value="{{ d.get('start_date','') }}">
+</div>
+<div>
+<label>Lease End Date</label>
+<input name="end_date" value="{{ d.get('end_date','') }}">
+</div>
+</div>
+
+<div class="row">
+<div>
+<label>Base Monthly Rent</label>
+<input name="base_rent" value="{{ d.get('base_rent','') }}">
+</div>
+<div>
+<label>Renewal Terms</label>
+<input name="renewal_terms" value="{{ d.get('renewal_terms','') }}">
+</div>
+</div>
+
+<label>Sole Permitted Program Use</label>
+<textarea name="permitted_use">{{ d.get('permitted_use','Independent living housing, transitional housing, reentry housing, VA-aligned housing, HOPWA-aligned housing, supportive housing coordination, administrative case management, and related program operations.') }}</textarea>
+
+<label>Triple Net Expense Responsibilities</label>
+<textarea name="expense_responsibilities">{{ d.get('expense_responsibilities','Tenant shall be responsible for real estate taxes, assessments, insurance, utilities, maintenance, repairs, replacements, and all property operating expenses unless otherwise stated in writing.') }}</textarea>
+
+<label>Insurance Requirements</label>
+<textarea name="insurance_requirements">{{ d.get('insurance_requirements','Tenant shall maintain property insurance, liability insurance, and name Landlord as Additional Insured and Loss Payee where applicable.') }}</textarea>
+
+<label>Maintenance / Repair Requirements</label>
+<textarea name="maintenance_requirements">{{ d.get('maintenance_requirements','Tenant shall maintain, repair, and replace the Leased Premises, including structural and non-structural components, utilities, systems, grounds, and improvements, unless otherwise stated in writing.') }}</textarea>
+
+<label>Participant Non-Tenancy Language</label>
+<textarea name="participant_non_tenancy">{{ d.get('participant_non_tenancy','No placement made by Tenant shall create a leasehold estate or landlord-tenant relationship between Landlord and any individual program participant. Tenant remains responsible for occupancy, conduct, and program operations.') }}</textarea>
+
+<label>Default / Remedies Notes</label>
+<textarea name="default_notes">{{ d.get('default_notes','Failure to pay rent, maintain insurance, pay required expenses, comply with property obligations, or preserve the permitted use may constitute default under this Lease.') }}</textarea>
+
+<div class="row">
+<div>
+<label>Landlord Signer Name / Title</label>
+<input name="landlord_signer" value="{{ d.get('landlord_signer','') }}">
+</div>
+<div>
+<label>Tenant Signer Name / Title</label>
+<input name="tenant_signer" value="{{ d.get('tenant_signer','') }}">
+</div>
+</div>
+
+<button class="btn" type="submit">Save & Review</button>
+<a class="back" href="/property-papers">Back to Property Papers</a>
+</form>
+</div>
+</body>
+</html>
