@@ -80,5 +80,19 @@
     "status": "Working checkpoint",
     "note": "Triple Net Lease added as a bonus non-PID Property Paper. Backend helpers recognize triple-net-lease, records save under triple_net_leases in data/property_papers.json, form opens, save/review works, final lock returns to Property Papers, search works, and saved record reopens successfully.",
     "backup": "app_TRIPLE_NET_LEASE_WORKING.py, property_papers_TRUE_2X4_TRIPLE_NET_WORKING.html, triple_net_lease_form_WORKING.html, triple_net_lease_print_WORKING.html"
+  },
+  {
+    "date": "2026-06-04 17:21:51",
+    "title": "Controlled Editable Property Paper Upgrade",
+    "status": "Completed / Pushed",
+    "summary": "Added controlled editable document behavior to MOU / Partner Agreement and Waiver Financial Justification. These records now support saved wording, review, edit/unlock access, and return to Property Papers.",
+    "files_updated": [
+      "templates/mou_partner_agreement_form.html",
+      "templates/mou_partner_agreement_print.html",
+      "templates/waiver_financial_justification_form.html",
+      "templates/waiver_financial_justification_print.html"
+    ],
+    "git_commit": "7f981b7",
+    "notes": "This follows the same controlled editable document pattern started with Triple Net Lease."
   }
 ]
