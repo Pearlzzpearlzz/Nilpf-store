@@ -124,11 +124,24 @@
       width: 34px;
       height: 34px;
       border-radius: 50%;
-      background:
-        conic-gradient(from 0deg, #d4af37, #ff3b30, #fff2a8, #d4af37, #ff3b30);
-      box-shadow: 0 0 12px #d4af37, 0 0 24px #ff3b30;
-      animation: swirlSpin 1.1s linear infinite, dangerPulse .75s ease-in-out infinite alternate;
+      background: #1a1a1a;
+      border: 2px solid #8a680f;
+      box-shadow: inset 0 0 8px rgba(212,175,55,.25);
       flex: 0 0 auto;
+    }
+
+    .swirl-light.soon {
+      background:
+        conic-gradient(from 0deg, #d4af37, #fff2a8, #8a680f, #d4af37);
+      box-shadow: 0 0 10px #d4af37, 0 0 18px #fff2a8;
+      animation: swirlSpin 1.8s linear infinite, dangerPulse 1.2s ease-in-out infinite alternate;
+    }
+
+    .swirl-light.expired {
+      background:
+        conic-gradient(from 0deg, #d4af37, #ff3b30, #fff2a8, #8b0000, #ff3b30);
+      box-shadow: 0 0 14px #d4af37, 0 0 30px #ff3b30;
+      animation: swirlSpin .8s linear infinite, dangerPulse .6s ease-in-out infinite alternate;
     }
 
     @keyframes swirlSpin {
@@ -219,6 +232,27 @@
       margin-top: 4px;
       font-size: 12px;
     }
+
+    .employee-lookup-results {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #f5f5f5;
+      border-left: 3px solid #d4af37;
+      padding-left: 8px;
+      display: none;
+    }
+
+    .employee-lookup-results strong {
+      color: #d4af37;
+    }
+
+    .employee-lookup-item {
+      margin: 4px 0;
+      padding: 5px;
+      background: #080808;
+      border: 1px solid #333;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
@@ -229,11 +263,34 @@
     </p>
 
     <div class="alert-banner">
-      <div class="swirl-light"></div>
+      <div class="swirl-light {% if counts.get('Expired', 0) > 0 %}expired{% elif counts.get('Expiring Soon', 0) > 0 %}soon{% endif %}"></div>
       <div>
         Certification Alert Monitor Active —
         {{ counts.get('Expired', 0) }} expired /
         {{ counts.get('Expiring Soon', 0) }} expiring soon
+
+        {% set expired_names = [] %}
+        {% set soon_names = [] %}
+
+        {% for cert in records %}
+          {% if cert.get('status','') == 'Expired' %}
+            {% set _ = expired_names.append(cert.get('employee_name','Unknown Employee')) %}
+          {% elif cert.get('status','') == 'Expiring Soon' %}
+            {% set _ = soon_names.append(cert.get('employee_name','Unknown Employee')) %}
+          {% endif %}
+        {% endfor %}
+
+        {% if expired_names %}
+          <span class="small-note">
+            Expired: {{ expired_names|join(', ') }}
+          </span>
+        {% endif %}
+
+        {% if soon_names %}
+          <span class="small-note">
+            Expiring Soon: {{ soon_names|join(', ') }}
+          </span>
+        {% endif %}
       </div>
     </div>
 
@@ -263,7 +320,7 @@
         <div class="form-grid">
           <div>
             <label>Employee Name</label>
-            <input name="employee_name" placeholder="Enter employee name" required>
+            <input id="employeeNameLookup" name="employee_name" placeholder="Enter employee name" required>
           </div>
 
           <div>
@@ -278,7 +335,7 @@
         </div>
 
         <label>Alert / Renewal Note</label>
-        <textarea name="alert" placeholder="Renewal needed, proof uploaded, paper copy on file, or other compliance note"></textarea>
+        <textarea id="alertRenewalNote" name="alert" placeholder="Type employee name above to pull saved certifications here, or enter renewal/proof/compliance note"></textarea>
 
         <button class="button" type="submit">Save Employee Certification</button>
       </form>
@@ -286,59 +343,60 @@
 
     <a class="button" href="/operations">Back to Operations</a>
 
-    <div class="records-panel">
-      <h2>Certification Records</h2>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Certification</th>
-            <th>Status</th>
-            <th>Expiration Date</th>
-            <th>Alert</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if records %}
-            {% for cert in records %}
-              {% set status = cert.get('status','Current') %}
-              <tr>
-                <td>{{ cert.get('employee_name','') }}</td>
-                <td>{{ cert.get('certification_name','') }}</td>
-                <td>
-                  {% if status == 'Expired' %}
-                    <span class="status-pill status-expired">EXPIRED</span>
-                  {% elif status == 'Expiring Soon' %}
-                    <span class="status-pill status-soon">EXPIRING SOON</span>
-                  {% else %}
-                    <span class="status-pill status-current">CURRENT</span>
-                  {% endif %}
-                </td>
-                <td>{{ cert.get('expiration_date','') }}</td>
-                <td>
-                  {% if status == 'Expired' %}
-                    <span class="status-pill status-expired">ACTION REQUIRED</span>
-                  {% elif status == 'Expiring Soon' %}
-                    <span class="status-pill status-soon">RENEWAL WARNING</span>
-                  {% else %}
-                    <span class="status-pill status-current">NO ALERT</span>
-                  {% endif %}
-
-                  {% if cert.get('alert','') %}
-                    <span class="small-note">{{ cert.get('alert','') }}</span>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="5">No employee certification records have been added yet.</td>
-            </tr>
-          {% endif %}
-        </tbody>
-      </table>
-    </div>
   </div>
+
+  <script>
+    const employeeCertRecords = {{ records|tojson }};
+
+    function pullEmployeeRecordsIntoAlertNote() {
+      const nameInput = document.getElementById("employeeNameLookup");
+      const noteBox = document.getElementById("alertRenewalNote");
+      if (!nameInput || !noteBox) return;
+
+      const q = nameInput.value.toLowerCase().trim();
+
+      if (!q) {
+        if (noteBox.dataset.lookupMode === "true") {
+          noteBox.value = "";
+          noteBox.dataset.lookupMode = "false";
+        }
+        return;
+      }
+
+      const matches = employeeCertRecords.filter(r => {
+        const name = (r.employee_name || "").toLowerCase();
+        return name.includes(q);
+      });
+
+      if (!matches.length) {
+        if (noteBox.dataset.lookupMode === "true") {
+          noteBox.value = "";
+          noteBox.dataset.lookupMode = "false";
+        }
+        return;
+      }
+
+      const lines = matches.map(r => {
+        const employee = r.employee_name || "Unknown Employee";
+        const cert = r.certification_name || "Certification not listed";
+        const status = r.status || "Current";
+        const exp = r.expiration_date || "No expiration date";
+        const existingNote = r.alert ? " | Note: " + r.alert : "";
+        return employee + " — " + cert + " — " + status + " — Expires: " + exp + existingNote;
+      });
+
+      noteBox.value = "Saved certification record(s):\n" + lines.join("\n");
+      noteBox.dataset.lookupMode = "true";
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const nameInput = document.getElementById("employeeNameLookup");
+      if (nameInput) {
+        nameInput.addEventListener("input", pullEmployeeRecordsIntoAlertNote);
+      }
+    });
+  </script>
+
 </body>
 </html>
