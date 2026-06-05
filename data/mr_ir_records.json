@@ -126,5 +126,28 @@
     ],
     "commit": "2fc61c0 Add controlled editable Property Papers clauses",
     "status": "completed"
+  },
+  {
+    "date": "2026-06-05 19:19:14",
+    "area": "Single Form Print / Upload Center",
+    "type": "Upload repair verified",
+    "summary": "Spreadsheet uploads were enabled for participant PID documents. The upload system now accepts .xls, .xlsx, and .csv files in addition to PDF, image, Word, and text files.",
+    "tested": [
+      "Selected participant PID.",
+      "Selected document category ID / Demographics.",
+      "Uploaded an Excel spreadsheet file.",
+      "Confirmed uploaded file displayed under Uploaded PID Documents.",
+      "Confirmed Open Upload button appeared.",
+      "Confirmed app.py compiled successfully.",
+      "Committed and pushed app.py upload-extension fix."
+    ],
+    "files_touched": [
+      "app.py",
+      "data/mr_ir_records.json"
+    ],
+    "commit_reference": "c9cfa54 Allow spreadsheet uploads for PID documents",
+    "backup_files": [
+      "app_BEFORE_UPLOAD_EXTENSION_FIX.py"
+    ]
   }
 ]
