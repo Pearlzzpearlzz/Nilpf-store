@@ -1624,7 +1624,7 @@ def single_form_upload():
     if not safe_name:
         return redirect(url_for("single_form_print_center"))
 
-    allowed_extensions = {"pdf", "png", "jpg", "jpeg", "doc", "docx", "txt"}
+    allowed_extensions = {"pdf", "png", "jpg", "jpeg", "doc", "docx", "txt", "xls", "xlsx", "csv"}
     ext = safe_name.rsplit(".", 1)[-1].lower() if "." in safe_name else ""
 
     if ext not in allowed_extensions:
