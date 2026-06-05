@@ -103,5 +103,28 @@
     "backup": "templates/property_papers_BEFORE_CLOSE_SAVED_RECORDS.html",
     "status": "completed / pushed",
     "git_commit": "b028369"
+  },
+  {
+    "date": "2026-06-04 20:38:48",
+    "area": "Property Papers / Controlled Editable Clauses",
+    "repair": "Added controlled editable document flow for BOR, TH Master Lease, and ILH Master Lease.",
+    "details": [
+      "Board Resolution purpose, standing authorization, and relationship disclosure text converted to saved editable clauses.",
+      "TH Master Lease purpose, use of property, exclusive possession, and maintenance/repairs clauses converted to saved editable clauses.",
+      "ILH Master Lease rebuilt to Master Lease Agreement (ML) v2.1 using the uploaded Independent Shared Housing PDF source.",
+      "ILH ML v2.1 includes Purpose, Term, Rent, Exclusive Possession, Occupancy Structure, Maintenance & Repairs, Utilities, Insurance, Liability, Regulatory Compliance, Indemnification, Access, No Partnership, and license line.",
+      "Fixed ILH form wrapping so all fields submit before Save.",
+      "Cleaned one blank ILH property-paper test record."
+    ],
+    "tested": "app.py compiled; ILH Master Lease opened from Property Papers; TEST was added to Purpose, saved, appeared in Review/Edit, then removed; blank ILH record cleanup reduced ILH records from 2 to 1.",
+    "backup_files": [
+      "templates/ilh_master_lease_form_BEFORE_V21_REBUILD.html",
+      "templates/ilh_master_lease_print_BEFORE_V21_REBUILD.html",
+      "templates/ilh_master_lease_print_BEFORE_WRAPPER_CLEANUP.html",
+      "templates/master_lease_transitional_form_BEFORE_EDITABLE_CLAUSES.html",
+      "templates/master_lease_transitional_print_BEFORE_EDITABLE_CLAUSES.html"
+    ],
+    "commit": "2fc61c0 Add controlled editable Property Papers clauses",
+    "status": "completed"
   }
 ]
