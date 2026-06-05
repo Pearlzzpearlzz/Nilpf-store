@@ -1,50 +1,49 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-<style>
-body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
-@media print { .print-btn { display:none; } }
-</style>
 <meta charset="utf-8">
-<title>ILH Master Lease - Review</title>
+<title>Master Lease Agreement ML v2.1 - Review</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.45; }
 h1, h2, h3 { text-align: center; }
 .locked { border: 3px solid #111; padding: 15px; text-align: center; font-weight: bold; margin: 20px 0; }
 button { padding: 12px 22px; font-size: 16px; }
+.print-btn { margin-bottom: 20px; }
+
+@media print {
+  .print-btn, .screen-actions, form button { display:none !important; }
+  input, textarea {
+    border:none !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+  textarea {
+    min-height:70px;
+    resize:none;
+  }
+}
 </style>
 </head>
 <body>
+
 <button class="print-btn" type="button" onclick="window.print()">Print This Form</button>
 
-
 {% if locked %}
-{% if locked %}<div class="locked">FINAL LOCKED DOCUMENT</div>{% endif %}
+<div class="locked">FINAL LOCKED DOCUMENT</div>
 {% endif %}
 
 {% include "ilh_master_lease_form.html" %}
 
-<hr>
-
-{% if not locked %}
-
+<div class="screen-actions">
 <hr>
 {% if not locked %}
-<a href="/property-paper-unlock/ilh-master-lease/{{ id }}">Edit / Unlock</a>
+<a href="/property-paper-edit/ilh-master-lease/{{ id }}">Edit / Unlock</a>
 <br><br>
 <form method="POST" action="/property-paper-final/ilh-master-lease/{{ id }}">
 <button type="submit">Finalize and Lock</button>
 </form>
-{% else %}
-<p><strong>FINAL LOCKED DOCUMENT</strong></p>
 {% endif %}
+</div>
 
 </body>
 </html>
-
-
-<hr>
-
-
-{% endif %}

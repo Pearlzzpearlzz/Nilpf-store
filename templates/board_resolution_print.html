@@ -51,13 +51,13 @@ button { padding: 10px 18px; font-weight: bold; }
 <p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
 
 <h3>PURPOSE</h3>
-<p>This Resolution establishes standing authority for the Organization to enter into housing-related agreements necessary to support transitional housing, reentry housing, VA-aligned housing coordination, and other program-based residential arrangements.</p>
+<p>{{ d.get('purpose_text','This Resolution establishes standing authority for the Organization to enter into housing-related agreements necessary to support transitional housing, reentry housing, VA-aligned housing coordination, and other program-based residential arrangements.') }}</p>
 
 <h3>STANDING AUTHORIZATION</h3>
-<p>The Board authorizes the Organization to enter into agreements with property-owning entities, including affiliated entities where disclosed, for the purpose of securing and operating program-based housing.</p>
+<p>{{ d.get('standing_authorization_text','The Board authorizes the Organization to enter into agreements with property-owning entities, including affiliated entities where disclosed, for the purpose of securing and operating program-based housing.') }}</p>
 
 <h3>DISCLOSURE OF RELATIONSHIPS</h3>
-<p>The Board acknowledges that agreements may involve related entities or individuals serving in more than one role. Any such relationship should be disclosed and documented to support transparency.</p>
+<p>{{ d.get('disclosure_relationships_text','The Board acknowledges that agreements may involve related entities or individuals serving in more than one role. Any such relationship should be disclosed and documented to support transparency.') }}</p>
 
 <h3>BOARD ACKNOWLEDGMENTS</h3>
 <p>☐ The Board authorizes housing-related agreements for program purposes <input disabled type="checkbox" name="authorize_agreements" {% if d.get('authorize_agreements') %}checked{% endif %}></p>
@@ -94,9 +94,7 @@ button { padding: 10px 18px; font-weight: bold; }
     </form>
     {% else %}
     <p><strong>FINAL LOCKED DOCUMENT</strong></p>
-    <form method="POST" action="/property-paper-unlock/board-resolution/{{ id }}" style="display:inline;">
-        <button type="submit">Edit / Unlock</button>
-    </form>
+    <a href="/property-paper-edit/board-resolution/{{ id }}">Edit / Unlock</a>
     {% endif %}
 
     <p style="margin-top:20px;">

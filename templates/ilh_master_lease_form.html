@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>ILH Master Lease</title>
+<title>Master Lease Agreement ML v2.1</title>
 <style>
 body { font-family: Arial; margin:40px; line-height:1.5; }
 h1,h2,h3 { text-align:center; }
@@ -12,25 +12,28 @@ input, textarea { width:100%; margin-top:5px; margin-bottom:10px; padding:6px; }
 </head>
 <body>
 
-<h1>MASTER LEASE AGREEMENT</h1>
+<h1>MASTER LEASE AGREEMENT (ML)</h1>
 <h2>Independent Shared Housing – Property Control Structure</h2>
-<h3>NILPF Framework</h3>
+<h3>NILPF Framework – Version 2.1 (2026)</h3>
 
-<p><strong>Document Version:</strong> v2.0 (2026)</p>
+{% if id != "" %}
+<form method="POST" action="/property-paper-edit/ilh-master-lease/{{ id }}">
+{% else %}
+<form method="POST" action="/property-paper/ilh-master-lease">
+{% endif %}
+
+
+
 
 <p>
-This Master Lease Agreement is entered into by and between the Property Owner and the Program Operator
-for the lease of residential real property to be used solely as independent, non-supervised shared residential occupancy.
+This Master Lease Agreement (“Agreement”) is entered into by and between the
+Property Owner (“Owner”) and the Program Operator (“Operator”) for the lease of
+residential real property described below (“Property”).
 </p>
 
 <p>
-The Property shall not be used for medical care, assisted living, residential treatment, supervision,
-monitoring, or regulated services.
-</p>
-
-<p>
-This Agreement establishes a property lease only and does not create any care, custodial, supervisory,
-service, or program relationship.
+This Agreement establishes a private property lease relationship between Owner
+and Operator only.
 </p>
 
 <p><strong>Independent Living – Non-Tenancy Housing Structure</strong></p>
@@ -62,8 +65,7 @@ service, or program relationship.
 
 <div class="section">
 <h3>1. PURPOSE</h3>
-<p>Independent shared residential housing only.</p>
-<p>No medical care. No supervision. No treatment. No personal assistance.</p>
+<textarea name="purpose_clause" style="min-height:130px;">{{ d.get('purpose_clause','Owner leases the entire Property to Operator for use as independent shared residential occupancy. The Property shall not be used for the provision of medical care, assisted living, residential treatment, supervision or monitoring services, custodial care, or licensed care services. The parties intend that the Property function as private independent housing consistent with applicable law.') }}</textarea>
 </div>
 
 <div class="section">
@@ -84,54 +86,79 @@ service, or program relationship.
 
 <div class="section">
 <h3>4. EXCLUSIVE POSSESSION</h3>
-<p>Owner has no operational authority. Operator manages housing fully.</p>
+<textarea name="exclusive_possession_clause" style="min-height:130px;">{{ d.get('exclusive_possession_clause','Owner grants Operator exclusive possession and control of the Property during the lease term. Owner has no role in occupant selection, does not manage daily operations, provides no services to occupants, and retains no supervisory authority over occupants. Operator alone administers occupancy arrangements.') }}</textarea>
 </div>
 
 <div class="section">
-<h3>5. OCCUPANCY</h3>
-<input name="max_total" placeholder="Max Occupants" value="{{ d.get('max_total','') }}">
-<input name="max_room" placeholder="Max per Room" value="{{ d.get('max_room','') }}">
+<h3>5. OCCUPANCY STRUCTURE</h3>
+<p>Operator may implement shared sleeping arrangements within the Property, subject to local zoning and occupancy laws.</p>
+<input name="max_total" placeholder="Maximum total occupants" value="{{ d.get('max_total','') }}">
+<input name="max_room" placeholder="Maximum per bedroom" value="{{ d.get('max_room','') }}">
+<p>No occupant shall receive exclusive possession of any specific bedroom unless otherwise required by law.</p>
 </div>
 
 <div class="section">
-<h3>6. MAINTENANCE</h3>
-<p>Operator handles routine + under $500. Owner handles structural + over $500.</p>
+<h3>6. MAINTENANCE & REPAIRS</h3>
+<textarea name="maintenance_clause" style="min-height:130px;">{{ d.get('maintenance_clause','Operator is responsible for routine maintenance, interior upkeep, and minor repairs up to the amount stated per occurrence. Owner is responsible for structural systems, roof, foundation, major mechanical systems, and repairs exceeding the stated amount unless caused by Operator negligence.') }}</textarea>
+
+<label>Operator Minor Repair Limit / Per Occurrence:</label>
+<input name="operator_repair_limit" value="{{ d.get('operator_repair_limit','') }}">
+
+<label>Owner Repair Threshold:</label>
+<input name="owner_repair_threshold" value="{{ d.get('owner_repair_threshold','') }}">
 </div>
 
 <div class="section">
 <h3>7. UTILITIES</h3>
-<textarea name="utilities">{{ d.get('utilities','') }}</textarea>
+<p>Operator shall pay:</p>
+<label><input type="checkbox" name="utility_electric" value="yes" {% if d.get('utility_electric') == "yes" %}checked{% endif %}> Electric</label>
+<label><input type="checkbox" name="utility_water" value="yes" {% if d.get('utility_water') == "yes" %}checked{% endif %}> Water</label>
+<label><input type="checkbox" name="utility_gas" value="yes" {% if d.get('utility_gas') == "yes" %}checked{% endif %}> Gas</label>
+<label><input type="checkbox" name="utility_trash" value="yes" {% if d.get('utility_trash') == "yes" %}checked{% endif %}> Trash</label>
+<label><input type="checkbox" name="utility_internet" value="yes" {% if d.get('utility_internet') == "yes" %}checked{% endif %}> Internet</label>
+
+<label>Owner shall pay:</label>
+<textarea name="owner_utilities">{{ d.get('owner_utilities','') }}</textarea>
 </div>
 
 <div class="section">
 <h3>8. INSURANCE</h3>
-<input name="insurance" placeholder="Coverage" value="{{ d.get('insurance','') }}">
+<p>Operator shall maintain general liability insurance in the amount of:</p>
+<input name="insurance_amount" placeholder="Insurance Amount" value="{{ d.get('insurance_amount','') }}">
+
+<label><input type="checkbox" name="additional_insured" value="yes" {% if d.get('additional_insured') == "yes" %}checked{% endif %}> Additional Insured</label>
+<label><input type="checkbox" name="additional_interest" value="yes" {% if d.get('additional_interest') == "yes" %}checked{% endif %}> Additional Interest</label>
+
+<p>Owner shall maintain hazard insurance on the Property.</p>
 </div>
 
 <div class="section">
 <h3>9. LIABILITY</h3>
-<p>No liability for independent occupant actions.</p>
+<p>Each party remains responsible for its own acts and omissions. Nothing in this Agreement limits liability where prohibited by applicable law. Owner’s responsibility is limited to property ownership obligations. Operator’s responsibility is limited to housing administration and property use.</p>
 </div>
 
 <div class="section">
-<h3>10. REGULATORY STATUS</h3>
-<p>Independent, non-supervised, non-licensed housing.</p>
+<h3>10. REGULATORY COMPLIANCE</h3>
+<textarea name="regulatory_compliance_clause" style="min-height:120px;">{{ d.get('regulatory_compliance_clause','The parties intend the Property to operate as independent shared housing. If any governmental authority determines additional licensing, permitting, or regulatory requirements apply, the parties agree to comply with applicable law. Nothing in this Agreement authorizes unlawful operation.') }}</textarea>
 </div>
 
 <div class="section">
 <h3>11. INDEMNIFICATION</h3>
-<p>Operator indemnifies Owner except gross negligence.</p>
+<p>Operator agrees to indemnify Owner for claims arising from Operator’s operations, except where caused by Owner’s gross negligence or willful misconduct.</p>
 </div>
 
 <div class="section">
 <h3>12. ACCESS</h3>
+<p>Owner may enter the Property with the notice stated below. Immediate entry is permitted only in emergencies.</p>
 <input name="notice_hours" placeholder="Notice Hours" value="{{ d.get('notice_hours','') }}">
 </div>
 
 <div class="section">
 <h3>13. NO PARTNERSHIP</h3>
-<p>No partnership or joint venture created.</p>
+<p>Nothing in this Agreement creates a partnership, joint venture, or agency relationship.</p>
 </div>
+
+<p style="text-align:center; margin-top:30px;">© 2026 Pearlzz LLC – NILPF Framework<br>Licensed per physical address.</p>
 
 <div class="section">
 <h3>SIGNATURES</h3>
@@ -152,8 +179,7 @@ service, or program relationship.
 <br>
 
 
-<form method="POST" action="/property-paper/ilh-master-lease">
-  <button type="submit">Save</button>
+<button type="submit">Save</button>
 </form>
 </body>
 </html>

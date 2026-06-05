@@ -93,7 +93,11 @@
 <h2>GPD-Aligned Edition</h2>
 <h3>NILPF Framework (2026)</h3>
 
+{% if id != "" %}
+<form method="POST" action="/property-paper-edit/master-lease-transitional/{{ id }}">
+{% else %}
 <form method="POST" action="/property-paper/master-lease-transitional">
+{% endif %}
 
 <p class="section-title">1. PARTIES</p>
 <p>This Master Lease Agreement (“Agreement”) is entered into between:</p>
@@ -117,10 +121,7 @@
 </div>
 
 <p class="section-title">2. PURPOSE</p>
-<p>Owner leases the Property to Operator for use as a transitional housing program designed to support individuals returning to the community and working toward independent living.</p>
-<p>This Agreement governs the real property relationship only.</p>
-<p>This Agreement is executed pursuant to the authority granted by the Organization’s Board Resolution.</p>
-<p>Participant occupancy, program structure, and operations shall be managed solely by the Operator under separate agreements.</p>
+<textarea name="purpose_clause" style="width:100%;min-height:130px;">{{ d.get('purpose_clause','Owner leases the Property to Operator for use as a transitional housing program designed to support individuals returning to the community and working toward independent living. This Agreement governs the real property relationship only. This Agreement is executed pursuant to the authority granted by the Organization’s Board Resolution. Participant occupancy, program structure, and operations shall be managed solely by the Operator under separate agreements.') }}</textarea>
 
 <p class="section-title">3. PROPERTY</p>
 <p>The Property subject to this Agreement is located at:</p>
@@ -170,19 +171,7 @@ Renewal terms:
 <p>To be held and returned in accordance with applicable law.</p>
 
 <p class="section-title">7. USE OF PROPERTY</p>
-<p>Operator shall use the Property exclusively for:</p>
-<ul>
-<li>Transitional housing</li>
-<li>Independent living housing</li>
-</ul>
-
-<p>The Property shall not be used for:</p>
-<ul>
-<li>Medical care</li>
-<li>Assisted living</li>
-<li>Residential treatment</li>
-<li>Custodial or supervised care</li>
-</ul>
+<textarea name="use_of_property_clause" style="width:100%;min-height:140px;">{{ d.get('use_of_property_clause','Operator shall use the Property exclusively for transitional housing and independent living housing. The Property shall not be used for medical care, assisted living, residential treatment, custodial care, or supervised care.') }}</textarea>
 
 <p class="section-title">8. OCCUPANCY STRUCTURE</p>
 <p>Operator may implement a shared housing model within the Property. Operator shall:</p>
@@ -200,28 +189,10 @@ Renewal terms:
 </ul>
 
 <p class="section-title">9. EXCLUSIVE POSSESSION</p>
-<p>Operator is granted exclusive possession of the Property during the lease term. Owner retains no control over:</p>
-<ul>
-<li>Program operations</li>
-<li>Participant agreements</li>
-<li>Day-to-day management</li>
-</ul>
+<textarea name="exclusive_possession_clause" style="width:100%;min-height:110px;">{{ d.get('exclusive_possession_clause','Operator is granted exclusive possession of the Property during the lease term. Owner retains no control over program operations, participant agreements, or day-to-day management.') }}</textarea>
 
 <p class="section-title">10. MAINTENANCE AND REPAIRS</p>
-<p><strong>Operator Responsibilities:</strong></p>
-<ul>
-<li>Routine maintenance</li>
-<li>Interior upkeep</li>
-<li>Cleanliness and minor repairs</li>
-</ul>
-
-<p><strong>Owner Responsibilities:</strong></p>
-<ul>
-<li>Structural components</li>
-<li>Roof</li>
-<li>Foundation</li>
-<li>Major systems (HVAC, plumbing, electrical)</li>
-</ul>
+<textarea name="maintenance_repairs_clause" style="width:100%;min-height:130px;">{{ d.get('maintenance_repairs_clause','Operator responsibilities include routine maintenance, interior upkeep, cleanliness, and minor repairs. Owner responsibilities include structural components, roof, foundation, and major systems including HVAC, plumbing, and electrical.') }}</textarea>
 
 <p class="section-title">11. UTILITIES</p>
 <p>Utilities shall be paid by:</p>
