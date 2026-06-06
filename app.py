@@ -2977,7 +2977,7 @@ def mla_unlock(id):
 
 # ===== TH ROUTE-CLEAN ADDITIONS =====
 
-def th_form_state(id, key):
+def th_form_state(id, key, participants):
     participant = participants[id]
     return participant.setdefault("forms", {}).setdefault(key, {"data": {}, "locked": False, "completed": False})
 
@@ -2987,9 +2987,10 @@ def th_save_participants(participants):
 def make_th_routes(route, key, form_template, print_template):
     @app.route(f"/{route}/<int:id>", methods=["GET", "POST"], endpoint=f"{route}_form")
     def th_form(id, route=route, key=key, form_template=form_template):
+        participants = load_participants_file()
         if id < 0 or id >= len(participants):
             return redirect(url_for("add_participant"))
-        state = th_form_state(id, key)
+        state = th_form_state(id, key, participants)
         if state.get("locked"):
             return redirect(f"/{route}-print/{id}")
         if request.method == "POST":
@@ -3016,16 +3017,18 @@ def make_th_routes(route, key, form_template, print_template):
 
     @app.route(f"/{route}-print/<int:id>", endpoint=f"{route}_print")
     def th_print(id, route=route, key=key, print_template=print_template):
+        participants = load_participants_file()
         if id < 0 or id >= len(participants):
             return redirect(url_for("add_participant"))
-        state = th_form_state(id, key)
+        state = th_form_state(id, key, participants)
         return render_template(print_template, id=id, participant=participants[id], d=state.get("data", {}), locked=state.get("locked", False))
 
     @app.route(f"/{route}-final/<int:id>", methods=["POST"], endpoint=f"{route}_final")
     def th_final(id, route=route, key=key):
+        participants = load_participants_file()
         if id < 0 or id >= len(participants):
             return redirect(url_for("add_participant"))
-        state = th_form_state(id, key)
+        state = th_form_state(id, key, participants)
         state["locked"] = True
         state["completed"] = True
         th_save_participants(participants)
@@ -3053,9 +3056,10 @@ def make_th_routes(route, key, form_template, print_template):
 
     @app.route(f"/{route}-unlock/<int:id>", methods=["GET", "POST"], endpoint=f"{route}_unlock")
     def th_unlock(id, route=route, key=key):
+        participants = load_participants_file()
         if id < 0 or id >= len(participants):
             return redirect(url_for("add_participant"))
-        state = th_form_state(id, key)
+        state = th_form_state(id, key, participants)
         state["locked"] = False
         th_save_participants(participants)
         return redirect(f"/{route}/{id}")
