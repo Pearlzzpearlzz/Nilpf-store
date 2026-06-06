@@ -29,6 +29,7 @@ body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
   }
 </style>
 
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 </head>
 <body>
 <button class="print-now-btn" type="button" onclick="window.print()">Print This Form</button>

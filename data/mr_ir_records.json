@@ -149,5 +149,18 @@
     "backup_files": [
       "app_BEFORE_UPLOAD_EXTENSION_FIX.py"
     ]
+  },
+  {
+    "date": "2026-06-06 01:44",
+    "area": "Mobile Responsive Cleanup",
+    "status": "Completed",
+    "summary": "Added global mobile_responsive.css link across templates, added mobile-friendly login layout/input/button CSS, cleaned minor head formatting, and kept safer navigation links away from hardcoded Packet Builder PID 0.",
+    "tested": [
+      "Local login page opened successfully",
+      "Mobile narrow view tested around 274x759",
+      "python3 -m py_compile app.py passed",
+      "git diff cleanup reviewed"
+    ],
+    "backup": "templates/login_BEFORE_MOBILE_LOGIN_FULL.html"
   }
 ]

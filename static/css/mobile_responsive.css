@@ -1,0 +1,118 @@
+/* NILPF OS Mobile Responsive Layer */
+
+@media (max-width: 768px) {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    font-size: 16px;
+  }
+
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .container,
+  .card,
+  .box,
+  .panel,
+  .form-box,
+  .content,
+  .main,
+  .wrap,
+  .wrapper,
+  section,
+  main {
+    width: 94% !important;
+    max-width: 94% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 16px !important;
+  }
+
+  textarea {
+    min-height: 110px;
+  }
+
+  button,
+  .btn,
+  a.button,
+  input[type="submit"] {
+    display: block !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+    padding: 14px 16px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
+  table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+
+  th,
+  td {
+    font-size: 14px !important;
+  }
+
+  h1 {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+  }
+
+  h2 {
+    font-size: 22px !important;
+    line-height: 1.25 !important;
+  }
+
+  h3 {
+    font-size: 19px !important;
+  }
+
+  p,
+  label,
+  li {
+    font-size: 16px !important;
+    line-height: 1.45 !important;
+  }
+
+  .grid,
+  .cards,
+  .dashboard-grid,
+  .button-grid,
+  .operations-grid {
+    display: block !important;
+  }
+
+  .grid > *,
+  .cards > *,
+  .dashboard-grid > *,
+  .button-grid > *,
+  .operations-grid > * {
+    width: 100% !important;
+    margin-bottom: 14px !important;
+  }
+
+  img,
+  video,
+  iframe {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}

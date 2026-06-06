@@ -99,7 +99,32 @@
       .hero { padding-top: 24px; }
       .card { margin-top: -18px; padding: 28px 20px 22px; }
     }
-  </style>
+
+/* Mobile-friendly login layout */
+.loginbox {
+    width: 90%;
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 24px;
+}
+
+.loginbox input {
+    font-size: 16px;
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.loginbox button,
+.loginbox input[type="submit"] {
+    min-height: 44px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+</style>
 
 <style>
   .app-footer {
@@ -122,6 +147,7 @@
   }
 </style>
 
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 </head>
 <body>
   <div class="hero">

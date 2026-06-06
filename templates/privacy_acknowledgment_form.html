@@ -11,6 +11,7 @@ input[type=text], input:not([type]) { width: 90%; padding: 6px; margin-top: 4px;
 button { padding: 10px 18px; font-weight: bold; }
 </style>
 
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 </head>
 <body>
 <form method="POST" action="/privacy-acknowledgment/{{ id }}">
