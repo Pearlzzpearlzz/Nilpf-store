@@ -208,5 +208,20 @@
       "Confirmed app.py has not been patched yet"
     ],
     "status": "Safe checkpoint before app.py integration"
+  },
+  {
+    "date": "2026-06-07 08:09",
+    "title": "High-level JSON storage adapter added",
+    "category": "Storage Adapter Planning",
+    "summary": "Added storage/adapter.py with JSONStorageAdapter. Adapter preserves current JSON filenames and data shapes while preparing app.py for future PostgreSQL-backed storage.",
+    "files_updated": [
+      "storage/adapter.py"
+    ],
+    "tested": [
+      "Compiled storage/adapter.py",
+      "Compiled storage/json_store.py",
+      "Confirmed app.py is not connected to the adapter yet"
+    ],
+    "status": "Ready to commit"
   }
 ]
