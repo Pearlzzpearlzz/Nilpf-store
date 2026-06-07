@@ -414,5 +414,23 @@
       "Confirmed active storage engine is json"
     ],
     "status": "completed_pending_commit"
+  },
+  {
+    "timestamp": "2026-06-07T11:00:31",
+    "phase": "Phase 6C",
+    "title": "Mr. IR Storage Diagnostic Route",
+    "files_changed": [
+      "app.py",
+      "data/mr_ir_records.json"
+    ],
+    "summary": "Added /mr-ir/storage-check as a read-only diagnostic route. It confirms the app is using StorageCoordinator, shows the active storage engine, and verifies the core JSON-backed storage files can be read without writing or modifying records.",
+    "verification": [
+      "python3 -m py_compile app.py",
+      "Test client GET /mr-ir/storage-check returned status 200",
+      "Confirmed Storage object is StorageCoordinator",
+      "Confirmed Active engine is json",
+      "Confirmed activation, participants, license_requests, audit_logs, property_papers, employee_certs, paypal_webhook_events, and rolodex returned PASS"
+    ],
+    "status": "completed_pending_commit"
   }
 ]

@@ -3312,6 +3312,76 @@ def mr_ir_scan():
     return render_template("mr_ir_scan.html", results=results)
 
 
+@app.route("/mr-ir/storage-check")
+def mr_ir_storage_check():
+    from pathlib import Path
+
+    data_dir = Path("data")
+    checks = []
+
+    storage_type = type(storage).__name__
+    active_engine = storage.active_engine() if hasattr(storage, "active_engine") else "unknown"
+
+    file_checks = [
+        ("activation", data_dir / "activation.json", storage.get_activation),
+        ("participants", data_dir / "participants.json", storage.get_participants),
+        ("license_requests", data_dir / "license_requests.json", storage.get_license_requests),
+        ("audit_logs", data_dir / "audit_log.json", storage.get_audit_logs),
+        ("property_papers", data_dir / "property_papers.json", storage.get_property_papers),
+        ("employee_certs", data_dir / "employee_certifications.json", storage.get_employee_certs),
+        ("paypal_webhook_events", data_dir / "paypal_webhook_events.json", storage.get_paypal_webhook_events),
+        ("rolodex", data_dir / "rolodex.json", storage.get_rolodex),
+    ]
+
+    for name, path, reader in file_checks:
+        try:
+            data = reader()
+            if isinstance(data, list):
+                count = len(data)
+                shape = "list"
+            elif isinstance(data, dict):
+                count = len(data.keys())
+                shape = "dict"
+            else:
+                count = "n/a"
+                shape = type(data).__name__
+
+            checks.append({
+                "name": name,
+                "file": str(path),
+                "exists": path.exists(),
+                "shape": shape,
+                "count": count,
+                "status": "PASS",
+            })
+        except Exception as e:
+            checks.append({
+                "name": name,
+                "file": str(path),
+                "exists": path.exists(),
+                "shape": "error",
+                "count": "error",
+                "status": f"FAIL: {type(e).__name__}: {str(e)[:120]}",
+            })
+
+    lines = [
+        "MR. IR STORAGE CHECK",
+        "====================",
+        f"Storage object: {storage_type}",
+        f"Active engine: {active_engine}",
+        "",
+        "Core storage files:",
+    ]
+
+    for item in checks:
+        lines.append(
+            f"- {item['name']}: {item['status']} | exists={item['exists']} | "
+            f"shape={item['shape']} | count={item['count']} | file={item['file']}"
+        )
+
+    return "\n".join(lines), 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
 @app.route("/mr-ir")
 def mr_ir_dashboard():
     import os
