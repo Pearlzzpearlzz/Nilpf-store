@@ -192,5 +192,21 @@
       "Confirmed database files are staged next for commit"
     ],
     "status": "Ready to commit"
+  },
+  {
+    "date": "2026-06-07 08:04",
+    "title": "Storage adapter folder created",
+    "category": "Storage Adapter Planning",
+    "summary": "Created the first JSON-only storage adapter module as a safe bridge toward PostgreSQL. No app routes or app.py storage behavior changed yet.",
+    "files_updated": [
+      "storage/__init__.py",
+      "storage/json_store.py"
+    ],
+    "tested": [
+      "Compiled storage/__init__.py",
+      "Compiled storage/json_store.py",
+      "Confirmed app.py has not been patched yet"
+    ],
+    "status": "Safe checkpoint before app.py integration"
   }
 ]
