@@ -500,5 +500,23 @@
       "No live route changes required"
     ],
     "status": "completed_pending_commit"
+  },
+  {
+    "timestamp": "2026-06-07T11:29:40",
+    "category": "DB_DRIVER_STORAGE",
+    "title": "Routed APB participant read through storage coordinator",
+    "summary": "Updated build_apb_hmis_readiness_summary() so participant records are loaded through storage.get_participants() instead of directly reading data/participants.json.",
+    "files_changed": [
+      "app.py"
+    ],
+    "tests": [
+      "python3 -m py_compile app.py storage/adapter.py storage/coordinator.py"
+    ],
+    "result": "PASS",
+    "notes": [
+      "JSON remains the active storage engine.",
+      "This keeps current behavior unchanged while preparing APB/HMIS summary for future database mode.",
+      "No phone-first layout changes were made in this step."
+    ]
   }
 ]
