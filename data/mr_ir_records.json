@@ -518,5 +518,23 @@
       "This keeps current behavior unchanged while preparing APB/HMIS summary for future database mode.",
       "No phone-first layout changes were made in this step."
     ]
+  },
+  {
+    "timestamp": "2026-06-07T11:32:09",
+    "category": "DB_DRIVER_STORAGE",
+    "title": "Reviewed remaining active app.py direct file touches",
+    "summary": "Confirmed remaining active app.py direct file touches are PDF output writes, PDF mapper read, PDF failure report write, and a multi-file audit activity counter. No additional patch was made because the audit counter reads several historical/reporting files, not only the main audit_log.json adapter target.",
+    "files_changed": [],
+    "tests": [
+      "grep -n \"json.loads.*read_text\\|read_text(.*json\\|write_text\\|json.dump\\|json.load\\|with open\" app.py",
+      "sed -n '1000,1030p' app.py"
+    ],
+    "result": "PASS",
+    "notes": [
+      "Core participant read was already routed through storage.get_participants().",
+      "Remaining PDF writes should stay file-based.",
+      "PDF mapper static/mappings.json should stay file-based for now.",
+      "Audit summary counter should be redesigned later as a reporting/storage helper instead of patched blindly."
+    ]
   }
 ]
