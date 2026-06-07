@@ -556,5 +556,24 @@
       "Gitignore prevents committing runtime shared forms",
       "No changes were made to participant or program-level data"
     ]
+  },
+  {
+    "timestamp": "2026-06-07T12:04:43",
+    "category": "SHARED_FORMS_REGISTRY",
+    "title": "Added hybrid active shared housing forms registry",
+    "summary": "Added get_active_shared_housing_forms() so Packet Builder keeps hardcoded shared housing forms as the safe default while allowing future data/shared_forms.json housing_forms additions through storage.get_shared_forms().",
+    "files_changed": [
+      "app.py"
+    ],
+    "tests": [
+      "python3 -m py_compile app.py",
+      "grep -n \"def packet_builder\\|get_active_shared_housing_forms\\|for shared_doc\" app.py"
+    ],
+    "result": "PASS",
+    "notes": [
+      "Packet Builder now loops over get_active_shared_housing_forms().",
+      "If shared_forms.json is empty, behavior stays the same.",
+      "No participant data or form route behavior changed."
+    ]
   }
 ]
