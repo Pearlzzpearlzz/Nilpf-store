@@ -87,6 +87,16 @@
 <body>
   <div class="wrap">
     <h1>SERVICE COORDINATION</h1>
+    <div style="max-width:720px;margin:20px auto;padding:18px;border:1px solid #d4af37;border-radius:12px;background:#fff;">
+      <label style="font-weight:bold;">Select Participant / PID First</label>
+      <select id="servicePid" style="width:100%;padding:12px;margin-top:8px;border:1px solid #ccc;border-radius:8px;">
+        <option value="">Choose participant...</option>
+        {% for p in participants %}
+          <option value="{{ loop.index0 }}">PID {{ loop.index0 }} - {{ p.get('name','Unnamed Participant') }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
 
     <p class="subtitle">
       This section is for participant-linked service planning, dated service coordination notes,
@@ -101,7 +111,7 @@
           Build and maintain a participant-specific service plan with goals,
           needs, support areas, action steps, and follow-up items.
         </p>
-        <a class="button" href="/individual-service-plan/0">Open ISP</a>
+        <a class="button" href="#" onclick="openForPid('individual-service-plan'); return false;">Open ISP</a>
       </div>
 
       <div class="card">
@@ -110,7 +120,7 @@
           Track dated contacts, case coordination notes, referrals, follow-ups,
           barriers, progress updates, and retention records.
         </p>
-        <a class="button" href="/service-activity-record/0">Open Records</a>
+        <a class="button" href="#" onclick="openForPid('service-activity-record'); return false;">Open Records</a>
       </div>
 
       <div class="card">
@@ -138,5 +148,17 @@
       <a class="button" href="/operations">Back to Operations</a>
     </div>
   </div>
+
+<script>
+function openForPid(route) {
+  const pid = document.getElementById("servicePid").value;
+  if (!pid) {
+    alert("Please select a participant / PID first.");
+    return;
+  }
+  window.location.href = "/" + route + "/" + pid;
+}
+</script>
+
 </body>
 </html>

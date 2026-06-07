@@ -144,12 +144,38 @@
 
   <div class="actions">
     {% if not locked %}
-      <a class="btn gold" href="/service-activity-record-final/{{ id }}">Final Lock This Entry</a>
+      <a class="btn gold" href="/service-activity-record-final/{{ id }}" onclick="return disableFinalLockLink(this)">Final Lock This Entry</a>
     {% endif %}
     <a class="btn" href="/service-activity-record/{{ id }}">Add New Service Activity Record</a>
     <a class="btn" href="/service-coordination">Back to Service Coordination</a>
     <a class="btn" href="javascript:window.print()">Print</a>
   </div>
 </div>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>

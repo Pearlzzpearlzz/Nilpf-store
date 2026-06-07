@@ -89,11 +89,37 @@ button, .btn { padding:12px 20px; font-size:16px; border:1px solid #555; text-de
 </div>
 <div class="buttons">
   <button type="button" onclick="window.print()">Print This Form</button>
-  <form method="POST" action="/agency-sponsorship-record-final/{{ id }}" style="display:inline;">
+  <form method="POST" action="/agency-sponsorship-record-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
     <button type="submit">Next Form</button>
   </form>
 </div>
 
 </div>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>

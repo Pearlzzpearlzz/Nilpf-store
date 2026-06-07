@@ -19,7 +19,7 @@
 <body>
 <h1>Billing / Invoice Setup Record</h1>
 <h2>NILPF Universal Invoice Setup</h2>
-<form method="POST" action="/billing-invoice-setup-final/{{ id }}">
+<form method="POST" action="/billing-invoice-setup-final/{{ id }}" onsubmit="return disableFinalLock(this)">
 <div class="section">
   <h2>Property / Program Information</h2>
   <div class="row">
@@ -158,10 +158,36 @@
 </div>
 <div class="buttons">
   <button type="button" onclick="window.print()">Print This Form</button>
-  <form method="POST" action="/billing-invoice-setup-final/{{ id }}" style="display:inline;">
+  <form method="POST" action="/billing-invoice-setup-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
     <button type="submit">Finish & Go to Admin Forms</button>
   </form>
 </div>
 </form>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>

@@ -147,14 +147,14 @@ button { padding:14px 24px; font-size:18px; font-weight:bold; }
 <div class="center">
 {% if not locked %}
 <a href="/no-services-supervision/{{ id }}">Correct No Services / No Supervision Acknowledgement</a>
-<form method="POST" action="/no-services-supervision-final/{{ id }}" style="display:inline;">
+<form method="POST" action="/no-services-supervision-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
 <button type="submit">Final Submit / Lock No Services / No Supervision Acknowledgement</button>
 </form>
 {% endif %}
 <a href="/">Back Home</a>
 </div>
 
-<form method="POST" action="/no-services-supervision-final/{{ id }}">
+<form method="POST" action="/no-services-supervision-final/{{ id }}" onsubmit="return disableFinalLock(this)">
 <button type="submit">Lock</button>
 </form>
 
@@ -166,6 +166,32 @@ document.querySelectorAll("input, textarea, select").forEach(el => {
 });
 {% endif %}
 </script>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>
 

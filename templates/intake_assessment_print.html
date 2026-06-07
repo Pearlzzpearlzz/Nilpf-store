@@ -108,7 +108,7 @@ button, a { font-size:18px; margin-top:20px; display:inline-block; }
 {% if locked %}<h2>{% if locked %}FINAL LOCKED DOCUMENT{% endif %}</h2>{% endif %}
 {% else %}
 
-<form method="POST" action="/intake-assessment-final/{{ id }}">
+<form method="POST" action="/intake-assessment-final/{{ id }}" onsubmit="return disableFinalLock(this)">
 <button type="submit">Lock</button>
 </form>
 {% endif %}
@@ -123,6 +123,32 @@ document.querySelectorAll("input, textarea, select").forEach(el => {
 });
 {% endif %}
 </script>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>
 

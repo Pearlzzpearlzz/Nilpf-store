@@ -84,11 +84,37 @@ a { display:inline-block; margin:8px 0; }
 <p><a href="/voluntary-participation/{{ id }}">Continue to Next Form</a></p>
 {% else %}
 <p><a href="/security-camera-unlock/{{ id }}">Edit</a></p>
-<form method="POST" action="/security-camera-final/{{ id }}">
+<form method="POST" action="/security-camera-final/{{ id }}" onsubmit="return disableFinalLock(this)">
     <button type="submit">Final Lock</button>
 </form>
 {% endif %}
 </div>
+
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
 
 </body>
 </html>

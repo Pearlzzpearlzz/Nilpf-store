@@ -162,5 +162,20 @@
       "git diff cleanup reviewed"
     ],
     "backup": "templates/login_BEFORE_MOBILE_LOGIN_FULL.html"
+  },
+  {
+    "date": "2026-06-07 07:20",
+    "title": "Cleanup before PostgreSQL migration",
+    "category": "Repair / Stabilization",
+    "summary": "Completed pre-migration cleanup: fixed Guest Addendum save/input issue, corrected PID 0 display text in Mr. IR dashboard, added Service Coordination participant/PID selector, removed hard-coded Service Coordination PID 0 links, added final-lock double-click prevention, and removed heavy PDF generation from final-lock routes so PDFs generate during Download Packet instead.",
+    "tested": [
+      "python3 -m py_compile app.py passed",
+      "Guest Addendum form now has one form tag and Save button inside main form",
+      "Mr. IR dashboard no longer displays Packet Builder PID 0",
+      "Service Coordination now loads participants into selector",
+      "Active final-lock forms/links verified with double-click prevention",
+      "generate_true_to_sight_pdf now only remains in definition/comment/download_packet"
+    ],
+    "backup_status": "Ready to commit and push"
   }
 ]

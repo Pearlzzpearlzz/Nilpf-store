@@ -71,7 +71,7 @@ Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distributio
 <a href="/transfer-form-unlock/{{ id }}">Unlock for Editing</a>
 
 
-<form method="POST" action="/transfer-form-final/{{ id }}">
+<form method="POST" action="/transfer-form-final/{{ id }}" onsubmit="return disableFinalLock(this)">
 <button type="submit">Lock</button>
 </form>
 
@@ -83,6 +83,32 @@ document.querySelectorAll("input, textarea, select").forEach(el => {
 });
 {% endif %}
 </script>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>
 

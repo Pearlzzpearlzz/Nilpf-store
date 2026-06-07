@@ -159,11 +159,37 @@ button, .btn { padding:10px 16px; font-size:15px; border:1px solid #111; backgro
 
 <div class="buttons">
 <a class="btn" href="/program-funding-payment-responsibility/{{ id }}">Edit Form</a>
-<form method="POST" action="/program-funding-payment-responsibility-final/{{ id }}" style="display:inline;">
+<form method="POST" action="/program-funding-payment-responsibility-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
 <button type="submit">Final Lock</button>
 </form>
 <a class="btn" href="/admin-forms">Back to Admin Forms</a>
 </div>
 </div>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>

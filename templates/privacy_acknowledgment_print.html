@@ -77,7 +77,7 @@ button { padding: 10px 18px; font-weight: bold; }
 {% else %}
 <p><a href="/privacy-acknowledgment-unlock/{{ id }}">Edit</a></p>
 
-<form method="POST" action="/privacy-acknowledgment-final/{{ id }}">
+<form method="POST" action="/privacy-acknowledgment-final/{{ id }}" onsubmit="return disableFinalLock(this)">
     <button type="submit">Final Lock</button>
 </form>
 {% endif %}
@@ -91,6 +91,32 @@ document.querySelectorAll("input, textarea, select").forEach(el => {
     el.setAttribute("disabled","disabled");
 });
 {% endif %}
+</script>
+
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
 </script>
 
 </body>

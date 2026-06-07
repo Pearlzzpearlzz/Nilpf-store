@@ -36,7 +36,7 @@ body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
 {% if locked %}
 {% if locked %}<p><strong>FINAL LOCKED DOCUMENT</strong></p>{% endif %}
 {% else %}
-<form method="POST" action="/ilh-mla-final/{{ id }}">
+<form method="POST" action="/ilh-mla-final/{{ id }}" onsubmit="return disableFinalLock(this)">
 <button type="submit">Lock</button>
 </form>
 
@@ -55,12 +55,38 @@ document.querySelectorAll("input, textarea, select").forEach(el => {
 {% if not locked %}
 <a href="/ilh-mla-unlock/{{ id }}">Edit / Unlock</a>
 <br><br>
-<form method="POST" action="/ilh-mla-final/{{ id }}">
+<form method="POST" action="/ilh-mla-final/{{ id }}" onsubmit="return disableFinalLock(this)">
 <button type="submit">Finalize and Lock</button>
 </form>
 {% else %}
 <p><strong>FINAL LOCKED DOCUMENT</strong></p>
 {% endif %}
+
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
 
 </body>
 </html>

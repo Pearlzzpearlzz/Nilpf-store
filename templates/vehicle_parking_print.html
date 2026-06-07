@@ -126,7 +126,7 @@
 <p><a href="/packet-builder/{{ id }}">Return to Packet Builder</a></p>
 {% else %}
 <p><a href="/vehicle-parking/{{ id }}">Edit</a></p>
-<form method="POST" action="/vehicle-parking-final/{{ id }}" style="margin-top:18px;">
+<form method="POST" action="/vehicle-parking-final/{{ id }}" style="margin-top:18px;" onsubmit="return disableFinalLock(this)">
   <button type="submit" style="padding:12px 18px;background:#0b6b0b;color:#fff;border:0;border-radius:8px;font-size:16px;">
     Final Lock
   </button>
@@ -141,5 +141,31 @@ document.querySelectorAll("input, textarea, select").forEach(el => {
 });
 {% endif %}
 </script>
+
+<script>
+function disableFinalLock(formOrButton) {
+  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
+  if (btn) {
+    if (btn.dataset.locking === "1") {
+      return false;
+    }
+    btn.dataset.locking = "1";
+    btn.disabled = true;
+    btn.innerText = "Locking...";
+  }
+  return true;
+}
+
+function disableFinalLockLink(link) {
+  if (link.dataset.locking === "1") {
+    return false;
+  }
+  link.dataset.locking = "1";
+  link.style.pointerEvents = "none";
+  link.innerText = "Locking...";
+  return true;
+}
+</script>
+
 </body>
 </html>

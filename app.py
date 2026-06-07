@@ -1551,7 +1551,8 @@ def participant_program_adherence_review_final(id):
 def service_coordination():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
-    return render_template("service_coordination.html")
+    participants = load_participants()
+    return render_template("service_coordination.html", participants=participants)
 
 
 @app.route("/single-form-print")
@@ -2385,11 +2386,6 @@ def vehicle_parking_final(id):
     p["forms"]["vehicle_parking"]["completed"] = True
     save_participants_file()
 
-    try:
-        pdf_file = generate_true_to_sight_pdf(id, "/vehicle-parking-print/{id}", "vehicle_parking_true_to_sight.pdf")
-        print(f"TRUE-TO-SIGHT PDF CREATED: {pdf_file}")
-    except Exception as e:
-        print(f"TRUE-TO-SIGHT PDF ERROR for vehicle_parking: {e}")
 
     return redirect(f"/transfer/{id}")
 
@@ -2446,11 +2442,6 @@ def bill_of_dignity_final(id):
     p["forms"]["bill_of_dignity"]["completed"] = True
     save_participants_file()
 
-    try:
-        pdf_file = generate_true_to_sight_pdf(id, "/bill-of-dignity-print/{id}", "bill_of_dignity_true_to_sight.pdf")
-        print(f"TRUE-TO-SIGHT PDF CREATED: {pdf_file}")
-    except Exception as e:
-        print(f"TRUE-TO-SIGHT PDF ERROR for bill_of_dignity: {e}")
 
     return redirect(f"/packet-builder/{id}")
 
@@ -2841,24 +2832,7 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
         participant["forms"][form_key]["completed"] = True
         save_participants(participants)
 
-        # Auto-generate true-to-sight PDF from this form print page.
-        # Example: /fire-safety-print/4 -> static/filled/participant_4/fire_safety_true_to_sight.pdf
-        try:
-            pdf_file = generate_true_to_sight_pdf(
-                id,
-                f"/{route_name}-print/{{id}}",
-                f"{form_key}_true_to_sight.pdf"
-            )
-            print(f"TRUE-TO-SIGHT PDF CREATED: {pdf_file}")
-            if form_key == "sensitive_identity_record":
-                import shutil
-                vault_dir = os.path.join("static", "filled", f"participant_{id}", "sensitivity_vault")
-                os.makedirs(vault_dir, exist_ok=True)
-                vault_path = os.path.join(vault_dir, "sensitive_identity_record_true_to_sight.pdf")
-                shutil.copy2(pdf_file, vault_path)
-                print(f"SENSITIVITY VAULT COPY CREATED: {vault_path}")
-        except Exception as e:
-            print(f"TRUE-TO-SIGHT PDF ERROR for {form_key}: {e}")
+        # Final Lock now saves state only. Packet PDFs are generated during Download Packet.
 
         next_form = STANDARD_NEXT_FORMS.get(route_name)
         if next_form:
@@ -2949,11 +2923,6 @@ def mla_final(id):
     state["completed"] = True
     th_save_participants(participants)
 
-    try:
-        pdf_file = generate_true_to_sight_pdf(id, "/mla-print/{id}", "mla_true_to_sight.pdf")
-        print(f"TRUE-TO-SIGHT PDF CREATED: {pdf_file}")
-    except Exception as e:
-        print(f"TRUE-TO-SIGHT PDF ERROR for mla: {e}")
 
     next_form = TH_NEXT_FORMS.get("mla")
     if next_form:
@@ -3033,15 +3002,7 @@ def make_th_routes(route, key, form_template, print_template):
         state["completed"] = True
         th_save_participants(participants)
 
-        try:
-            pdf_file = generate_true_to_sight_pdf(
-                id,
-                f"/{route}-print/{{id}}",
-                f"{key}_true_to_sight.pdf"
-            )
-            print(f"TRUE-TO-SIGHT PDF CREATED: {pdf_file}")
-        except Exception as e:
-            print(f"TRUE-TO-SIGHT PDF ERROR for {key}: {e}")
+        # Final Lock now saves state only. Packet PDFs are generated during Download Packet.
 
         next_form = TH_NEXT_FORMS.get(route)
 
