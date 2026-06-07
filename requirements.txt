@@ -6,3 +6,4 @@ pypdf
 PyPDF2
 playwright==1.60.0
 psycopg[binary]
+psycopg2-binary==2.9.12
