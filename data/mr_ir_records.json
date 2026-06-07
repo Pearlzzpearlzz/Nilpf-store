@@ -177,5 +177,20 @@
       "generate_true_to_sight_pdf now only remains in definition/comment/download_packet"
     ],
     "backup_status": "Ready to commit and push"
+  },
+  {
+    "date": "2026-06-07 07:45",
+    "title": "PostgreSQL migration planning started",
+    "category": "Database Migration Planning",
+    "summary": "Created database planning folder and drafted PostgreSQL migration plan plus initial hybrid relational/JSONB schema. No app behavior changed. Public routes remain unchanged.",
+    "files_updated": [
+      "database/postgres_schema_plan.md",
+      "database/init_migration_schema.sql"
+    ],
+    "tested": [
+      "Verified SQL file contains 14 CREATE TABLE statements",
+      "Confirmed database files are staged next for commit"
+    ],
+    "status": "Ready to commit"
   }
 ]
