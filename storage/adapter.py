@@ -30,6 +30,7 @@ class JSONStorageAdapter:
         self.license_requests_file = self.data_dir / "license_requests.json"
         self.audit_log_file = self.data_dir / "audit_log.json"
         self.property_papers_file = self.data_dir / "property_papers.json"
+        self.shared_forms_file = self.data_dir / "shared_forms.json"
         self.employee_certs_file = self.data_dir / "employee_certifications.json"
         self.paypal_webhook_events_file = self.data_dir / "paypal_webhook_events.json"
         self.rolodex_file = self.data_dir / "rolodex.json"
@@ -72,6 +73,13 @@ class JSONStorageAdapter:
 
     def save_property_papers(self, data):
         return write_json(self.property_papers_file, data, indent=2)
+
+    def get_shared_forms(self):
+        data = read_json(self.shared_forms_file, {})
+        return data if isinstance(data, dict) else {}
+
+    def save_shared_forms(self, data):
+        return write_json(self.shared_forms_file, data, indent=2)
 
     def get_employee_certs(self):
         data = read_json(self.employee_certs_file, [])

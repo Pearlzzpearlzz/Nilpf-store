@@ -50,6 +50,7 @@ class StorageCoordinator:
             "license_requests": self.json_backup.save_license_requests,
             "audit_logs": self.json_backup.save_audit_logs,
             "property_papers": self.json_backup.save_property_papers,
+            "shared_forms": self.json_backup.save_shared_forms,
             "employee_certs": self.json_backup.save_employee_certs,
             "paypal_webhook_events": self.json_backup.save_paypal_webhook_events,
             "rolodex": self.json_backup.save_rolodex,
@@ -97,6 +98,12 @@ class StorageCoordinator:
 
     def save_property_papers(self, data):
         return self.json_backup.save_property_papers(data)
+
+    def get_shared_forms(self):
+        return self.json_backup.get_shared_forms()
+
+    def save_shared_forms(self, data):
+        return self.json_backup.save_shared_forms(data)
 
     def get_employee_certs(self):
         return self.json_backup.get_employee_certs()
