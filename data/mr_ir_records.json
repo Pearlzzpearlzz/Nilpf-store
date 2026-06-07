@@ -285,5 +285,18 @@
       "Compiled app.py successfully"
     ],
     "status": "Ready to commit"
+  },
+  {
+    "timestamp": "2026-06-07T08:40:45",
+    "area": "Phase 4 route cleanup",
+    "title": "Reviewed TH route participant reloads",
+    "details": [
+      "Inspected make_th_routes block for th_form, th_print, th_final, and th_unlock.",
+      "Confirmed each route reloads participants with load_participants_file().",
+      "Confirmed reloads are now adapter-backed after storage adapter work.",
+      "Decision: leave reload behavior unchanged to preserve safe fresh-read route behavior.",
+      "No app.py code changes made in this checkpoint."
+    ],
+    "status": "reviewed_no_code_change"
   }
 ]
