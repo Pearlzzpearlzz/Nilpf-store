@@ -3256,6 +3256,7 @@ def mr_ir_scan():
         {"name": "Operations", "path": "/operations", "purpose": "Main operations/control area"},
         {"name": "Rolodex", "path": "/rolodex", "purpose": "Organization contact list"},
         {"name": "PDF Diagnostic", "path": "/render-pdf-diagnostic", "purpose": "Render/Docker PDF generation check"},
+        {"name": "Storage Check", "path": "/mr-ir/storage-check", "purpose": "Storage coordinator and JSON fallback diagnostic"},
         {"name": "Packet Builder PID 0", "path": "/packet-builder/0", "purpose": "Participant packet builder test"},
     ]
 

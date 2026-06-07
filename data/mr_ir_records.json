@@ -432,5 +432,21 @@
       "Confirmed activation, participants, license_requests, audit_logs, property_papers, employee_certs, paypal_webhook_events, and rolodex returned PASS"
     ],
     "status": "completed_pending_commit"
+  },
+  {
+    "timestamp": "2026-06-07T11:02:51",
+    "phase": "Phase 6D",
+    "title": "Add Storage Check to Mr. IR Scan",
+    "files_changed": [
+      "app.py",
+      "data/mr_ir_records.json"
+    ],
+    "summary": "Included /mr-ir/storage-check in the Mr. IR scan list, so automated scan tests the coordinator and JSON fallback diagnostic.",
+    "verification": [
+      "python3 -m py_compile app.py",
+      "GET /mr-ir/scan returned 200",
+      "Storage Check appears in scan output"
+    ],
+    "status": "completed_pending_commit"
   }
 ]
