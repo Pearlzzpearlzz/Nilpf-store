@@ -370,15 +370,7 @@ def generate_license_number(existing_requests):
 AUDIT_LOG_FILE = "data/audit_log.json"
 
 def write_audit(action, participant_id=None, form_key="", details=""):
-    os.makedirs("data", exist_ok=True)
-
-    try:
-        with open(AUDIT_LOG_FILE, "r") as f:
-            logs = json.load(f)
-            if not isinstance(logs, list):
-                logs = []
-    except Exception:
-        logs = []
+    logs = storage.get_audit_logs()
 
     activated_system = load_activation()
 
@@ -395,8 +387,7 @@ def write_audit(action, participant_id=None, form_key="", details=""):
         "details": details
     })
 
-    with open(AUDIT_LOG_FILE, "w") as f:
-        json.dump(logs, f, indent=2)
+    storage.save_audit_logs(logs)
 
 @app.route("/")
 def home():
