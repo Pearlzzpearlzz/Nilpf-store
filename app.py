@@ -347,16 +347,10 @@ def save_activation(data):
 PARTICIPANTS_FILE = "data/participants.json"
 
 def load_participants():
-    os.makedirs("data", exist_ok=True)
-    if os.path.exists(PARTICIPANTS_FILE):
-        with open(PARTICIPANTS_FILE, "r") as f:
-            return json.load(f)
-    return []
+    return storage.get_participants()
 
 def save_participants(data):
-    os.makedirs("data", exist_ok=True)
-    with open(PARTICIPANTS_FILE, "w") as f:
-        json.dump(data, f)
+    return storage.save_participants(data)
 
 
 LICENSE_REQUESTS_FILE = "data/license_requests.json"
@@ -697,15 +691,10 @@ def core_docs():
 PARTICIPANTS_FILE = "data/participants.json"
 
 def load_participants_file():
-    if os.path.exists(PARTICIPANTS_FILE):
-        with open(PARTICIPANTS_FILE, "r") as f:
-            return json.load(f)
-    return []
+    return storage.get_participants()
 
 def save_participants_file():
-    os.makedirs("data", exist_ok=True)
-    with open(PARTICIPANTS_FILE, "w") as f:
-        json.dump(participants, f, indent=2)
+    return storage.save_participants(participants)
 
 participants = load_participants_file()
 

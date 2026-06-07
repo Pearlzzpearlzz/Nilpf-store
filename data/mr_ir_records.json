@@ -238,5 +238,39 @@
       "Confirmed storage reads live JSON files correctly"
     ],
     "status": "Safe checkpoint before participant routes"
+  },
+  {
+    "date": "2026-06-07 08:21",
+    "title": "Participant storage helpers connected to adapter",
+    "category": "Storage Adapter Planning",
+    "summary": "Connected load_participants/save_participants and load_participants_file/save_participants_file to storage.adapter.storage while preserving the existing global participants behavior.",
+    "files_updated": [
+      "app.py"
+    ],
+    "tested": [
+      "Compiled app.py",
+      "Confirmed participants.json reads as a list",
+      "Confirmed participant count and first participant keys",
+      "Confirmed key Flask endpoints are still registered"
+    ],
+    "status": "Safe checkpoint before deeper route cleanup"
+  },
+  {
+    "date": "2026-06-07 08:22",
+    "title": "Participant adapter fully integrated",
+    "category": "Storage Adapter / MR IR",
+    "summary": "All participant storage helpers (load/save and file-based) are now using storage.adapter.storage. App routes remain unchanged; JSON behavior preserved.",
+    "files_updated": [
+      "app.py",
+      "storage/adapter.py",
+      "storage/json_store.py"
+    ],
+    "tested": [
+      "Compiled app.py and storage modules",
+      "Verified participants.json reads correctly",
+      "Verified participant count and keys",
+      "Verified Flask routes intact"
+    ],
+    "status": "Safe checkpoint before route cleanup / PostgreSQL migration"
   }
 ]
