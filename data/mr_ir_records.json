@@ -397,5 +397,22 @@
       "Confirmed storage/coordinator.py ends with storage_coordinator = StorageCoordinator()"
     ],
     "status": "completed_followup_record"
+  },
+  {
+    "timestamp": "2026-06-07T10:56:45",
+    "phase": "Phase 6B",
+    "title": "Wire app.py to Storage Coordinator",
+    "files_changed": [
+      "app.py",
+      "data/mr_ir_records.json"
+    ],
+    "summary": "Changed app.py to import storage_coordinator as storage. Existing storage.get_* and storage.save_* calls now route through the Phase 6 coordinator while preserving JSON as the active engine.",
+    "verification": [
+      "python3 -m py_compile app.py storage/coordinator.py storage/adapter.py storage/json_store.py",
+      "Imported app successfully",
+      "Confirmed app.storage is StorageCoordinator",
+      "Confirmed active storage engine is json"
+    ],
+    "status": "completed_pending_commit"
   }
 ]

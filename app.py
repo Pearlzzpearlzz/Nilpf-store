@@ -1,7 +1,7 @@
 from reportlab.pdfgen import canvas
 import fitz
 from pathlib import Path
-from storage.adapter import storage
+from storage.coordinator import storage_coordinator as storage
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 import json
 import os
