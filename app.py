@@ -338,6 +338,45 @@ SHARED_HOUSING_FORMS = [
 ]
 
 
+def get_active_shared_housing_forms():
+    """
+    Hybrid shared-form registry.
+
+    Keeps hardcoded shared housing forms as the safe default.
+    Allows data/shared_forms.json to add future shared forms without editing app.py.
+    """
+    forms = list(SHARED_HOUSING_FORMS)
+
+    try:
+        saved = storage.get_shared_forms()
+    except Exception:
+        saved = {}
+
+    extra_forms = saved.get("housing_forms", []) if isinstance(saved, dict) else []
+    if not isinstance(extra_forms, list):
+        extra_forms = []
+
+    seen = {item.get("file") for item in forms if isinstance(item, dict)}
+
+    for item in extra_forms:
+        if not isinstance(item, dict):
+            continue
+
+        title = item.get("title")
+        file_path = item.get("file")
+
+        if not title or not file_path:
+            continue
+
+        if file_path in seen:
+            continue
+
+        forms.append({"title": title, "file": file_path})
+        seen.add(file_path)
+
+    return forms
+
+
 def load_activation():
     return storage.get_activation()
 
@@ -1638,7 +1677,7 @@ def packet_builder(id):
                 seen.add(key)
     if program_type not in ["ILH", "PSH"]:
         existing_files = {item.get("file") for item in docs}
-        for shared_doc in SHARED_HOUSING_FORMS:
+        for shared_doc in get_active_shared_housing_forms():
             if shared_doc.get("file") not in existing_files:
                 docs.append(shared_doc)
                 existing_files.add(shared_doc.get("file"))
