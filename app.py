@@ -1,6 +1,7 @@
 from reportlab.pdfgen import canvas
 import fitz
 from pathlib import Path
+from storage.adapter import storage
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 import json
 import os
@@ -338,15 +339,10 @@ SHARED_HOUSING_FORMS = [
 
 
 def load_activation():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
-    return {}
+    return storage.get_activation()
 
 def save_activation(data):
-    os.makedirs("data", exist_ok=True)
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f)
+    return storage.save_activation(data)
 
 PARTICIPANTS_FILE = "data/participants.json"
 
@@ -366,16 +362,10 @@ def save_participants(data):
 LICENSE_REQUESTS_FILE = "data/license_requests.json"
 
 def load_license_requests():
-    os.makedirs("data", exist_ok=True)
-    if os.path.exists(LICENSE_REQUESTS_FILE):
-        with open(LICENSE_REQUESTS_FILE, "r") as f:
-            return json.load(f)
-    return []
+    return storage.get_license_requests()
 
 def save_license_requests(data):
-    os.makedirs("data", exist_ok=True)
-    with open(LICENSE_REQUESTS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    return storage.save_license_requests(data)
 
 def generate_license_number(existing_requests):
     year = datetime.now().year
@@ -749,32 +739,10 @@ def add_participant():
 PROPERTY_PAPERS_FILE = "data/property_papers.json"
 
 def load_property_papers():
-    import json, os
-    default = {
-        "mou_partner_agreements": [],
-        "ilh_master_leases": [],
-        "th_master_leases": [],
-        "board_resolutions": [],
-        "waiver_financial_justifications": [],
-        "triple_net_leases": [],
-        "program_housing_covenants": []
-    }
-    if not os.path.exists(PROPERTY_PAPERS_FILE):
-        return default
-    try:
-        with open(PROPERTY_PAPERS_FILE, "r") as f:
-            data = json.load(f)
-        for key, value in default.items():
-            data.setdefault(key, value)
-        return data
-    except Exception:
-        return default
+    return storage.get_property_papers()
 
 def save_property_papers(data):
-    import json, os
-    os.makedirs("data", exist_ok=True)
-    with open(PROPERTY_PAPERS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    return storage.save_property_papers(data)
 
 def is_property_paper_route(route):
     return route in [

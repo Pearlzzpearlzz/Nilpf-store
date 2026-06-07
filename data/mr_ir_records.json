@@ -223,5 +223,20 @@
       "Confirmed app.py is not connected to the adapter yet"
     ],
     "status": "Ready to commit"
+  },
+  {
+    "date": "2026-06-07 08:17",
+    "title": "Adapter integration for simple helpers",
+    "category": "Storage Adapter Planning",
+    "summary": "Connected app.py helper functions (activation, license requests, property papers) to storage.adapter.storage. Participants routes remain unchanged.",
+    "files_updated": [
+      "app.py"
+    ],
+    "tested": [
+      "Compiled app.py",
+      "Compiled storage/adapter.py and json_store.py",
+      "Confirmed storage reads live JSON files correctly"
+    ],
+    "status": "Safe checkpoint before participant routes"
   }
 ]
