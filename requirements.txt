@@ -5,3 +5,4 @@ PyMuPDF
 pypdf
 PyPDF2
 playwright==1.60.0
+psycopg[binary]
