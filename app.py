@@ -980,13 +980,13 @@ def build_apb_hmis_readiness_summary():
     from pathlib import Path
     from datetime import datetime
 
-    participants_path = Path("data/participants.json")
-    participants = []
-    if participants_path.exists():
-        try:
-            participants = json.loads(participants_path.read_text() or "[]")
-        except Exception:
-            participants = []
+    try:
+        participants = storage.get_participants()
+    except Exception:
+        participants = []
+
+    if not isinstance(participants, list):
+        participants = []
 
     summary = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %I:%M %p"),
