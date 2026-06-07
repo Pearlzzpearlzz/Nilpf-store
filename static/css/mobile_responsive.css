@@ -116,3 +116,44 @@
     height: auto !important;
   }
 }
+
+/* Phase 5 Phone-First Prep */
+.mobile-container {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.mobile-container input,
+.mobile-container select,
+.mobile-container textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.mobile-container button,
+.mobile-container .btn,
+.mobile-container a.btn {
+  width: 100%;
+  min-height: 46px;
+  display: block;
+  box-sizing: border-box;
+  text-align: center;
+  margin: 8px 0;
+}
+
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 760px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .mobile-container {
+    max-width: 920px;
+  }
+}

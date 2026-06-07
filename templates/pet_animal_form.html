@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 </head>
 <body>
+<div class="mobile-container">
 
 <h2>10 – Pet_Animal_Information_Sheet</h2>
 <p><strong>Shared Housing Program</strong></p>
@@ -94,5 +95,6 @@
 <form method="POST" action="/pet-animal/{{ id }}">
 <button type="submit">Save</button>
 </form>
+</div>
 </body>
 </html>

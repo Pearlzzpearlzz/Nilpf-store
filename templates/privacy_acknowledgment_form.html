@@ -14,6 +14,7 @@ button { padding: 10px 18px; font-weight: bold; }
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 </head>
 <body>
+<div class="mobile-container">
 <form method="POST" action="/privacy-acknowledgment/{{ id }}">
 
 <h1>11 – Participant Privacy / Non-Commercialization Acknowledgment</h1>
@@ -44,5 +45,6 @@ button { padding: 10px 18px; font-weight: bold; }
 <button type="submit">Save / Review</button>
 </form>
 
+</div>
 </body>
 </html>

@@ -12,6 +12,7 @@ button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 </head>
 <body>
+<div class="mobile-container">
 
 <h1>MASTER PROGRAM LICENSE AGREEMENT</h1>
 <h1>MASTER LICENSE AGREEMENT</h1>
@@ -300,5 +301,6 @@ button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
 <form method="POST" action="/ilh-mla/{{ id }}">
 <button type="submit">Save</button>
 </form>
+</div>
 </body>
 </html>
