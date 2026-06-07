@@ -19,13 +19,29 @@ except Exception:
         print("FAIL: No PostgreSQL driver found. Install psycopg2-binary or psycopg.")
         sys.exit(1)
 
+EXPECTED_DEFAULTS = {
+    "activation": {},
+    "participants": [],
+    "license_requests": [],
+    "audit_log": [],
+    "property_papers": {},
+    "employee_certifications": [],
+    "paypal_webhook_events": [],
+    "rolodex": [],
+    "shared_forms": {},
+    "mr_ir_records": [],
+}
+
 def connect():
     if DRIVER == "psycopg2":
         return psycopg2.connect(DATABASE_URL)
     return psycopg.connect(DATABASE_URL)
 
+def execute(cur, sql, params=None):
+    cur.execute(sql, params or ())
+
 def table_exists(cur):
-    cur.execute("""
+    execute(cur, """
         SELECT EXISTS (
             SELECT 1
             FROM information_schema.tables
@@ -35,7 +51,7 @@ def table_exists(cur):
     return cur.fetchone()[0]
 
 def get_columns(cur):
-    cur.execute("""
+    execute(cur, """
         SELECT column_name
         FROM information_schema.columns
         WHERE table_name = 'nilpf_json_store'
@@ -43,18 +59,39 @@ def get_columns(cur):
     """)
     return [r[0] for r in cur.fetchall()]
 
-def execute(cur, sql, params=None):
-    cur.execute(sql, params or ())
+def upsert_record(cur, key_col, json_col, source_col, updated_col, store_key, payload, source_file):
+    execute(cur, f"DELETE FROM nilpf_json_store WHERE {key_col} = %s", (store_key,))
+
+    cols = [key_col, json_col]
+    vals = [store_key, Json(payload) if DRIVER == "psycopg2" else json.dumps(payload)]
+
+    if source_col:
+        cols.append(source_col)
+        vals.append(source_file)
+
+    if updated_col:
+        cols.append(updated_col)
+        vals.append(datetime.now(timezone.utc))
+
+    placeholders = ", ".join(["%s"] * len(vals))
+    col_sql = ", ".join(cols)
+
+    execute(
+        cur,
+        f"INSERT INTO nilpf_json_store ({col_sql}) VALUES ({placeholders})",
+        tuple(vals)
+    )
 
 data_dir = Path("data")
 if not data_dir.exists():
-    print("FAIL: /app/data folder not found.")
-    sys.exit(1)
+    print("WARN: /app/data folder not found. Will seed expected defaults only.")
+    json_files = []
+else:
+    json_files = sorted(data_dir.rglob("*.json"))
 
-json_files = sorted(data_dir.rglob("*.json"))
-if not json_files:
-    print("WARN: No JSON files found under /app/data.")
-    sys.exit(0)
+print("JSON files found under data/:", len(json_files))
+for p in json_files:
+    print("FOUND:", p.as_posix())
 
 conn = connect()
 cur = conn.cursor()
@@ -63,9 +100,8 @@ if not table_exists(cur):
     print("nilpf_json_store not found. Creating safe JSONB store table...")
     execute(cur, """
         CREATE TABLE nilpf_json_store (
-            store_key TEXT PRIMARY KEY,
+            name TEXT PRIMARY KEY,
             payload JSONB NOT NULL,
-            source_file TEXT,
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
     """)
@@ -95,6 +131,7 @@ print("Backup created:", backup_table)
 
 seeded = 0
 skipped = 0
+seen_keys = set()
 
 for path in json_files:
     rel = path.relative_to(data_dir).as_posix()
@@ -107,42 +144,38 @@ for path in json_files:
         skipped += 1
         continue
 
-    execute(cur, f"DELETE FROM nilpf_json_store WHERE {key_col} = %s", (store_key,))
+    upsert_record(cur, key_col, json_col, source_col, updated_col, store_key, payload, f"data/{rel}")
+    seen_keys.add(store_key)
 
-    cols = [key_col, json_col]
-    vals = [store_key, Json(payload) if DRIVER == "psycopg2" else json.dumps(payload)]
-
-    if source_col:
-        cols.append(source_col)
-        vals.append(rel)
-
-    if updated_col:
-        cols.append(updated_col)
-        vals.append(datetime.now(timezone.utc))
-
-    placeholders = ", ".join(["%s"] * len(vals))
-    col_sql = ", ".join(cols)
-
-    execute(
-        cur,
-        f"INSERT INTO nilpf_json_store ({col_sql}) VALUES ({placeholders})",
-        tuple(vals)
-    )
-
-    print(f"SEEDED: {store_key} <= data/{rel}")
+    print(f"SEEDED FILE: {store_key} <= data/{rel}")
     seeded += 1
+
+defaulted = 0
+
+for store_key, payload in EXPECTED_DEFAULTS.items():
+    if store_key in seen_keys:
+        continue
+
+    upsert_record(cur, key_col, json_col, source_col, updated_col, store_key, payload, "DEFAULT_EMPTY_RECORD")
+    print(f"SEEDED DEFAULT: {store_key}")
+    defaulted += 1
 
 conn.commit()
 
-execute(cur, "SELECT COUNT(*) FROM nilpf_json_store")
-count = cur.fetchone()[0]
+execute(cur, f"SELECT {key_col} FROM nilpf_json_store ORDER BY {key_col}")
+keys = [r[0] for r in cur.fetchall()]
 
 cur.close()
 conn.close()
 
 print("")
 print("DONE.")
-print("Seeded files:", seeded)
+print("Seeded JSON files:", seeded)
+print("Seeded safe defaults:", defaulted)
 print("Skipped files:", skipped)
-print("Rows now in nilpf_json_store:", count)
+print("Total rows now in nilpf_json_store:", len(keys))
 print("Backup table:", backup_table)
+print("")
+print("Current store keys:")
+for k in keys:
+    print("-", k)
