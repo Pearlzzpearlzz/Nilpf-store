@@ -335,5 +335,17 @@
       "app.py and storage/adapter.py compiled successfully after changes."
     ],
     "status": "reviewed_no_code_change"
+  },
+  {
+    "timestamp": "2026-06-07T08:58:52",
+    "area": "Phase 4 storage adapter cleanup",
+    "title": "Connected rolodex to storage adapter",
+    "details": [
+      "Replaced direct read/write of data/rolodex.json with storage adapter methods.",
+      "load_rolodex() now calls storage.get_rolodex(), save_rolodex() calls storage.save_rolodex().",
+      "Preserved contact list behavior, structure, and formatting.",
+      "app.py and storage/adapter.py compiled successfully after changes."
+    ],
+    "status": "reviewed_no_code_change"
   }
 ]

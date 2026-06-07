@@ -3224,17 +3224,10 @@ def agency_sponsorship_record_final(id):
 
 
 def load_rolodex():
-    path = Path("data/rolodex.json")
-    if not path.exists():
-        return []
-    try:
-        return json.loads(path.read_text())
-    except Exception:
-        return []
+    return storage.get_rolodex()
 
 def save_rolodex(contacts):
-    Path("data").mkdir(exist_ok=True)
-    Path("data/rolodex.json").write_text(json.dumps(contacts, indent=2))
+    return storage.save_rolodex(contacts)
 
 
 @app.route("/rolodex", methods=["GET","POST"])
