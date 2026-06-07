@@ -448,5 +448,22 @@
       "Storage Check appears in scan output"
     ],
     "status": "completed_pending_commit"
+  },
+  {
+    "timestamp": "2026-06-07T11:06:46",
+    "phase": "Phase 6E",
+    "title": "Local JSON Snapshot Backup Script",
+    "files_changed": [
+      "backup_json_snapshot.py",
+      "data/mr_ir_records.json"
+    ],
+    "summary": "Added a local backup script that reads core JSON storage through the StorageCoordinator and writes timestamped cold snapshots into data/backups without modifying live app records.",
+    "verification": [
+      "python3 -m py_compile backup_json_snapshot.py",
+      "Ran python3 backup_json_snapshot.py successfully",
+      "Confirmed activation, participants, license_requests, audit_log, property_papers, employee_certifications, paypal_webhook_events, and rolodex were copied into a timestamped snapshot folder",
+      "Confirmed git status only showed backup_json_snapshot.py as untracked, not the generated backup data"
+    ],
+    "status": "completed_pending_commit"
   }
 ]
