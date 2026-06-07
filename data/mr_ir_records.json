@@ -465,5 +465,21 @@
       "Confirmed git status only showed backup_json_snapshot.py as untracked, not the generated backup data"
     ],
     "status": "completed_pending_commit"
+  },
+  {
+    "timestamp": "2026-06-07T11:10:50",
+    "phase": "Phase 6F",
+    "title": "Emergency JSON Restore Guide",
+    "files_changed": [
+      "RESTORE_JSON_BACKUP.md",
+      "data/mr_ir_records.json"
+    ],
+    "summary": "Added a human-readable emergency restore guide for local JSON snapshots. The guide explains how to create a fresh safety backup, list snapshots, restore one file, restore the full core JSON set, verify JSON syntax, and run Mr. IR storage checks after restore.",
+    "verification": [
+      "Reviewed RESTORE_JSON_BACKUP.md with sed -n '1,220p'",
+      "Confirmed guide includes Step 1 through Step 7",
+      "Confirmed guide warns not to commit live backup snapshots"
+    ],
+    "status": "completed_pending_commit"
   }
 ]
