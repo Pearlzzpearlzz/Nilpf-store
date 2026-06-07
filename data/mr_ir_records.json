@@ -298,5 +298,18 @@
       "No app.py code changes made in this checkpoint."
     ],
     "status": "reviewed_no_code_change"
+  },
+  {
+    "timestamp": "2026-06-07T08:45:59",
+    "area": "Phase 4 storage adapter cleanup",
+    "title": "Connected employee certifications to storage adapter",
+    "details": [
+      "Added employee_certifications.json path to JSONStorageAdapter.",
+      "Added get_employee_certs() and save_employee_certs() adapter methods.",
+      "Updated app.py load_employee_certs() and save_employee_certs() helpers to call storage adapter.",
+      "Preserved existing employee certification behavior and data shape.",
+      "Compiled app.py and storage/adapter.py successfully."
+    ],
+    "status": "compiled_passed"
   }
 ]

@@ -970,17 +970,10 @@ def tsh_program_tools():
 EMPLOYEE_CERTS_FILE = "data/employee_certifications.json"
 
 def load_employee_certs():
-    import json, os
-    if not os.path.exists(EMPLOYEE_CERTS_FILE):
-        return []
-    with open(EMPLOYEE_CERTS_FILE, "r") as f:
-        return json.load(f)
+    return storage.get_employee_certs()
 
 def save_employee_certs(records):
-    import json, os
-    os.makedirs("data", exist_ok=True)
-    with open(EMPLOYEE_CERTS_FILE, "w") as f:
-        json.dump(records, f, indent=2)
+    return storage.save_employee_certs(records)
 
 def employee_cert_status(expiration_date):
     from datetime import datetime, date

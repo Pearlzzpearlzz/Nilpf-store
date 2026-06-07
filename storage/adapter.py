@@ -30,6 +30,7 @@ class JSONStorageAdapter:
         self.license_requests_file = self.data_dir / "license_requests.json"
         self.audit_log_file = self.data_dir / "audit_log.json"
         self.property_papers_file = self.data_dir / "property_papers.json"
+        self.employee_certs_file = self.data_dir / "employee_certifications.json"
 
     def get_activation(self):
         return read_json(self.activation_file, {})
@@ -69,6 +70,13 @@ class JSONStorageAdapter:
 
     def save_property_papers(self, data):
         return write_json(self.property_papers_file, data, indent=2)
+
+    def get_employee_certs(self):
+        data = read_json(self.employee_certs_file, [])
+        return data if isinstance(data, list) else []
+
+    def save_employee_certs(self, data):
+        return write_json(self.employee_certs_file, data, indent=2)
 
 
 storage = JSONStorageAdapter()
