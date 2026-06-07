@@ -536,5 +536,25 @@
       "PDF mapper static/mappings.json should stay file-based for now.",
       "Audit summary counter should be redesigned later as a reporting/storage helper instead of patched blindly."
     ]
+  },
+  {
+    "timestamp": "2026-06-07T11:46:21",
+    "category": "STORAGE_SHARED_FORMS",
+    "title": "Added Shared Forms storage methods",
+    "summary": "Storage adapter and coordinator now include get_shared_forms() and save_shared_forms() for multi-program shared forms. Tested smoke read/write using storage_coordinator.",
+    "files_changed": [
+      "storage/adapter.py",
+      "storage/coordinator.py"
+    ],
+    "tests": [
+      "python3 -m py_compile app.py storage/json_store.py storage/adapter.py storage/coordinator.py",
+      "from storage.coordinator import storage_coordinator as storage; storage.get_shared_forms(); storage.save_shared_forms({})"
+    ],
+    "result": "PASS",
+    "notes": [
+      "data/shared_forms.json auto-created if missing",
+      "Gitignore prevents committing runtime shared forms",
+      "No changes were made to participant or program-level data"
+    ]
   }
 ]
