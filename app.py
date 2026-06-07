@@ -522,17 +522,7 @@ def paypal_webhook():
         or ""
     )
 
-    os.makedirs("data", exist_ok=True)
-    webhook_log_file = "data/paypal_webhook_events.json"
-
-    try:
-        if os.path.exists(webhook_log_file):
-            with open(webhook_log_file, "r") as f:
-                webhook_events = json.load(f)
-        else:
-            webhook_events = []
-    except Exception:
-        webhook_events = []
+    webhook_events = storage.get_paypal_webhook_events()
 
     webhook_record = {
         "received_at": datetime.now().isoformat(timespec="seconds"),
@@ -544,8 +534,7 @@ def paypal_webhook():
 
     webhook_events.append(webhook_record)
 
-    with open(webhook_log_file, "w") as f:
-        json.dump(webhook_events, f, indent=2)
+    storage.save_paypal_webhook_events(webhook_events)
 
     updated_license = None
 

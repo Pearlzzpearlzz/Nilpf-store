@@ -31,6 +31,7 @@ class JSONStorageAdapter:
         self.audit_log_file = self.data_dir / "audit_log.json"
         self.property_papers_file = self.data_dir / "property_papers.json"
         self.employee_certs_file = self.data_dir / "employee_certifications.json"
+        self.paypal_webhook_events_file = self.data_dir / "paypal_webhook_events.json"
 
     def get_activation(self):
         return read_json(self.activation_file, {})
@@ -77,6 +78,13 @@ class JSONStorageAdapter:
 
     def save_employee_certs(self, data):
         return write_json(self.employee_certs_file, data, indent=2)
+
+    def get_paypal_webhook_events(self):
+        data = read_json(self.paypal_webhook_events_file, [])
+        return data if isinstance(data, list) else []
+
+    def save_paypal_webhook_events(self, data):
+        return write_json(self.paypal_webhook_events_file, data, indent=2)
 
 
 storage = JSONStorageAdapter()

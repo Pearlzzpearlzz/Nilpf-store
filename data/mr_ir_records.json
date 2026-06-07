@@ -323,5 +323,17 @@
       "app.py compiled successfully after changes."
     ],
     "status": "reviewed_no_code_change"
+  },
+  {
+    "timestamp": "2026-06-07T08:53:19",
+    "area": "Phase 4 storage adapter cleanup",
+    "title": "Connected PayPal webhook to storage adapter",
+    "details": [
+      "Replaced direct json.load / json.dump for webhook_log_file with storage adapter methods.",
+      "write/read now use storage.get_paypal_webhook_events() / storage.save_paypal_webhook_events().",
+      "Preserved webhook event structure, timestamps, and processing logic.",
+      "app.py and storage/adapter.py compiled successfully after changes."
+    ],
+    "status": "reviewed_no_code_change"
   }
 ]
