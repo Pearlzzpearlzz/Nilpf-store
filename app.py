@@ -2929,13 +2929,6 @@ def make_th_routes(route, key, form_template, print_template):
                 if intake_name:
                     participants[id]["name"] = intake_name.title()
 
-            # If this is Intake Assessment, copy participant_name into the main participant record.
-            # This allows later forms to auto-populate the participant name.
-            if key == "intake_assessment":
-                intake_name = state["data"].get("participant_name", "").strip()
-                if intake_name:
-                    participants[id]["name"] = intake_name.title()
-
             state["completed"] = True
             th_save_participants(participants)
             return redirect(f"/{route}-print/{id}")

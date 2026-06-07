@@ -272,5 +272,18 @@
       "Verified Flask routes intact"
     ],
     "status": "Safe checkpoint before route cleanup / PostgreSQL migration"
+  },
+  {
+    "date": "2026-06-07 08:34",
+    "title": "Removed duplicate TH intake name-copy block",
+    "category": "Route Cleanup",
+    "summary": "Removed a duplicated Intake Assessment participant_name copy block inside make_th_routes. No storage behavior changed.",
+    "files_updated": [
+      "app.py"
+    ],
+    "tested": [
+      "Compiled app.py successfully"
+    ],
+    "status": "Ready to commit"
   }
 ]
