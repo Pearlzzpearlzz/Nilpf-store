@@ -10,6 +10,11 @@ import os
 import logging
 from .adapter import JSONStorageAdapter
 
+try:
+    from .postgres_adapter import PostgresStorageAdapter
+except Exception:
+    PostgresStorageAdapter = None
+
 logger = logging.getLogger("NILPF_Storage")
 
 
@@ -33,9 +38,18 @@ class StorageCoordinator:
             logger.warning("Unknown STORAGE_MODE=%s. Falling back to json.", self.mode)
             self.mode = "json"
 
-        if self.mode == "postgres" and self.pg_engine is None:
-            logger.warning("Postgres mode requested, but pg_engine is not wired yet. Falling back to json.")
-            self.mode = "json"
+        if self.mode == "postgres":
+            if PostgresStorageAdapter is None:
+                logger.warning("Postgres adapter could not be imported. Falling back to json.")
+                self.mode = "json"
+            else:
+                try:
+                    self.pg_engine = PostgresStorageAdapter()
+                    logger.info("Postgres storage engine activated.")
+                except Exception as exc:
+                    logger.exception("Postgres storage activation failed. Falling back to json: %s", exc)
+                    self.pg_engine = None
+                    self.mode = "json"
 
     def active_engine(self):
         return self.mode
