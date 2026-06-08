@@ -778,6 +778,7 @@ participants = load_participants_file()
 
 @app.route("/add_participant", methods=["GET", "POST"])
 def add_participant():
+    participants = load_participants()
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -1723,8 +1724,12 @@ def switch_program(program):
 def packet_builder(id):
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    participants = load_participants()
+
     if id < 0 or id >= len(participants):
         return redirect(url_for("add_participant"))
+
     activated_system = load_activation()
     participant = participants[id]
     program_type = participant.get("program_type") or participant.get("housing_type") or activated_system.get("program_type", "ILH")
