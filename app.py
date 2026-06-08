@@ -786,6 +786,27 @@ def save_participants_file():
 
 participants = load_participants_file()
 
+@app.before_request
+def refresh_participants_from_storage():
+    """
+    Postgres-first live participant refresh.
+
+    Many older routes still read the global participants list directly.
+    This keeps those routes synced with Postgres/JSON before each request,
+    so newly added participants appear in Packet Builder, forms, Operations,
+    Mr.IR checks, and auto-fill paths.
+    """
+    global participants
+
+    # Avoid unnecessary storage reads for static files.
+    if request.endpoint == "static":
+        return
+
+    try:
+        participants = load_participants_file()
+    except Exception as exc:
+        logger.exception("Participant refresh failed before request: %s", exc)
+
 @app.route("/add_participant", methods=["GET", "POST"])
 def add_participant():
     participants = load_participants()
