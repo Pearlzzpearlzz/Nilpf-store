@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Packet Builder</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#050505; color:white; padding:30px; }
+    h1 { color:#d4af37; text-align:center; letter-spacing:2px; }
+    .wrap { max-width:760px; margin:0 auto; border:2px solid #c9a227; border-radius:16px; padding:28px; background:#111; }
+    label { color:#d4af37; font-weight:bold; display:block; margin-bottom:8px; }
+    select { width:100%; padding:14px; font-size:18px; border-radius:8px; margin-bottom:18px; }
+    .btn { display:inline-block; background:#d4af37; color:#000; padding:13px 18px; border-radius:8px; text-decoration:none; font-weight:bold; border:0; cursor:pointer; margin:6px; font-size:16px; }
+    .top { text-align:center; margin-bottom:25px; }
+    .empty { text-align:center; color:#ddd; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="btn" href="{{ url_for('operations') }}">Back to Operations</a>
+  </div>
+
+  <div class="wrap">
+    <h1>Packet Builder</h1>
+
+    {% if participants %}
+      <form method="POST">
+        <label for="pid">Select Participant / PID</label>
+
+        <select name="pid" id="pid" required>
+          <option value="">Choose participant...</option>
+          {% for p in participants %}
+            <option value="{{ loop.index0 }}">
+              PID {{ loop.index0 }}{% if p.get('name') %} - {{ p.get('name') }}{% endif %} — {{ p.get('program_type', 'Program not set') }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <button class="btn" type="submit" name="action" value="open">Open Packet Builder</button>
+        <button class="btn" type="submit" name="action" value="download">Download Packet</button>
+      </form>
+    {% else %}
+      <div class="empty">
+        <h2>No participants saved yet.</h2>
+        <a class="btn" href="{{ url_for('add_participant') }}">Add Participant</a>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

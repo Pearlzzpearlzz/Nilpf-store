@@ -1751,6 +1751,25 @@ def switch_program(program):
     return redirect("/")
 
 
+
+@app.route("/packet-builder", methods=["GET", "POST"])
+def packet_builder_select():
+    live_participants = load_participants()
+
+    if request.method == "POST":
+        pid = request.form.get("pid", "").strip()
+        action = request.form.get("action", "open")
+
+        if pid.isdigit():
+            pid = int(pid)
+            if 0 <= pid < len(live_participants):
+                if action == "download":
+                    return redirect(url_for("download_packet", id=pid))
+                return redirect(url_for("packet_builder", id=pid))
+
+    return render_template("packet_builder_select.html", participants=live_participants)
+
+
 @app.route("/packet-builder/<int:id>")
 def packet_builder(id):
     if not session.get("logged_in"):
