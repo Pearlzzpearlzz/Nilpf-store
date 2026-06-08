@@ -67,8 +67,41 @@
     }
   </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
+
+<style>
+.nilpf-safe-nav{
+  position:sticky;
+  top:0;
+  z-index:9999;
+  display:flex;
+  justify-content:center;
+  padding:10px;
+  background:#050505;
+  border-bottom:2px solid #D4AF37;
+}
+.nilpf-safe-nav a{
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:8px;
+  background:#D4AF37;
+  color:#000 !important;
+  font-weight:bold;
+  text-decoration:none;
+  font-family:Arial,sans-serif;
+  font-size:14px;
+}
+@media print{
+  .nilpf-safe-nav{display:none !important;}
+}
+</style>
+
 </head>
 <body>
+
+<div class="nilpf-safe-nav">
+  <a href="/operations">Exit to Operations</a>
+</div>
+
   <div class="wrap">
     <div class="hero">
       <h1>Mr.IR — Mr. Internal Repairman</h1>
