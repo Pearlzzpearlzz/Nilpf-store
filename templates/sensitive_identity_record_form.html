@@ -179,6 +179,27 @@
       <option value="Data not collected" {% if ssnq == 'Data not collected' %}selected{% endif %}>Data not collected</option>
     </select>
 
+      <div class="notice" style="margin-top:16px;">
+        <strong>Restricted Eligibility / Verification Section:</strong>
+        Document verification status only. Do not write unnecessary medical details.
+      </div>
+
+      <label>HOPWA Eligibility Verification Status</label>
+      <input type="text" name="hopwa_eligibility_status" value="{{ d.get('hopwa_eligibility_status','') }}" placeholder="Yes / No / Pending / N/A / Not collected">
+
+      <label>PSH Disability Documentation Status</label>
+      <input type="text" name="psh_disability_status" value="{{ d.get('psh_disability_status','') }}" placeholder="Yes / No / Pending / N/A / Not collected">
+
+      <label>Chronic Homelessness Verification Status</label>
+      <input type="text" name="chronic_homelessness_status" value="{{ d.get('chronic_homelessness_status','') }}" placeholder="Yes / No / Pending / N/A / Not collected">
+
+      <label>Verification Source</label>
+      <input type="text" name="verification_source" value="{{ d.get('verification_source','') }}" placeholder="Provider / Benefits / Referral / HMIS / Shelter / Other">
+
+      <label>Staff Verification Notes</label>
+      <textarea name="staff_verification_notes">{{ d.get('staff_verification_notes','') }}</textarea>
+
+
     <label>Operator Notes</label>
     <textarea name="operator_notes">{{ d.get('operator_notes','') }}</textarea>
 

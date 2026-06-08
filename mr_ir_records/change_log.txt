@@ -35,3 +35,12 @@
 - Current status: Visual page works.
 - Not connected yet: Save Update does not save to PID history yet.
 - Next task: connect Quick Service Update to participant records as repeatable dated PID-linked service history.
+
+2026-06-08 - Sensitivity Vault verification fields
+- Added HOPWA eligibility verification status field to Sensitivity Vault.
+- Added PSH disability documentation status field to Sensitivity Vault.
+- Added chronic homelessness verification status field to Sensitivity Vault.
+- Added verification source field.
+- Added staff verification notes field.
+- Updated Sensitivity Vault print/review template to show the same verification fields as read-only.
+- Security note: this documents verification status/source only, not unnecessary medical details.
