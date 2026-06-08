@@ -90,9 +90,37 @@ class StorageCoordinator:
         return self.json_backup.save_activation(data)
 
     def get_participants(self):
+        """
+        Participants are Postgres-first.
+        If Postgres is inactive/unresponsive, fall back to JSON.
+        """
+        if getattr(self, "pg_engine", None):
+            try:
+                return self.pg_engine.get_participants()
+            except Exception as exc:
+                logger.exception("Postgres participant read failed. Falling back to JSON: %s", exc)
+
         return self.json_backup.get_participants()
 
     def save_participants(self, data):
+        """
+        Participants save Postgres-first.
+        JSON is backup mirror when Postgres succeeds, and emergency fallback if Postgres fails.
+        """
+        if getattr(self, "pg_engine", None):
+            try:
+                result = self.pg_engine.save_participants(data)
+
+                # Backup mirror only. JSON is not the live world when Postgres is active.
+                try:
+                    self.json_backup.save_participants(data)
+                except Exception as backup_exc:
+                    logger.exception("JSON participant backup mirror failed: %s", backup_exc)
+
+                return result
+            except Exception as exc:
+                logger.exception("Postgres participant save failed. Falling back to JSON: %s", exc)
+
         return self.json_backup.save_participants(data)
 
     def get_license_requests(self):

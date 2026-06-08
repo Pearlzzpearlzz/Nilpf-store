@@ -769,10 +769,20 @@ def core_docs():
 PARTICIPANTS_FILE = "data/participants.json"
 
 def load_participants_file():
-    return storage.get_participants()
+    """
+    Compatibility wrapper only.
+    Uses the main participant storage path.
+    """
+    return load_participants()
 
 def save_participants_file():
-    return storage.save_participants(participants)
+    """
+    Compatibility wrapper only.
+    Saves the current global participant list through the main storage path.
+    Old routes that still call save_participants_file() will now use Postgres-first storage.
+    """
+    global participants
+    return save_participants(participants)
 
 participants = load_participants_file()
 

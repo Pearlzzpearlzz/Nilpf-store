@@ -157,3 +157,7 @@ class PostgresStorageAdapter:
 
     def save_rolodex(self, data):
         return self._save_doc("rolodex", data)
+
+# Compatibility alias expected by StorageCoordinator
+PostgresAdapter = PostgresStorageAdapter
+
