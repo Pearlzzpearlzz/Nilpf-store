@@ -2863,6 +2863,10 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
     app.add_url_rule(f"/{route_name}-print/<int:id>", endpoint_base + "_print", print_view)
 
     def final_view(id):
+        participants = load_participants()
+        if id < 0 or id >= len(participants):
+            return redirect(url_for("add_participant"))
+
         participant = participants[id]
         participant.setdefault("forms", {})
         participant["forms"].setdefault(form_key, {"data": {}})
@@ -2871,12 +2875,12 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
         save_participants(participants)
 
         # Final Lock now saves state only. Packet PDFs are generated during Download Packet.
-
         next_form = STANDARD_NEXT_FORMS.get(route_name)
         if next_form:
             return redirect(f"/{next_form}/{id}")
+
         if is_property_paper_route(route):
-            save_locked_property_paper(route, state.get("data", {}))
+            save_locked_property_paper(route, participant["forms"][form_key].get("data", {}))
             return redirect("/property-papers")
 
         return redirect(f"/packet-builder/{id}")
