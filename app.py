@@ -784,15 +784,20 @@ def add_participant():
         activated_system = load_activation()
         program_type = activated_system.get("program_type", "ILH")
         if name:
+            new_id = len(participants)
             participants.append({
+                "pid": new_id,
+                "participant_id": new_id,
                 "form_data": {},
                 "forms": {},
                 "name": name,
+                "participant_name": name,
                 "program_type": program_type,
                 "screening": {}
             })
-            new_id = len(participants) - 1
-            print("NEW PARTICIPANT:", name)
+            save_participants(participants)
+            session["current_pid"] = new_id
+            print("NEW PARTICIPANT:", name, "PID:", new_id)
             print("ALL PARTICIPANTS:", participants)
             if program_type == "ILH":
                 return redirect(url_for("entry_screening", id=new_id))
