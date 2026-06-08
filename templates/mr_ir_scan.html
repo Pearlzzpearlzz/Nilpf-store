@@ -131,6 +131,24 @@
       <p>Mr.IR checked key app pages and listed possible issues with suggested fixes.</p>
     </div>
 
+
+      {% set ns = namespace(problem_count=0) %}
+      {% for r in results %}
+        {% if r.result != 'PASS' %}
+          {% set ns.problem_count = ns.problem_count + 1 %}
+        {% endif %}
+      {% endfor %}
+
+      {% if ns.problem_count == 0 %}
+        <div style="background:#dcfce7;border:3px solid #166534;color:#14532d;padding:16px;border-radius:14px;margin:16px 0;font-weight:bold;">
+          SYSTEM READY - All Mr. IR scan checks passed.
+        </div>
+      {% else %}
+        <div style="background:#fee2e2;border:3px solid #991b1b;color:#7f1d1d;padding:16px;border-radius:14px;margin:16px 0;font-weight:bold;">
+          PROBLEMS FOUND - {{ ns.problem_count }} item(s) need review or repair.
+        </div>
+      {% endif %}
+
     <table>
       <thead>
         <tr>
@@ -140,6 +158,7 @@
           <th>Result</th>
           <th>Possible Issue</th>
           <th>Suggested Fix</th>
+            <th>Fix</th>
         </tr>
       </thead>
       <tbody>
@@ -154,6 +173,13 @@
           <td class="{{ r.result }}">{{ r.result }}</td>
           <td>{{ r.possible_issue }}</td>
           <td>{{ r.suggested_fix }}</td>
+            <td>
+              {% if r.result == 'PASS' %}
+                <a class="btn" href="{{ r.path }}">Open</a>
+              {% else %}
+                <a class="btn" style="background:#991b1b;" href="/mr-ir">Manual Fix Required</a>
+              {% endif %}
+            </td>
         </tr>
         {% endfor %}
       </tbody>

@@ -67,3 +67,18 @@
 - Added staff verification notes field.
 - Updated print/review template with matching read-only verification fields.
 - Security note: Sensitivity Vault should document verification status/source only, not unnecessary medical details.
+
+2026-06-08 - Mr. IR scan red/green status upgrade
+- Updated Mr. IR scan template to show SYSTEM READY when all checks pass.
+- Updated Mr. IR scan template to show PROBLEMS FOUND when any scan target returns WARNING, CHECK, or FAIL.
+- Added Fix column to scan results table.
+- PASS rows now provide an Open button.
+- Non-PASS rows now show Manual Fix Required until safe auto-fix routes are added.
+- Purpose: Mr. IR should diagnose the app visually instead of only showing a plain route table.
+
+2026-06-08 - Mr. IR dashboard scan controls
+- Fixed Mr. IR dashboard Packet Builder button to point to /packet-builder instead of /add_participant.
+- Added visible Run Mr. IR Scan button to dashboard.
+- Added visible Run Storage Check button to dashboard.
+- Confirmed /mr-ir/scan route already existed; issue was that the dashboard did not expose the scan action.
+- Confirmed Mr. IR scan template now displays SYSTEM READY or PROBLEMS FOUND and includes a Fix column.
