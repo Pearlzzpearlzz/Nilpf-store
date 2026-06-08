@@ -44,3 +44,26 @@
 - Added staff verification notes field.
 - Updated Sensitivity Vault print/review template to show the same verification fields as read-only.
 - Security note: this documents verification status/source only, not unnecessary medical details.
+
+2026-06-08 - Mr. IR backfill: Packet Builder and route/UI cleanup
+- Confirmed Packet Builder route is live at /packet-builder and participant-specific route is live at /packet-builder/<id>.
+- Confirmed Operations page Packet Builder button points to /packet-builder.
+- Confirmed Packet Builder selector flow exists through packet_builder_select.
+- Confirmed participant-specific Packet Builder route uses packet_builder.
+- Confirmed prior issue was not missing Packet Builder route; it was route/link clarity.
+- Added note for future Mr. IR checks: scan should include Packet Builder selector, participant Packet Builder, and Operations link target.
+
+2026-06-08 - Mr. IR backfill: Sensitivity Vault verification upgrade
+- Confirmed Sensitivity Vault routes exist:
+  /sensitive-identity-record/<id>
+  /sensitive-identity-record-print/<id>
+  /sensitive-identity-record-final/<id>
+  /sensitive-identity-record-unlock/<id>
+- Confirmed saved Sensitivity Vault data exists inside participant forms under sensitive_identity_record.
+- Added HOPWA eligibility verification status field.
+- Added PSH disability documentation status field.
+- Added chronic homelessness verification status field.
+- Added verification source field.
+- Added staff verification notes field.
+- Updated print/review template with matching read-only verification fields.
+- Security note: Sensitivity Vault should document verification status/source only, not unnecessary medical details.
