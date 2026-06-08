@@ -201,6 +201,46 @@ def fill_pdf(src, out, data):
 
 app.secret_key = "nilpf_secret_key"
 
+def license_access_allowed(activation):
+    """
+    Live access rule:
+    - active/payment_received_active = allowed
+    - no license_status = allowed for older/local activation records
+    - pending_payment_verification = allowed only until grace_expires_at
+    """
+    status = str((activation or {}).get("license_status", "")).strip()
+
+    if not status:
+        return True
+
+    if status in ["active", "payment_received_active"]:
+        return True
+
+    if status == "pending_payment_verification":
+        expires = (activation or {}).get("grace_expires_at", "")
+        if not expires:
+            return False
+        try:
+            return datetime.now() <= datetime.fromisoformat(expires)
+        except Exception:
+            return False
+
+    return False
+
+
+def license_payment_notice(activation):
+    status = str((activation or {}).get("license_status", "")).strip()
+    expires = (activation or {}).get("grace_expires_at", "")
+
+    if status == "pending_payment_verification" and expires:
+        return f"Payment is due within the 3-day access window. Grace access expires: {expires}"
+
+    if status == "pending_payment_verification":
+        return "Payment is due before access can continue."
+
+    return ""
+
+
 @app.before_request
 def require_login():
     public_routes = ["login", "activate", "logout", "request_access", "paypal_webhook", "owner_license_approval", "owner_license_approval_activate"]
@@ -208,6 +248,12 @@ def require_login():
         return
 
     if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    activated_system = load_activation()
+    if not license_access_allowed(activated_system):
+        flash("Your 3-day access window has ended. Payment is required to continue.")
+        session.clear()
         return redirect(url_for("login"))
 
     view_args = request.view_args or {}
@@ -484,9 +530,15 @@ def request_access():
 
         license_number = generate_license_number(requests_data)
 
+        now = datetime.now()
+        grace_expires_at = now + timedelta(days=3)
+
         submitted_request = {
             "license_number": license_number,
             "status": "pending_payment_verification",
+            "payment_due_status": "payment_due_within_3_days",
+            "grace_started_at": now.isoformat(timespec="seconds"),
+            "grace_expires_at": grace_expires_at.isoformat(timespec="seconds"),
             "full_name": full_name,
             "business_name": business_name,
             "paypal_email": paypal_email,
@@ -496,7 +548,7 @@ def request_access():
             "zip_code": zip_code,
             "phone": phone,
             "notes": notes,
-            "created_at": datetime.now().isoformat(timespec="seconds")
+            "created_at": now.isoformat(timespec="seconds")
         }
 
         requests_data.append(submitted_request)
@@ -509,6 +561,9 @@ def request_access():
         activated_system["license_number"] = license_number
         activated_system["email"] = paypal_email
         activated_system["license_status"] = "pending_payment_verification"
+        activated_system["payment_due_status"] = "payment_due_within_3_days"
+        activated_system["grace_started_at"] = now.isoformat(timespec="seconds")
+        activated_system["grace_expires_at"] = grace_expires_at.isoformat(timespec="seconds")
         activated_system["business_name"] = business_name
         activated_system["licensed_site_address"] = site_address
         activated_system["licensed_site_city"] = city
@@ -634,6 +689,10 @@ def login():
         entered_email = str(email or "").strip().lower()
 
         if entered_email == stored_email and password == activated_system.get("password"):
+            if not license_access_allowed(activated_system):
+                flash("Your 3-day access window has ended. Payment is required to continue.")
+                return redirect(url_for("login"))
+
             session.clear()
             session["logged_in"] = True
             session["owner_operator_email"] = stored_email
@@ -995,7 +1054,7 @@ def save_employee_certs(records):
     return storage.save_employee_certs(records)
 
 def employee_cert_status(expiration_date):
-    from datetime import datetime, date
+    from datetime import datetime, timedelta, date
     if not expiration_date:
         return "No Expiration"
     try:
@@ -1017,7 +1076,7 @@ def employee_cert_status(expiration_date):
 def build_apb_hmis_readiness_summary():
     import json
     from pathlib import Path
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     try:
         participants = storage.get_participants()
@@ -1190,7 +1249,7 @@ def employee_certifications():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     records = load_employee_certs()
 
@@ -1228,7 +1287,7 @@ def participant_checkin_checkout():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     participants = load_participants()
 
@@ -2426,7 +2485,7 @@ def bill_of_dignity_final(id):
 def render_pdf_diagnostic():
     import os
     from pathlib import Path
-    from datetime import datetime
+    from datetime import datetime, timedelta
     from flask import send_file
 
     try:
