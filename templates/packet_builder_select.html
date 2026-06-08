@@ -24,7 +24,6 @@
     {% if participants %}
       <form method="POST">
         <label for="pid">Select Participant / PID</label>
-
         <select name="pid" id="pid" required>
           <option value="">Choose participant...</option>
           {% for p in participants %}
@@ -35,7 +34,6 @@
         </select>
 
         <button class="btn" type="submit" name="action" value="open">Open Packet Builder</button>
-        <button class="btn" type="submit" name="action" value="download">Download Packet</button>
       </form>
     {% else %}
       <div class="empty">
