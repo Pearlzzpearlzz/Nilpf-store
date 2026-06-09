@@ -706,15 +706,121 @@ def login():
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login</title>
 <style>
-body {{background:#000;color:#fff;font-family:Arial;text-align:center;padding:28px;}}
-.loginbox {{max-width:520px;margin:auto;border:2px solid #d4af37;border-radius:22px;padding:22px;background:#070707;box-shadow:0 0 25px rgba(212,175,55,.3);}}
-.hero {{width:100%;border-radius:16px;border:1px solid #6f5a16;margin-bottom:14px;}}
-input {{width:100%;max-width:390px;padding:12px;margin:8px;border-radius:8px;border:1px solid #d4af37;background:#111;color:#fff;}}
-button {{padding:12px 20px;background:#d4af37;border:none;border-radius:10px;font-weight:bold;}}
-.eye {{cursor:pointer;margin-left:-30px;}}
-a {{color:#d4af37;font-size:14px;}}
+/* LOGIN_PHONE_FIX_20260608 */
+* {{ box-sizing: border-box; }}
+
+body {{
+  background:#000;
+  color:#fff;
+  font-family:Arial;
+  text-align:center;
+  padding:28px;
+  margin:0;
+}}
+
+.loginbox {{
+  width:100%;
+  max-width:520px;
+  margin:auto;
+  border:2px solid #d4af37;
+  border-radius:22px;
+  padding:22px;
+  background:#070707;
+  box-shadow:0 0 25px rgba(212,175,55,.3);
+}}
+
+.hero {{
+  width:100%;
+  max-width:420px;
+  border-radius:16px;
+  border:1px solid #6f5a16;
+  margin-bottom:14px;
+}}
+
+input {{
+  width:100%;
+  max-width:390px;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #d4af37;
+  background:#111;
+  color:#fff;
+  font-size:16px;
+}}
+
+button {{
+  width:100%;
+  max-width:390px;
+  padding:14px 20px;
+  background:#d4af37;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  font-size:16px;
+}}
+
+.eye {{
+  cursor:pointer;
+  margin-left:-30px;
+}}
+
+a {{
+  color:#d4af37;
+  font-size:14px;
+}}
+
+@media (max-width: 700px) {{
+  body {{
+    padding:12px;
+  }}
+
+  .loginbox {{
+    width:100%;
+    max-width:none;
+    margin:16px auto;
+    padding:18px 14px;
+    border-radius:18px;
+  }}
+
+  .hero {{
+    max-width:100%;
+    border-radius:14px;
+  }}
+
+  h2 {{
+    font-size:22px;
+    margin:12px 0;
+  }}
+
+  input {{
+    max-width:none;
+    min-height:50px;
+    font-size:18px;
+    padding:14px;
+  }}
+
+  button {{
+    max-width:none;
+    min-height:52px;
+    font-size:18px;
+    padding:14px;
+    margin-top:8px;
+  }}
+
+  .eye {{
+    display:inline-block;
+    font-size:20px;
+    margin-left:-34px;
+  }}
+
+  a {{
+    font-size:16px;
+  }}
+}}
 </style>
 <script>
 function togglePass() {{
