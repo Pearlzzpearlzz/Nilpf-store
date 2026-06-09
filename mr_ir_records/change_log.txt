@@ -82,3 +82,76 @@
 - Added visible Run Storage Check button to dashboard.
 - Confirmed /mr-ir/scan route already existed; issue was that the dashboard did not expose the scan action.
 - Confirmed Mr. IR scan template now displays SYSTEM READY or PROBLEMS FOUND and includes a Fix column.
+
+============================================================
+MR. IR CHANGE NOTE — 2026-06-08
+============================================================
+
+Work completed / tested today:
+
+1. Sensitivity Vault final-lock issue identified
+- Sensitivity Vault form was tested after Final Lock.
+- Frontend/template read-only guard was added, but live testing showed the record could still be changed after Final Lock.
+- Conclusion: Sensitivity Vault requires backend-level no-edit protection after final lock.
+- Status: BUG IDENTIFIED / BACKEND FIX NEEDED.
+- Important rule: after final lock, SV should become read-only unless unlocked.
+
+2. Property paper / final-lock helper route fix committed
+- Final-lock route behavior tested using Flask test client.
+- Test result for /sensitive-identity-record-final/2:
+  Status: 302
+  Location: /packet-builder/2
+- Commit pushed:
+  af45b6e Fix property paper route helper for final lock
+
+3. Mobile readiness checked
+- Confirmed static/css/mobile_responsive.css exists.
+- Confirmed major templates load mobile_responsive.css:
+  request_access.html
+  login.html / active login route reviewed
+  activation.html
+  operations.html
+  admin_forms.html
+  property_papers.html
+  sensitive_identity_record_form.html
+  sensitive_identity_record_print.html
+  individual_service_plan_form.html
+  individual_service_plan_print.html
+
+4. Packet Builder protected
+- Packet Builder detail page was found to be inline in app.py.
+- Because Packet Builder is functioning and delicate, no mobile patch was applied to PB tonight.
+- Decision: do not risk PB until fresh.
+- Future safer plan: move Packet Builder into a real template before deeper mobile redesign.
+
+5. Login mobile layout improved
+- Active /login page was confirmed to be inline in app.py, not using templates/login.html.
+- Login CSS was patched only inside the inline login page.
+- Added viewport and phone-friendly layout rules.
+- Visual test showed improved vertical phone layout with larger fields and button.
+- Backup created:
+  app_BEFORE_LOGIN_PHONE_FIX_20260608.py
+- Status: READY TO COMMIT / PUSH if compile is clean.
+
+6. Buyer entrance clarified
+- Official buyer Request Access page:
+  https://nilpf-housing-os-docker.onrender.com/request-access
+- Official app login:
+  https://nilpf-housing-os-docker.onrender.com/login
+- WordPress should be treated as sales/education front door.
+- Request Access page should be treated as real buyer intake.
+
+7. WordPress / Gmail / Facebook issues parked
+- WordPress login/mail issue not repaired tonight.
+- Gmail forwarding appears messy but not the main app intake path.
+- Facebook group created:
+  Housing OS: Transitional, Reentry & Program Housing Documentation
+- Facebook is marketing/community work, not app code.
+
+Open items for next session:
+- Commit and push login mobile layout fix if not already committed.
+- Add backend protection for Sensitivity Vault after Final Lock.
+- Decide whether to create a safe /mobile portal.
+- Do not modify Packet Builder until a safer template-based plan is used.
+============================================================
+
