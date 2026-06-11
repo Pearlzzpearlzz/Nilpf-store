@@ -2056,26 +2056,9 @@ def packet_builder(id):
 
 @app.route("/screening")
 def screening():
-    activated_system = load_activation()
-    program_type = activated_system.get("program_type", "ILH")
-
-    if program_type == "PSH":
-        return "PSH module is parked and not active yet. Select ILH, Transitional, VA, DOC, or Reentry on the Dashboard."
-
-    participants.append({
-        "form_data": {},
-        "forms": {},
-        "name": "",
-        "program_type": program_type,
-        "screening": {}
-    })
-    save_participants_file()
-    id = len(participants) - 1
-
-    if program_type == "ILH":
-        return redirect(url_for("entry_screening", id=id))
-
-    return redirect(f"/intake-assessment/{id}")
+    # Do not create unnamed participant records.
+    # Participant creation must begin at /add_participant so name + PID stay together.
+    return redirect(url_for("add_participant"))
 
 
 @app.route("/entry-screening/<int:id>", methods=["GET", "POST"])

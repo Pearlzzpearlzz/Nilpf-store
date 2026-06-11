@@ -81,3 +81,20 @@ Test:
 - app.py compile check passed.
 - Confirmed bad labels no longer appear.
 - Confirmed each affected editable form has one POST form and one Save / Review button.
+
+2026-06-11 - Mr. IR Change Note
+Area: Participant creation / unnamed PID prevention
+
+Change completed:
+- Disabled unnamed participant creation through /screening.
+- /screening now redirects to /add_participant.
+- Participant creation must begin through Add Participant so name and PID stay together.
+
+Reason:
+Completed forms were found under unnamed participant records. A participant must not be allowed to begin packet/forms without the master participant name being saved first.
+
+Test:
+- Verified Add Participant route reads name from request.form.get("name").
+- Verified add_participant.html uses name="name".
+- Verified /screening no longer appends a blank participant record.
+- app.py compile check required.
