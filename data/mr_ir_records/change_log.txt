@@ -1,0 +1,17 @@
+
+2026-06-11 - Mr. IR Change Note
+Area: Participant identity integrity / Payor wording protection / Client-facing completion flow
+
+Changes completed:
+- Added participant identity lock helper to protect participant/member name fields across submitted forms.
+- Corrected the helper so it only locks participant/member language.
+- Removed client/resident fields from the identity lock so Payor/Funding forms can use CLIENT without automatically inserting the participant name.
+- Protected participant/member signature fields from being changed to a different typed name.
+- Updated Bill of Dignity final button from Back to Packet to Finish / Return Device to Staff for client-facing device handoff.
+
+Reason:
+NILPF language uses participant/member. Payor/Funding instances may use CLIENT as a payor/status label and should not be overwritten with the participant record name.
+
+Test:
+- app.py compile check required.
+- Payor/Funding should be manually tested by entering CLIENT and confirming it remains CLIENT after save/review.

@@ -1480,6 +1480,9 @@ def individual_service_plan(id):
 
     if request.method == "POST":
         d = request.form.to_dict()
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            d = lock_participant_identity_fields(d, _identity_participant)
         record["data"] = d
         record["completed"] = True
         record["locked"] = False
@@ -1558,6 +1561,9 @@ def service_activity_record(id):
 
     if request.method == "POST":
         d = request.form.to_dict()
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            d = lock_participant_identity_fields(d, _identity_participant)
         d["locked"] = False
         entries.append(d)
         record["current_entry"] = len(entries) - 1
@@ -1666,6 +1672,9 @@ def participant_program_adherence_review(id):
 
     if request.method == "POST":
         d = request.form.to_dict()
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            d = lock_participant_identity_fields(d, _identity_participant)
         record["data"] = d
         record["completed"] = True
         record["locked"] = False
@@ -2082,6 +2091,9 @@ def entry_screening(id):
 
     if request.method == "POST":
         data = request.form.to_dict(flat=True)
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
         participant["entry_screening"] = data
         participant["entry_screening_pdf"] = "18_entry_screening.pdf"
 
@@ -2102,6 +2114,59 @@ def entry_screening(id):
 
     return render_template("entry_screening.html", participant=participant, participant_id=id)
 
+
+
+
+def lock_participant_identity_fields(form_data, participant):
+    """
+    Global ILH/TH participant identity integrity lock.
+
+    Participant name fields auto-lock to the participant record.
+    Signature fields do NOT auto-populate.
+    If a signature field is intentionally submitted/clicked, it is forced
+    to the participant record name so a second name cannot be entered.
+    Staff/operator/witness/prepared-by fields are not touched.
+    """
+    if not isinstance(form_data, dict) or not participant:
+        return form_data
+
+    participant_name = (
+        participant.get("name")
+        or participant.get("participant_name")
+        or participant.get("member_name")
+        or ""
+    ).strip()
+
+    if not participant_name:
+        return form_data
+
+    identity_keys = [
+        "participant_name",
+        "participant_full_name",
+        "member_name",
+        "member_full_name",
+    ]
+
+    for key in identity_keys:
+        if key in form_data:
+            form_data[key] = participant_name
+
+    signature_keys = [
+        "signature",
+        "participant_signature",
+        "member_signature",
+        "typed_signature",
+        "signature_name",
+        "signer_name",
+    ]
+
+    for key in signature_keys:
+        if key in form_data:
+            value = str(form_data.get(key, "")).strip()
+            if value:
+                form_data[key] = participant_name
+
+    return form_data
 
 
 @app.route("/participant-complete/<int:id>")
@@ -2131,6 +2196,9 @@ def ach_authorization(id):
 
     if request.method == "POST":
         data = request.form.to_dict(flat=True)
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
         action = data.pop("action", "save")
         participant["forms"]["ach_authorization"]["data"] = data
 
@@ -2418,6 +2486,9 @@ def ach_test(id):
 
     if request.method == "POST":
         data = request.form.to_dict()
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
         p["forms"]["ach_test"]["data"] = data
         p["forms"]["ach_authorization"] = {"data": data}
 
@@ -2450,6 +2521,9 @@ def no_services_supervision(id):
 
     if request.method == "POST":
         data = request.form.to_dict(flat=True)
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
         data["acknowledge_no_services"] = request.form.get("acknowledge_no_services", "")
         p["forms"]["no_services_supervision"]["data"] = data
         save_participants_file()
@@ -2496,6 +2570,9 @@ def independent_living_disclosure(id):
 
     if request.method == "POST":
         data = request.form.to_dict(flat=True)
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
         data["acknowledge_disclosure"] = request.form.get("acknowledge_disclosure", "")
         p["forms"]["independent_living_disclosure"]["data"] = data
         save_participants_file()
@@ -2542,6 +2619,9 @@ def vehicle_parking(id):
 
     if request.method == "POST":
         data = request.form.to_dict(flat=True)
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
 
         for cb in [
             "park_designated_spaces",
@@ -2608,6 +2688,9 @@ def bill_of_dignity(id):
 
     if request.method == "POST":
         data = request.form.to_dict(flat=True)
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
         p["forms"]["bill_of_dignity"]["data"] = data
         save_participants_file()
         return redirect(url_for("bill_of_dignity_print", id=id))
@@ -3266,6 +3349,9 @@ def payor_funding_record(id):
 
     if request.method == "POST":
         d = request.form.to_dict()
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            d = lock_participant_identity_fields(d, _identity_participant)
         participant["forms"][form_key] = {
             "data": d,
             "completed": True,
@@ -3343,6 +3429,9 @@ def billing_invoice_setup(id):
 
     if request.method == "POST":
         data = request.form.to_dict()
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            data = lock_participant_identity_fields(data, _identity_participant)
         participant["forms"][form_key] = {
             "data": data,
             "completed": True,
@@ -3762,6 +3851,9 @@ def quick_service_update():
 
     if request.method == "POST":
         d = request.form.to_dict(flat=False)
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            d = lock_participant_identity_fields(d, _identity_participant)
         participant_pid = request.form.get("participant_pid", "").strip()
 
         try:
@@ -3803,6 +3895,9 @@ def exit_discharge_summary(id):
 
     if request.method == "POST":
         d = request.form.to_dict()
+        _identity_participant = locals().get("participant") or locals().get("p")
+        if _identity_participant:
+            d = lock_participant_identity_fields(d, _identity_participant)
         record["data"] = d
         record["completed"] = True
         record["locked"] = False
