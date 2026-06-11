@@ -72,7 +72,7 @@
 <input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
 
 <p><strong>Participant Signature:</strong></p>
-<input type="text" name="participant_signature" value="{{ d.participant_signature }}">
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
 
 <p><strong>Date:</strong></p>
 <input class="small" type="text" name="signature_date" value="{{ d.get('signature_date', today) }}">
@@ -82,13 +82,9 @@
 <p>Version 2.1 — Revised February 2026</p>
 </div>
 
-<button type="submit">Save / Review Lock Final Document</button>
-
-</form>
 
 
-<form method="POST" action="/privacy-noncommercial/{{ id }}">
-<button type="submit">Save</button>
+<button type="submit">Save / Review</button>
 </form>
 </div>
 </body>

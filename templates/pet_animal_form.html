@@ -108,7 +108,7 @@
 <p>By signing below, the participant acknowledges that this form is for informational purposes only and that full responsibility for any animal rests with the resident.</p>
 
 <label>Participant Signature:</label>
-<input type="text" name="participant_signature" value="{{ d.participant_signature }}">
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
 
 <label>Date:</label>
 <input class="small" type="text" name="signature_date" value="{{ d.get('signature_date', today) }}">
@@ -120,13 +120,9 @@
 <p>Version 2.1 — Revised February 2026</p>
 </div>
 
-<button type="submit">Save / Review Lock Final Document</button>
-
-</form>
 
 
-<form method="POST" action="/pet-animal/{{ id }}">
-<button type="submit">Save</button>
+<button type="submit">Save / Review</button>
 </form>
 </div>
 </body>

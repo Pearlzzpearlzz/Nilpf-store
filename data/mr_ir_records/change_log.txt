@@ -62,3 +62,22 @@ Test:
 - app.py compile check passed.
 - Next manual tests: Program Compliance Addendum and Transitional MLA should show the same PID participant name on all Participant / Name / Signature Name lines.
 - Payor/Funding CLIENT wording should still remain CLIENT and not be overwritten.
+
+2026-06-11 - Mr. IR Change Note
+Area: ILH form button cleanup and prepopulation correction
+
+Changes completed:
+- Cleaned bottom buttons on Emergency Contact, Emergency Evacuation, Pet Animal, Privacy Noncommercial, Vehicle Parking, Voluntary Participation, and Bill of Dignity.
+- Removed incorrect form-page wording: Save / Review Lock Final Document.
+- Removed duplicate Save buttons.
+- Corrected Vehicle Parking wording from Resident Signature to Participant Signature.
+- Improved participant/member signature prepopulation on affected forms.
+- Updated Bill of Dignity member name/signature prepopulation.
+
+Reason:
+Editable form pages should have clean Save / Review controls only. Final Lock belongs on review/print pages, not fill pages.
+
+Test:
+- app.py compile check passed.
+- Confirmed bad labels no longer appear.
+- Confirmed each affected editable form has one POST form and one Save / Review button.

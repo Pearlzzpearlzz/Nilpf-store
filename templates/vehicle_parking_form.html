@@ -88,19 +88,14 @@ input { border: none; border-bottom: 1px solid black; width: 300px; }
 
 <div class="section">
 <p><strong>5. Acknowledgment</strong></p>
-<div class="line">Resident Signature: <input type="text" name="participant_signature" value="{{ d.participant_signature }}"></div>
+<div class="line">Participant Signature: <input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}"></div>
 <div class="line">Date: <input type="text" name="signature_date" value="{{ d.get('signature_date', today) }}"></div>
 <div class="line">Operator Signature: <input type="text" name="operator_signature" value="{{ d.operator_signature }}"></div>
 <div class="line">Date: <input type="text" name="operator_signature_date" value="{{ d.operator_signature_date }}"></div>
 </div>
 
 <form method="POST" action="/vehicle-parking/{{ id }}">
-    <button type="submit">Save Vehicle Parking Form</button>
-</form>
-
-
-<form method="POST" action="/vehicle-parking/{{ id }}">
-<button type="submit">Save</button>
+    <button type="submit">Save / Review</button>
 </form>
 </div>
 </body>

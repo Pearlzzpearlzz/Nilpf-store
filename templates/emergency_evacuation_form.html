@@ -109,13 +109,13 @@
 <input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}" required></p>
 
 <p><label>Participant Signature:</label><br>
-<input type="text" name="participant_signature" value="{{ d.participant_signature if d else "" }}" required></p>
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}" required></p>
 
 <p><label>Date:</label><br>
 <input type="date" name="signature_date" value="{{ d.get('signature_date', today) }}" required></p>
 
 <br>
-<button type="submit">Save</button>
+<button type="submit">Save / Review</button>
 </form>
 
 <br>
@@ -125,11 +125,6 @@
 <p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
 <p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
 <p>Version 2.1 — Revised February 2026</p>
-
-
-<form method="POST" action="/emergency-evacuation/{{ id }}">
-<button type="submit">Save</button>
-</form>
 </div>
 </body>
 </html>
