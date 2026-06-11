@@ -919,8 +919,7 @@ def add_participant():
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        activated_system = load_activation()
-        program_type = activated_system.get("program_type", "ILH")
+        program_type = "ILH"
         if name:
             new_id = len(participants)
             participants.append({
@@ -2101,8 +2100,7 @@ def screening():
 
     if passed:
         current_participants = load_participants()
-        activated_system = load_activation()
-        program_type = activated_system.get("program_type", "ILH")
+        program_type = "ILH"
 
         new_id = len(current_participants)
         current_participants.append({
@@ -2127,9 +2125,8 @@ def screening():
     records_path.write_text(json.dumps(screening_records, indent=2))
 
     if passed:
-        if program_type == "ILH":
-            return redirect(f"/independent-living-disclosure/{new_id}")
-        return redirect(f"/intake-assessment/{new_id}")
+        session["current_pid"] = new_id
+        return redirect(url_for("independent_living_disclosure", id=new_id))
 
     return """
     <h2>Screening Recorded</h2>

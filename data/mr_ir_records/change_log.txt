@@ -131,3 +131,19 @@ The participant should complete the participant-facing forms in sequence after p
 Test:
 - app.py compile check passed.
 - Next live test: complete passing Entry Screening and confirm redirect lands on /independent-living-disclosure/<pid>.
+
+2026-06-11 - Mr. IR Change Note
+Area: ILH-only Entry Screening participant flow
+
+Change completed:
+- Limited /screening to the ILH Entry Screening flow.
+- Passed ILH Entry Screening creates the PID and routes directly to Independent Living Disclosure.
+- Removed non-ILH intake fallback from the ILH screening route.
+- TH / Transitional workflow was not changed.
+
+Reason:
+ILH buyers need the participant-facing ILH form chain. TH has already been tested and should remain untouched.
+
+Test:
+- app.py compile check passed.
+- Next live ILH test: complete passing Entry Screening and confirm browser lands on /independent-living-disclosure/<pid>.
