@@ -151,7 +151,6 @@
     <option value="">Select one</option>
     <option value="Stripe" {% if data.get('payment_portal_type') == 'Stripe' %}selected{% endif %}>Stripe</option>
     <option value="PayPal" {% if data.get('payment_portal_type') == 'PayPal' %}selected{% endif %}>PayPal</option>
-    <option value="Payhip" {% if data.get('payment_portal_type') == 'Payhip' %}selected{% endif %}>Payhip</option>
     <option value="Manual Invoice" {% if data.get('payment_portal_type') == 'Manual Invoice' %}selected{% endif %}>Manual Invoice</option>
     <option value="Other" {% if data.get('payment_portal_type') == 'Other' %}selected{% endif %}>Other</option>
   </select>

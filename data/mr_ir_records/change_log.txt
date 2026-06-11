@@ -15,3 +15,18 @@ NILPF language uses participant/member. Payor/Funding instances may use CLIENT a
 Test:
 - app.py compile check required.
 - Payor/Funding should be manually tested by entering CLIENT and confirming it remains CLIENT after save/review.
+
+2026-06-11 - Mr. IR Change Note
+Area: Billing / Invoice Setup - Payment Portal Setup
+
+Change completed:
+- Removed Payhip from the payment portal type dropdown in Billing / Invoice Setup.
+- Removed Payhip from the Billing / Invoice Setup print/review template.
+
+Reason:
+Payhip should not appear as a payment portal option in the current live billing setup flow.
+
+Test:
+- Confirmed no remaining PAYHIP / Payhip / payhip references in app.py, templates, or static.
+- app.py compile check passed.
+- Next manual test: open /billing-invoice-setup/<pid> and confirm Payhip no longer appears.
