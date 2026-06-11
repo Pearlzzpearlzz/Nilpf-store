@@ -45,3 +45,20 @@ The identity lock protects future saves, but old saved form data could still pri
 Test:
 - Open /mla-print/<pid>.
 - Confirm top Participant, Participant Name, and Participant Signature match the PID participant record name.
+
+2026-06-11 - Mr. IR Change Note
+Area: Global participant/member identity lock
+
+Change completed:
+- Added participant to the global participant/member identity lock.
+- Added participant_signature_name to the global participant/member identity lock.
+- Added member_signature_name to the global participant/member identity lock.
+- Left client/payor fields untouched.
+
+Reason:
+A single PID must not show two different participant/member names across the same form, review page, print page, or final lock. Participant/member identity fields must match the saved participant record name, while client/payor wording must remain independent.
+
+Test:
+- app.py compile check passed.
+- Next manual tests: Program Compliance Addendum and Transitional MLA should show the same PID participant name on all Participant / Name / Signature Name lines.
+- Payor/Funding CLIENT wording should still remain CLIENT and not be overwritten.

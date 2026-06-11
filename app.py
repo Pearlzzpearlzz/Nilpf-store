@@ -2141,10 +2141,13 @@ def lock_participant_identity_fields(form_data, participant):
         return form_data
 
     identity_keys = [
+        "participant",
         "participant_name",
         "participant_full_name",
+        "participant_signature_name",
         "member_name",
         "member_full_name",
+        "member_signature_name",
     ]
 
     for key in identity_keys:
