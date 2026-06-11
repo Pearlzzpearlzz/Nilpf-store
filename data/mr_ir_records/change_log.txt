@@ -116,3 +116,18 @@ Test:
 - app.py compile check passed.
 - Next manual test: submit one passing screening and confirm a named participant/PID is created.
 - Submit one failing screening and confirm no participant/PID is created.
+
+2026-06-11 - Mr. IR Change Note
+Area: Entry Screening participant-facing flow correction
+
+Change completed:
+- Confirmed passed Entry Screening should not go to Packet Builder for participant-facing completion.
+- Passed Entry Screening now creates the PID and redirects directly to the first participant-facing ILH form: Independent Living Disclosure.
+- Packet Builder remains an operator/admin review tool, not the participant-facing next step.
+
+Reason:
+The participant should complete the participant-facing forms in sequence after passing screening. The packet list is for operator review and packet management.
+
+Test:
+- app.py compile check passed.
+- Next live test: complete passing Entry Screening and confirm redirect lands on /independent-living-disclosure/<pid>.
