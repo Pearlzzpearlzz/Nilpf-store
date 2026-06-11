@@ -2096,11 +2096,24 @@ def entry_screening(id):
         print("SCREENING STATUS:", participant["screening_status"])
 
         if passed:
-            return redirect(url_for("packet_builder", id=id))
+            return redirect(f"/independent-living-disclosure/{id}")
 
         return redirect(url_for("add_participant"))
 
     return render_template("entry_screening.html", participant=participant, participant_id=id)
+
+
+
+@app.route("/participant-complete/<int:id>")
+def participant_complete(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if id < 0 or id >= len(participants):
+        return redirect(url_for("add_participant"))
+
+    participant = participants[id]
+    return render_template("participant_complete.html", participant=participant, id=id)
 
 
 @app.route("/form/<int:id>/ach_authorization", methods=["GET", "POST"])
@@ -2637,7 +2650,7 @@ def bill_of_dignity_final(id):
     save_participants_file()
 
 
-    return redirect(f"/packet-builder/{id}")
+    return redirect(f"/participant-complete/{id}")
 
 
 
