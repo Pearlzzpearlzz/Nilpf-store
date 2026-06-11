@@ -49,6 +49,10 @@ body { font-family: Arial; background:#fff; padding:20px; }
 
 <form method="POST">
 
+<label><strong>Applicant / Participant Name:</strong></label><br>
+<input type="text" name="applicant_name" value="{{ participant.get('name', '') if participant else '' }}" required {% if participant %}readonly{% endif %}>
+<br><br>
+
 <h2>SECTION 1 — CORE ELIGIBILITY</h2>
 
 <div class="q">1. Understands independent housing <br>

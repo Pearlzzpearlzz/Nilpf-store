@@ -98,3 +98,21 @@ Test:
 - Verified add_participant.html uses name="name".
 - Verified /screening no longer appends a blank participant record.
 - app.py compile check required.
+
+2026-06-11 - Mr. IR Change Note
+Area: Screening-to-PID workflow correction
+
+Changes completed:
+- Converted /screening into a pre-participant screening route.
+- Added applicant name field to the screening form.
+- Screening records are saved for both passed and failed screenings.
+- Passed screening creates a participant record and assigns a PID.
+- Failed screening saves the screening record only and does not create a PID.
+
+Reason:
+Not everyone screened should become a participant. Screening must keep the applicant name and result, but PID should only be assigned after a passed screening.
+
+Test:
+- app.py compile check passed.
+- Next manual test: submit one passing screening and confirm a named participant/PID is created.
+- Submit one failing screening and confirm no participant/PID is created.

@@ -2054,11 +2054,89 @@ def packet_builder(id):
 
 
 
-@app.route("/screening")
+@app.route("/screening", methods=["GET", "POST"])
 def screening():
-    # Do not create unnamed participant records.
-    # Participant creation must begin at /add_participant so name + PID stay together.
-    return redirect(url_for("add_participant"))
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return render_template(
+            "entry_screening.html",
+            participant=None,
+            participant_id=None,
+            pre_participant=True
+        )
+
+    from pathlib import Path
+    import json
+
+    data = request.form.to_dict(flat=True)
+    applicant_name = data.get("applicant_name", "").strip()
+
+    if not applicant_name:
+        flash("Applicant name is required before screening.")
+        return redirect(url_for("screening"))
+
+    answers = {k: v for k, v in data.items() if k.lower().startswith("q")}
+    passed = all(str(v).strip().lower() == "yes" for v in answers.values()) if answers else False
+
+    records_path = Path("data/screening_records.json")
+    records_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        screening_records = json.loads(records_path.read_text() or "[]")
+    except Exception:
+        screening_records = []
+
+    screening_id = len(screening_records)
+
+    record = {
+        "screening_id": screening_id,
+        "applicant_name": applicant_name,
+        "status": "passed" if passed else "failed",
+        "answers": answers,
+        "signature": data.get("signature", ""),
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    if passed:
+        current_participants = load_participants()
+        activated_system = load_activation()
+        program_type = activated_system.get("program_type", "ILH")
+
+        new_id = len(current_participants)
+        current_participants.append({
+            "pid": new_id,
+            "participant_id": new_id,
+            "form_data": {},
+            "forms": {},
+            "name": applicant_name,
+            "participant_name": applicant_name,
+            "program_type": program_type,
+            "screening": {},
+            "screening_record_id": screening_id,
+            "entry_screening": data,
+            "entry_screening_pdf": "18_entry_screening.pdf",
+            "screening_status": "passed"
+        })
+
+        save_participants(current_participants)
+        record["created_pid"] = new_id
+
+    screening_records.append(record)
+    records_path.write_text(json.dumps(screening_records, indent=2))
+
+    if passed:
+        if program_type == "ILH":
+            return redirect(f"/independent-living-disclosure/{new_id}")
+        return redirect(f"/intake-assessment/{new_id}")
+
+    return """
+    <h2>Screening Recorded</h2>
+    <p>This applicant did not pass screening. No participant PID was created.</p>
+    <p><a href="/">Return Home</a></p>
+    """
+
 
 
 @app.route("/entry-screening/<int:id>", methods=["GET", "POST"])
