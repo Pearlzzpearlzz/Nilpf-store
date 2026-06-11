@@ -78,7 +78,7 @@ button{margin-top:30px;padding:12px 28px;font-size:18px;font-weight:bold;}
 <input class="line" name="operator_name" value="{{ d.get('operator_name','') }}">
 
 <p><strong>Participant:</strong></p>
-<input class="line" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
+<input class="line" name="participant_name" value="{{ participant.get('name', '') }}" readonly>
 
 <p><strong>Property Address:</strong></p>
 <input class="line" name="property_address" value="{{ d.get('property_address','') }}">
@@ -140,7 +140,7 @@ button{margin-top:30px;padding:12px 28px;font-size:18px;font-weight:bold;}
 <h3>11. SIGNATURES</h3>
 
 <p>Participant Name:</p>
-<input class="line" name="participant_signature_name" value="{{ d.get('participant_signature_name', participant.get('name', '')) }}">
+<input class="line" name="participant_signature_name" value="{{ participant.get('name', '') }}" readonly>
 
 <p>Participant Signature:</p>
 <input class="line" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">

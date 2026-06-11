@@ -113,7 +113,7 @@ button,a{font-size:18px;font-weight:bold;}
 <div class="line">{{ d.get('operator_name','') }}</div>
 
 <p><strong>Participant:</strong></p>
-<div class="line">{{ d.get('participant_name','') }}</div>
+<div class="line">{{ participant.get('name', '') }}</div>
 
 <p><strong>Property Address:</strong></p>
 <div class="line">{{ d.get('property_address','') }}</div>
@@ -154,7 +154,7 @@ button,a{font-size:18px;font-weight:bold;}
 <h3>11. SIGNATURES</h3>
 
 <p><strong>Participant Name:</strong></p>
-<div class="line">{{ d.get('participant_signature_name','') }}</div>
+<div class="line">{{ participant.get('name', '') }}</div>
 
 <p><strong>Participant Signature:</strong></p>
 <div class="line">{{ d.get('participant_signature','') }}</div>

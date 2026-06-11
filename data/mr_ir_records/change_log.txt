@@ -30,3 +30,18 @@ Test:
 - Confirmed no remaining PAYHIP / Payhip / payhip references in app.py, templates, or static.
 - app.py compile check passed.
 - Next manual test: open /billing-invoice-setup/<pid> and confirm Payhip no longer appears.
+
+2026-06-11 - Mr. IR Change Note
+Area: Transitional MLA print/display identity correction
+
+Change completed:
+- Forced Transitional MLA top Participant display to use the saved PID participant record name.
+- Forced Transitional MLA Participant Name signature line to use the saved PID participant record name.
+- Prevented old saved bad form data from printing a second participant name under the same PID.
+
+Reason:
+The identity lock protects future saves, but old saved form data could still print a different participant name. The print/review template must display the PID record name for participant identity fields.
+
+Test:
+- Open /mla-print/<pid>.
+- Confirm top Participant, Participant Name, and Participant Signature match the PID participant record name.
