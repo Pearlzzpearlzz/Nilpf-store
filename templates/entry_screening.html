@@ -47,8 +47,8 @@ body { font-family: Arial; background:#fff; padding:20px; }
 <h1>ENTRY SCREENING & SELF-DETERMINATION ACKNOWLEDGMENT</h1>
 <p>{{ participant["name"] }}</p>
 
-<form method="POST" action="/entry-screening/{{ participant.pid }}" id="entry-screening-form">
-    <input type="hidden" name="id" value="{{ participant.pid }}">
+<form method="POST" action="/entry-screening/{{ id }}" id="entry-screening-form">
+    <input type="hidden" name="id" value="{{ id }}">
 
 <label><strong>Applicant / Participant Name:</strong></label><br>
 <input type="text" name="applicant_name" value="{{ participant.get('name', '') if participant else '' }}" required {% if participant and participant.get('name') %}readonly{% endif %}>

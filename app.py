@@ -2242,7 +2242,7 @@ def entry_screening(id):
         </html>
         """
 
-    return render_template("entry_screening.html", participant=participant, participant_id=id)
+    return render_template("entry_screening.html", participant=participant, id=id, participant_id=id)
 
 
 
