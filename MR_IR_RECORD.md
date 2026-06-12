@@ -74,3 +74,31 @@
   - templates/audit_packet_builder_summary.html
   - MR_IR_RECORD.md
 - Status: Real APB/HMIS readiness pull logic completed, tested, deployed, and now documented in tracked Mr. IR record.
+
+## 2026-06-12 — Render Redirect Loop / ProxyFix Repair
+
+- Area: Render Docker live app / login-session redirect behavior.
+- Issue observed:
+  - Browser showed `ERR_TOO_MANY_REDIRECTS`.
+  - Incognito `/entry-screening/4` opened the Entry Screening page.
+  - After saving Entry Screening, app redirected back to login.
+- Interpretation:
+  - Entry Screening PID reload appeared improved because the ES page opened.
+  - The remaining issue looked like a Render HTTPS proxy/session redirect problem, not a participant/PID file problem.
+- Repair applied:
+  - Added `ProxyFix` import from `werkzeug.middleware.proxy_fix`.
+  - Wrapped Flask app with:
+    `app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_for=1)`
+- Reason:
+  - Render runs Flask behind a reverse proxy.
+  - ProxyFix tells Flask to trust forwarded HTTPS/proxy headers from Render.
+  - This may prevent HTTPS/session/login redirect loops.
+- Tested:
+  - Ran `python3 -m py_compile app.py` successfully.
+- Pending:
+  - Commit and push.
+  - Confirm Render deploys the new commit.
+  - Verify login and Packet Builder first.
+  - Do not run another full Entry Screening stress test tonight.
+- Status: ProxyFix repair documented; live Render verification pending.
+

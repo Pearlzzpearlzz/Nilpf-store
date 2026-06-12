@@ -155,3 +155,26 @@ Open items for next session:
 - Do not modify Packet Builder until a safer template-based plan is used.
 ============================================================
 
+
+2026-06-12 — Mr. Internal Repairman Note
+Issue observed on Render live Docker app:
+- Browser showed ERR_TOO_MANY_REDIRECTS.
+- Incognito /entry-screening/4 opened the Entry Screening page, proving the PID reload patch was likely working.
+- After saving Entry Screening, app redirected back to login.
+- This pointed away from a participant/PID issue and toward a Render HTTPS proxy/session redirect issue.
+
+Repair applied:
+- Added Werkzeug ProxyFix to app.py.
+- Import added: from werkzeug.middleware.proxy_fix import ProxyFix
+- App wrapper added after app = Flask(__name__):
+  app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_for=1)
+
+Purpose:
+- Render runs Flask behind a reverse proxy.
+- ProxyFix tells Flask to trust Render's forwarded HTTPS/proxy headers.
+- This may prevent HTTPS/session/login redirect loops on Render.
+
+Status:
+- app.py compiled successfully after patch.
+- Render/live verification still pending after deploy.
+- Do not run another full Entry Screening stress test tonight; verify login and Packet Builder first.

@@ -2,6 +2,7 @@ from reportlab.pdfgen import canvas
 import fitz
 from pathlib import Path
 from storage.coordinator import storage_coordinator as storage
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 import json
 import os
@@ -9,6 +10,9 @@ from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
+# Render runs Flask behind a reverse proxy; trust forwarded HTTPS/session headers.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_for=1)
 
 @app.context_processor
 def inject_today():
