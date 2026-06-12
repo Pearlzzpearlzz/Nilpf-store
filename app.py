@@ -2154,7 +2154,16 @@ def entry_screening(id):
         return redirect(url_for("login"))
 
     if id < 0 or id >= len(participants):
-        return redirect(url_for("add_participant"))
+        return """
+        <html>
+        <body style="font-family:Arial; padding:40px;">
+            <h2>Entry Screening Not Passed</h2>
+            <p>No participant/member PID was created or advanced.</p>
+            <p>This ILH path stops here.</p>
+            <p><a href="/screening">Start New Entry Screening</a></p>
+        </body>
+        </html>
+        """
 
     participant = participants[id]
 
