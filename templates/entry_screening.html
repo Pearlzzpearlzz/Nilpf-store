@@ -47,7 +47,11 @@ body { font-family: Arial; background:#fff; padding:20px; }
 <h1>ENTRY SCREENING & SELF-DETERMINATION ACKNOWLEDGMENT</h1>
 <p>{{ participant["name"] }}</p>
 
+{% if id is defined and id is not none and id != '' %}
 <form method="POST" action="/entry-screening/{{ id }}" id="entry-screening-form">
+{% else %}
+<form method="POST" action="/screening" id="entry-screening-form">
+{% endif %}
     <input type="hidden" name="id" value="{{ id }}">
 
 <label><strong>Applicant / Participant Name:</strong></label><br>
