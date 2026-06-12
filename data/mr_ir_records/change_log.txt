@@ -260,3 +260,18 @@ Then Render must deploy latest commit.
 
 Do not restore /screening unless intentionally rebuilding the old pre-PID eligibility gate.
 Entry Screening is now intended to be Form 1 in the ILH PID form path, not a separate applicant gate.
+
+2026-06-12 15:46:01 — Mr. IR Repair Note: Entry Screening Final Lock Redirect
+
+Issue:
+Previously, Entry Screening Final Lock redirected directly to Packet Builder instead of the next ILH form (Independent Living Disclosure). 
+
+Change:
+- Final Lock now redirects to independent_living_disclosure route.
+- PDF still saved under participant["forms"]["entry_screening"]["pdf"]
+- PID flow preserved from Add Participant → Entry Screening → next ILH forms.
+
+This ensures ILH form sequence follows the correct order.
+
+Performed in local code folder: ~/NILPF_FRESH
+Render deploy requires commit & push.
