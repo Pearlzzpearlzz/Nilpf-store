@@ -324,6 +324,7 @@ PACKET_MANIFEST = {
 
 CORE_DOCS_BY_PROGRAM = {
     "ILH": [
+        {"title": "Entry Screening & Self-Determination", "file": "/entry-screening/{id}"},
         {"title": "Independent Living Disclosure", "file": "/independent-living-disclosure/{id}"},
         {"title": "House Rules & Community Standards", "file": "/house-rules/{id}"},
         {"title": "Fire Safety & Self-Preservation", "file": "/fire-safety/{id}"},
@@ -937,13 +938,41 @@ def add_participant():
             print("NEW PARTICIPANT:", name, "PID:", new_id)
             print("ALL PARTICIPANTS:", participants)
             if program_type == "ILH":
-                return redirect(url_for("screening"))
+                return redirect(url_for("entry_screening", id=new_id))
             if program_type == "PSH":
                   return "PSH module is parked and not active yet. Select ILH, Transitional, VA, DOC, or Reentry on the Dashboard."
             return redirect(f"/intake-assessment/{new_id}")
         return redirect(url_for("add_participant"))
 
-    return redirect("/")
+    return """
+    <html>
+    <head>
+      <title>Add Participant / Member</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body{font-family:Arial;background:#f7f3e8;margin:0;padding:24px;}
+        .box{max-width:650px;margin:0 auto;background:white;border:2px solid #b88a2c;border-radius:18px;padding:24px;}
+        h1{text-align:center;margin-top:0;}
+        label{font-weight:bold;display:block;margin:16px 0 8px;}
+        input{width:100%;box-sizing:border-box;padding:14px;font-size:18px;border-radius:10px;border:1px solid #999;}
+        button{width:100%;margin-top:22px;padding:16px;border:0;border-radius:12px;background:#111;color:#f4d27a;font-size:20px;font-weight:bold;}
+        a{font-weight:bold;color:#111;}
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <h1>Add Participant / Member</h1>
+        <p>Enter the name to create the PID and begin ILH Entry Screening.</p>
+        <form method="POST" action="/add_participant">
+          <label>Name</label>
+          <input type="text" name="name" required>
+          <button type="submit">Create PID & Start Entry Screening</button>
+        </form>
+        <p><a href="/operations">Return to Operations</a></p>
+      </div>
+    </body>
+    </html>
+    """
 
 PROPERTY_PAPERS_FILE = "data/property_papers.json"
 
@@ -2191,9 +2220,19 @@ def entry_screening(id):
 
         # FULL SCREENING (no 5-question limit)
         answers = {k: v for k, v in data.items() if k.lower().startswith("q")}
-        passed = all(str(v).strip().lower() == "yes" for v in answers.values()) if answers else False
+        no_count = sum(1 for v in answers.values() if str(v).strip().lower() in {"no", "n", "false", "0"})
+        passed = bool(answers) and no_count < 2
 
-        participant["screening_status"] = "passed" if passed else "failed"
+        participant["screening_status"] = "passed" if passed else "not_eligible"
+        participant["screening_no_count"] = no_count
+        participant.setdefault("forms", {})
+        participant["forms"]["entry_screening"] = {
+            "data": data,
+            "completed": True,
+            "locked": False,
+            "status": participant["screening_status"],
+            "no_count": no_count
+        }
         save_participants_file()
 
         print("ENTRY SCREENING SAVED:", participant["name"])
@@ -2202,7 +2241,18 @@ def entry_screening(id):
         if passed:
             return redirect(f"/independent-living-disclosure/{id}")
 
-        return redirect(url_for("add_participant"))
+        return """
+        <html>
+        <body style="font-family:Arial; padding:40px; background:#f7f3e8;">
+          <div style="max-width:720px;margin:0 auto;background:#fff;border:2px solid #b88a2c;border-radius:18px;padding:24px;">
+            <h2>Not Eligible for ILH</h2>
+            <p>Entry Screening was retained under this PID.</p>
+            <p>No further ILH forms should be completed.</p>
+            <p><a href="/operations">Return to Operations</a></p>
+          </div>
+        </body>
+        </html>
+        """
 
     return render_template("entry_screening.html", participant=participant, participant_id=id)
 
