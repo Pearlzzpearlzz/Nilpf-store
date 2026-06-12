@@ -186,3 +186,27 @@ Proof-of-function to test after deploy:
 5. Submit ES with 2 or more No.
 6. Confirm Not Eligible page and no PID creation.
 
+
+2026-06-12 — Mr. IR Repair Note: Entry Screening / ILH PID Form Conversion
+
+Issue:
+Entry Screening kept looping through the wrong path because ES was treated partly as a hardwired eligibility gate and partly as an ILH form.
+
+Final decision:
+Entry Screening is now the first ILH PID form, similar to Intake in other programs.
+
+Correct ILH flow:
+Add Participant → assign PID immediately → open Entry Screening → save name into PID record → apply 30-question ES rule → continue or stop.
+
+Eligibility rule:
+0 or 1 No = passed → continue to Independent Living Disclosure.
+2 or more No = not eligible → stop ILH path, retain ES record under PID.
+
+Important repair points:
+- Add Participant now creates PID immediately.
+- Add Participant redirects to /entry-screening/<pid>.
+- CORE_DOCS_BY_PROGRAM["ILH"] now starts with Entry Screening & Self-Determination.
+- ES saves into participant["forms"]["entry_screening"].
+- ES name field is editable only when PID name is blank, then locks after name is saved.
+- Do not route ILH Add Participant to /screening unless intentionally restoring the old pre-PID gate.
+
