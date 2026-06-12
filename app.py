@@ -203,7 +203,7 @@ def fill_pdf(src, out, data):
         writer.write(f)
 
 
-app.secret_key = "nilpf_secret_key"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-local-nilpf-secret-change-in-render")
 
 def license_access_allowed(activation):
     """
