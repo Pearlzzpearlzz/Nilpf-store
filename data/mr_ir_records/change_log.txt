@@ -210,3 +210,53 @@ Important repair points:
 - ES name field is editable only when PID name is blank, then locks after name is saved.
 - Do not route ILH Add Participant to /screening unless intentionally restoring the old pre-PID gate.
 
+
+2026-06-12 — Mr. IR Repair Note: ILH Entry Screening Gate Removal / Render Deployment Warning
+
+Issue:
+Entry Screening began tearing into the ILH foundation because two systems existed at the same time:
+1. Old pre-PID /screening eligibility gate.
+2. New PID-based Entry Screening form intended to behave like all other ILH forms.
+
+Correct final architecture:
+Add Participant form
+→ PID is created immediately
+→ redirect directly to /entry-screening/<PID>
+→ Entry Screening saves under participant["forms"]["entry_screening"]
+→ PDF saves under static/filled/participant_<PID>/entry_screening.pdf
+→ Final Lock
+→ Packet Builder / next ILH form
+
+Removed/disabled locally:
+- /screening route removed from app.py.
+- Old pre-PID gate templates disabled:
+  templates/entry_screening.html.DISABLED_GATE
+  templates/entry_screening_BEFORE_FORM_ACTION_FIX_20260611.html.DISABLED_GATE
+  templates/entry_screening_BEFORE_FINAL_ILH_ES_GATE_20260611.html.DISABLED_GATE
+- templates/home.html was changed so Add Participant no longer points to url_for("screening").
+- data/screening_records.json was renamed to data/screening_records.json.DISABLED_GATE.
+- participants.json loose gate fields were cleaned:
+  screening
+  screening_status
+  screening_record_id
+  entry_screening_pdf
+
+Important:
+These repairs were performed in the local Chromebook code folder:
+~/NILPF_FRESH
+
+They do NOT affect the live Render app until committed and pushed to the Render-connected Git repository, then redeployed.
+
+Render reminder:
+Before testing live Render, run:
+python3 -m py_compile app.py
+
+Then commit/push:
+git add app.py templates/home.html templates/entry_screening_form.html templates/entry_screening_print.html data/mr_ir_records/change_log.txt
+git commit -m "Remove legacy ILH screening gate and normalize Entry Screening"
+git push
+
+Then Render must deploy latest commit.
+
+Do not restore /screening unless intentionally rebuilding the old pre-PID eligibility gate.
+Entry Screening is now intended to be Form 1 in the ILH PID form path, not a separate applicant gate.

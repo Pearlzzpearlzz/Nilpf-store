@@ -1,0 +1,286 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Entry Screening & Self-Determination Acknowledgment</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f3e8;
+      color: #111;
+      margin: 0;
+      padding: 24px;
+    }
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      background: #fff;
+      border: 2px solid #b08a2e;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.12);
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      letter-spacing: .5px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .copyright {
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 18px;
+      font-weight: bold;
+    }
+    .purpose {
+      background: #fff8df;
+      border-left: 6px solid #b08a2e;
+      padding: 14px;
+      margin-bottom: 22px;
+      line-height: 1.45;
+    }
+    h2 {
+      font-size: 18px;
+      border-bottom: 2px solid #b08a2e;
+      padding-bottom: 6px;
+      margin-top: 26px;
+      text-transform: uppercase;
+    }
+    h3 {
+      font-size: 15px;
+      margin-top: 18px;
+    }
+    label {
+      display: block;
+      margin: 9px 0;
+      line-height: 1.35;
+      font-size: 15px;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 8px;
+    }
+    input[type="text"], input[type="date"], select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #999;
+      border-radius: 4px;
+      margin-top: 5px;
+      font-size: 15px;
+      box-sizing: border-box;
+      background: #fff;
+    }
+    .note {
+      background: #f3f3f3;
+      border-left: 5px solid #333;
+      padding: 12px;
+      margin: 14px 0;
+      line-height: 1.45;
+    }
+    .warning {
+      background: #fff4cc;
+      border-left: 5px solid #b08a2e;
+      padding: 12px;
+      margin: 14px 0;
+      line-height: 1.45;
+    }
+    .statement {
+      border: 1px solid #b08a2e;
+      background: #fffdf4;
+      padding: 15px;
+      font-style: italic;
+      line-height: 1.45;
+      margin: 12px 0 18px;
+    }
+    .defensible {
+      margin-top: 28px;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      padding: 16px;
+    }
+    .defensible ul {
+      margin-top: 6px;
+    }
+    .buttons {
+      margin-top: 28px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    button, .button {
+      background: #111;
+      color: #fff;
+      border: 2px solid #b08a2e;
+      padding: 12px 18px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .footer {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <h1>Entry Screening & Self-Determination Acknowledgment</h1>
+  <div class="copyright">© 2026 Pearlzz LLC. All Rights Reserved.</div>
+
+  <div class="purpose">
+    <strong>Purpose (read first):</strong><br>
+    This screening confirms an individual’s capacity for self-directed living without services or supervision.<br>
+    It does not assess worthiness, behavior control, social preferences, or relationship choices.
+  </div>
+
+  <form method="POST">
+    <h2>Section 1 — Core Eligibility (Non-Negotiable)</h2>
+    <p><strong>The applicant must answer YES to all items below.</strong></p>
+
+    <label><input type="checkbox" name="core_independent_housing" {% if data.get('core_independent_housing') %}checked{% endif %}> I understand this is independent housing, not assisted or supervised living.</label>
+    <label><input type="checkbox" name="core_daily_living" {% if data.get('core_daily_living') %}checked{% endif %}> I am capable of performing all daily living activities independently.</label>
+    <label><input type="checkbox" name="core_no_services" {% if data.get('core_no_services') %}checked{% endif %}> I understand no personal care, medical care, or supervision is provided.</label>
+    <label><input type="checkbox" name="core_seek_help" {% if data.get('core_seek_help') %}checked{% endif %}> I can independently seek help when needed (family, friends, providers, or emergency services).</label>
+    <label><input type="checkbox" name="core_responsibility" {% if data.get('core_responsibility') %}checked{% endif %}> I accept full responsibility for my health, safety, and personal decisions.</label>
+
+    <div class="note">
+      If any answer is NO → IL is not appropriate at this time.<br>
+      That is a placement decision, not a judgment.
+    </div>
+
+    <h2>Section 2 — Functional Self-Management Screen</h2>
+    <p><strong>The applicant must demonstrate ability in the following areas:</strong></p>
+
+    <h3>A. Daily Living</h3>
+    <label><input type="checkbox" name="daily_hygiene" {% if data.get('daily_hygiene') %}checked{% endif %}> Manages personal hygiene independently</label>
+    <label><input type="checkbox" name="daily_meals" {% if data.get('daily_meals') %}checked{% endif %}> Prepares or obtains meals independently</label>
+    <label><input type="checkbox" name="daily_laundry" {% if data.get('daily_laundry') %}checked{% endif %}> Manages laundry and housekeeping independently</label>
+    <label><input type="checkbox" name="daily_schedule" {% if data.get('daily_schedule') %}checked{% endif %}> Maintains a personal schedule without reminders</label>
+
+    <h3>B. Health & Safety</h3>
+    <label><input type="checkbox" name="health_meds" {% if data.get('health_meds') %}checked{% endif %}> Manages medications independently (if applicable)</label>
+    <label><input type="checkbox" name="health_appointments" {% if data.get('health_appointments') %}checked{% endif %}> Schedules and attends medical appointments independently</label>
+    <label><input type="checkbox" name="health_emergency" {% if data.get('health_emergency') %}checked{% endif %}> Can identify when emergency services are needed</label>
+    <label><input type="checkbox" name="health_911" {% if data.get('health_911') %}checked{% endif %}> Can call 911 or emergency contacts without assistance</label>
+
+    <h3>C. Decision-Making</h3>
+    <label><input type="checkbox" name="decision_risks" {% if data.get('decision_risks') %}checked{% endif %}> Understands personal risks and consequences</label>
+    <label><input type="checkbox" name="decision_choices" {% if data.get('decision_choices') %}checked{% endif %}> Makes informed choices without staff direction</label>
+    <label><input type="checkbox" name="decision_refuse" {% if data.get('decision_refuse') %}checked{% endif %}> Can refuse services or seek them externally if desired</label>
+
+    <h2>Section 3 — Housing & Community Compatibility</h2>
+    <p><strong>This is NOT behavior control. It is standard housing suitability.</strong></p>
+
+    <label><input type="checkbox" name="housing_lease" {% if data.get('housing_lease') %}checked{% endif %}> Can comply with a normal lease or occupancy agreement</label>
+    <label><input type="checkbox" name="housing_shared" {% if data.get('housing_shared') %}checked{% endif %}> Can coexist in shared housing without supervision</label>
+    <label><input type="checkbox" name="housing_violence" {% if data.get('housing_violence') %}checked{% endif %}> No history of violent behavior toward others</label>
+    <label><input type="checkbox" name="housing_conflicts" {% if data.get('housing_conflicts') %}checked{% endif %}> Understands that conflicts are handled personally, not by staff intervention</label>
+
+    <div class="warning">
+      ⚠️ <strong>Note:</strong><br>
+      Emotional expression, relationships, visitors, disagreement, or personal struggles are not disqualifiers.
+    </div>
+
+    <h2>Section 4 — Visitor & Relationship Affirmation (Critical)</h2>
+    <p><strong>Read carefully. Initial each line.</strong></p>
+
+    <label><input type="checkbox" name="visitor_control" {% if data.get('visitor_control') %}checked{% endif %}> I understand I control my personal relationships and visitors.</label>
+    <label><input type="checkbox" name="visitor_not_staff" {% if data.get('visitor_not_staff') %}checked{% endif %}> I understand visitors are not staff, not services, and not program activity.</label>
+    <label><input type="checkbox" name="visitor_not_supervised" {% if data.get('visitor_not_supervised') %}checked{% endif %}> I understand the program does not supervise or manage my visitors.</label>
+    <label><input type="checkbox" name="visitor_responsibility" {% if data.get('visitor_responsibility') %}checked{% endif %}> I understand I am responsible for my guests’ conduct.</label>
+
+    <div class="note">This section exists to protect independence, not restrict it.</div>
+
+    <h2>Section 5 — Program Boundaries Acknowledgment</h2>
+    <p><strong>I understand and accept that the IL:</strong></p>
+
+    <label><input type="checkbox" name="boundary_no_personal_care" {% if data.get('boundary_no_personal_care') %}checked{% endif %}> Does not provide personal care</label>
+    <label><input type="checkbox" name="boundary_no_medical" {% if data.get('boundary_no_medical') %}checked{% endif %}> Does not provide medical services</label>
+    <label><input type="checkbox" name="boundary_no_monitoring" {% if data.get('boundary_no_monitoring') %}checked{% endif %}> Does not monitor daily activities</label>
+    <label><input type="checkbox" name="boundary_no_intervention" {% if data.get('boundary_no_intervention') %}checked{% endif %}> Does not intervene in personal decisions</label>
+    <label><input type="checkbox" name="boundary_no_relationships" {% if data.get('boundary_no_relationships') %}checked{% endif %}> Does not manage relationships or visitors</label>
+    <label><input type="checkbox" name="boundary_no_outcomes" {% if data.get('boundary_no_outcomes') %}checked{% endif %}> Is not responsible for participant outcomes</label>
+
+    <p><strong>I acknowledge that independence includes freedom and responsibility.</strong></p>
+
+    <h2>Section 6 — Self-Determination Statement (Signed)</h2>
+
+    <div class="statement">
+      “I am choosing Independent Living voluntarily. I understand that autonomy includes risk, responsibility, and personal decision-making. I do not expect supervision, care, or control from this program.”
+    </div>
+
+    <label>Applicant Name:
+      <input type="text" name="applicant_name" value="{{ data.get('applicant_name', participant.get('participant_name', participant.get('name',''))) }}">
+    </label>
+
+    <label>Signature:
+      <input type="text" name="applicant_signature" value="{{ data.get('applicant_signature','') }}">
+    </label>
+
+    <label>Date:
+      <input type="date" name="applicant_date" value="{{ data.get('applicant_date','') }}">
+    </label>
+
+    <h2>Section 7 — Administrative Determination (Staff)</h2>
+
+    <label>Administrative Determination:
+      <select name="admin_determination">
+        <option value="">Select determination</option>
+        <option value="Eligible for IL (meets independence criteria)" {% if data.get('admin_determination') == 'Eligible for IL (meets independence criteria)' %}selected{% endif %}>Eligible for IL (meets independence criteria)</option>
+        <option value="Not appropriate for ILF at this time (services required)" {% if data.get('admin_determination') == 'Not appropriate for ILF at this time (services required)' %}selected{% endif %}>Not appropriate for ILF at this time (services required)</option>
+      </select>
+    </label>
+
+    <p>Decision is based solely on functional independence and informed choice.</p>
+
+    <label>Staff Signature:
+      <input type="text" name="staff_signature" value="{{ data.get('staff_signature','') }}">
+    </label>
+
+    <label>Date:
+      <input type="date" name="staff_date" value="{{ data.get('staff_date','') }}">
+    </label>
+
+    <div class="footer">
+      © 2026 Pearlzz LLC. All Rights Reserved. Single-Site License Granted to Purchaser.
+      Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.
+    </div>
+
+    <div class="defensible">
+      <h2>Why This Tool Is Defensible (Important)</h2>
+      <p>This tool:</p>
+      <ul>
+        <li>Confirms capacity, not compliance</li>
+        <li>Protects the program without stripping autonomy</li>
+        <li>Avoids institutional logic</li>
+        <li>Aligns with the true definition of Independent Living</li>
+        <li>Prevents “problem-free by control” practices</li>
+      </ul>
+
+      <p>This tool explicitly rejects:</p>
+      <ul>
+        <li>visitor bans</li>
+        <li>behavioral engineering</li>
+        <li>pre-institutional screening</li>
+        <li>independence theft disguised as safety</li>
+      </ul>
+
+      <h2>One-Line Summary</h2>
+      <p>“This screening verifies independence by documenting self-direction and informed choice, not by restricting adult freedoms.”</p>
+    </div>
+
+    <div class="footer">© 2026 Pearlzz LLC. All Rights Reserved.</div>
+
+    <div class="buttons">
+      <button type="submit">Save & Review Entry Screening</button>
+      <a class="button" href="{{ url_for('packet_builder', id=id) }}">Back to Packet Builder</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

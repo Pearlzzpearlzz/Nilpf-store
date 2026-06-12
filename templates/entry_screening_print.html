@@ -1,0 +1,252 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Entry Screening Review</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f3e8;
+      color: #111;
+      margin: 0;
+      padding: 24px;
+    }
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      background: #fff;
+      border: 2px solid #b08a2e;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.12);
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .copyright {
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 18px;
+      font-weight: bold;
+    }
+    .purpose {
+      background: #fff8df;
+      border-left: 6px solid #b08a2e;
+      padding: 14px;
+      margin-bottom: 22px;
+      line-height: 1.45;
+    }
+    h2 {
+      font-size: 18px;
+      border-bottom: 2px solid #b08a2e;
+      padding-bottom: 6px;
+      margin-top: 26px;
+      text-transform: uppercase;
+    }
+    h3 {
+      font-size: 15px;
+      margin-top: 18px;
+    }
+    .item {
+      margin: 8px 0;
+      line-height: 1.35;
+      font-size: 15px;
+    }
+    .yes { font-weight: bold; }
+    .note {
+      background: #f3f3f3;
+      border-left: 5px solid #333;
+      padding: 12px;
+      margin: 14px 0;
+      line-height: 1.45;
+    }
+    .warning {
+      background: #fff4cc;
+      border-left: 5px solid #b08a2e;
+      padding: 12px;
+      margin: 14px 0;
+      line-height: 1.45;
+    }
+    .statement {
+      border: 1px solid #b08a2e;
+      background: #fffdf4;
+      padding: 15px;
+      font-style: italic;
+      line-height: 1.45;
+      margin: 12px 0 18px;
+    }
+    .field {
+      margin: 10px 0;
+      border-bottom: 1px solid #999;
+      padding-bottom: 6px;
+    }
+    .buttons {
+      margin-top: 28px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    button, .button {
+      background: #111;
+      color: #fff;
+      border: 2px solid #b08a2e;
+      padding: 12px 18px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .footer {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; border: none; }
+      .buttons { display: none; }
+    }
+  </style>
+</head>
+<body>
+{% macro checked(key, label) -%}
+  <div class="item"><span class="yes">{% if data.get(key) %}☑{% else %}☐{% endif %}</span> {{ label }}</div>
+{%- endmacro %}
+
+<div class="page">
+  <h1>Entry Screening & Self-Determination Acknowledgment</h1>
+  <div class="copyright">© 2026 Pearlzz LLC. All Rights Reserved.</div>
+
+  <div class="purpose">
+    <strong>Purpose (read first):</strong><br>
+    This screening confirms an individual’s capacity for self-directed living without services or supervision.<br>
+    It does not assess worthiness, behavior control, social preferences, or relationship choices.
+  </div>
+
+  <h2>Section 1 — Core Eligibility (Non-Negotiable)</h2>
+  <p><strong>The applicant must answer YES to all items below.</strong></p>
+  {{ checked('core_independent_housing', 'I understand this is independent housing, not assisted or supervised living.') }}
+  {{ checked('core_daily_living', 'I am capable of performing all daily living activities independently.') }}
+  {{ checked('core_no_services', 'I understand no personal care, medical care, or supervision is provided.') }}
+  {{ checked('core_seek_help', 'I can independently seek help when needed (family, friends, providers, or emergency services).') }}
+  {{ checked('core_responsibility', 'I accept full responsibility for my health, safety, and personal decisions.') }}
+
+  <div class="note">
+    If any answer is NO → IL is not appropriate at this time.<br>
+    That is a placement decision, not a judgment.
+  </div>
+
+  <h2>Section 2 — Functional Self-Management Screen</h2>
+  <p><strong>The applicant must demonstrate ability in the following areas:</strong></p>
+
+  <h3>A. Daily Living</h3>
+  {{ checked('daily_hygiene', 'Manages personal hygiene independently') }}
+  {{ checked('daily_meals', 'Prepares or obtains meals independently') }}
+  {{ checked('daily_laundry', 'Manages laundry and housekeeping independently') }}
+  {{ checked('daily_schedule', 'Maintains a personal schedule without reminders') }}
+
+  <h3>B. Health & Safety</h3>
+  {{ checked('health_meds', 'Manages medications independently (if applicable)') }}
+  {{ checked('health_appointments', 'Schedules and attends medical appointments independently') }}
+  {{ checked('health_emergency', 'Can identify when emergency services are needed') }}
+  {{ checked('health_911', 'Can call 911 or emergency contacts without assistance') }}
+
+  <h3>C. Decision-Making</h3>
+  {{ checked('decision_risks', 'Understands personal risks and consequences') }}
+  {{ checked('decision_choices', 'Makes informed choices without staff direction') }}
+  {{ checked('decision_refuse', 'Can refuse services or seek them externally if desired') }}
+
+  <h2>Section 3 — Housing & Community Compatibility</h2>
+  <p><strong>This is NOT behavior control. It is standard housing suitability.</strong></p>
+  {{ checked('housing_lease', 'Can comply with a normal lease or occupancy agreement') }}
+  {{ checked('housing_shared', 'Can coexist in shared housing without supervision') }}
+  {{ checked('housing_violence', 'No history of violent behavior toward others') }}
+  {{ checked('housing_conflicts', 'Understands that conflicts are handled personally, not by staff intervention') }}
+
+  <div class="warning">
+    ⚠️ <strong>Note:</strong><br>
+    Emotional expression, relationships, visitors, disagreement, or personal struggles are not disqualifiers.
+  </div>
+
+  <h2>Section 4 — Visitor & Relationship Affirmation (Critical)</h2>
+  <p><strong>Read carefully. Initial each line.</strong></p>
+  {{ checked('visitor_control', 'I understand I control my personal relationships and visitors.') }}
+  {{ checked('visitor_not_staff', 'I understand visitors are not staff, not services, and not program activity.') }}
+  {{ checked('visitor_not_supervised', 'I understand the program does not supervise or manage my visitors.') }}
+  {{ checked('visitor_responsibility', 'I understand I am responsible for my guests’ conduct.') }}
+
+  <div class="note">This section exists to protect independence, not restrict it.</div>
+
+  <h2>Section 5 — Program Boundaries Acknowledgment</h2>
+  <p><strong>I understand and accept that the IL:</strong></p>
+  {{ checked('boundary_no_personal_care', 'Does not provide personal care') }}
+  {{ checked('boundary_no_medical', 'Does not provide medical services') }}
+  {{ checked('boundary_no_monitoring', 'Does not monitor daily activities') }}
+  {{ checked('boundary_no_intervention', 'Does not intervene in personal decisions') }}
+  {{ checked('boundary_no_relationships', 'Does not manage relationships or visitors') }}
+  {{ checked('boundary_no_outcomes', 'Is not responsible for participant outcomes') }}
+
+  <p><strong>I acknowledge that independence includes freedom and responsibility.</strong></p>
+
+  <h2>Section 6 — Self-Determination Statement (Signed)</h2>
+  <div class="statement">
+    “I am choosing Independent Living voluntarily. I understand that autonomy includes risk, responsibility, and personal decision-making. I do not expect supervision, care, or control from this program.”
+  </div>
+
+  <div class="field"><strong>Applicant Name:</strong> {{ data.get('applicant_name','') }}</div>
+  <div class="field"><strong>Signature:</strong> {{ data.get('applicant_signature','') }}</div>
+  <div class="field"><strong>Date:</strong> {{ data.get('applicant_date','') }}</div>
+
+  <h2>Section 7 — Administrative Determination (Staff)</h2>
+  <div class="field"><strong>Determination:</strong> {{ data.get('admin_determination','') }}</div>
+  <p>Decision is based solely on functional independence and informed choice.</p>
+  <div class="field"><strong>Staff Signature:</strong> {{ data.get('staff_signature','') }}</div>
+  <div class="field"><strong>Date:</strong> {{ data.get('staff_date','') }}</div>
+
+  <div class="footer">
+    © 2026 Pearlzz LLC. All Rights Reserved. Single-Site License Granted to Purchaser.
+    Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.
+  </div>
+
+  <h2>Why This Tool Is Defensible (Important)</h2>
+  <p>This tool:</p>
+  <ul>
+    <li>Confirms capacity, not compliance</li>
+    <li>Protects the program without stripping autonomy</li>
+    <li>Avoids institutional logic</li>
+    <li>Aligns with the true definition of Independent Living</li>
+    <li>Prevents “problem-free by control” practices</li>
+  </ul>
+
+  <p>This tool explicitly rejects:</p>
+  <ul>
+    <li>visitor bans</li>
+    <li>behavioral engineering</li>
+    <li>pre-institutional screening</li>
+    <li>independence theft disguised as safety</li>
+  </ul>
+
+  <h2>One-Line Summary</h2>
+  <p>“This screening verifies independence by documenting self-direction and informed choice, not by restricting adult freedoms.”</p>
+
+  <div class="footer">© 2026 Pearlzz LLC. All Rights Reserved.</div>
+
+  <div class="buttons">
+    {% if entry.get('locked') %}
+      <a class="button" href="{{ url_for('entry_screening_unlock', id=id) }}">Unlock / Edit</a>
+      <a class="button" href="{{ url_for('packet_builder', id=id) }}">Back to Packet Builder</a>
+      <button onclick="window.print(); return false;">Print</button>
+    {% else %}
+      <a class="button" href="{{ url_for('entry_screening', id=id) }}">Edit</a>
+      <a class="button" href="{{ url_for('entry_screening_final', id=id) }}">Final Lock Entry Screening</a>
+      <button onclick="window.print(); return false;">Print Review</button>
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>

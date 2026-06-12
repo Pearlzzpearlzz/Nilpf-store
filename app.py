@@ -940,8 +940,6 @@ def add_participant():
         "name": "",
         "participant_name": "",
         "program_type": program_type,
-        "screening": {},
-        "screening_status": "pending"
     })
 
     save_participants(participants)
@@ -1871,6 +1869,361 @@ def switch_program(program):
 
 
 
+
+
+# ============================================================
+
+
+
+
+
+# ============================================================
+# ENTRY SCREENING NORMALIZED FINAL
+# Stores under participant["forms"]["entry_screening"]
+# Saves PDF under static/filled/participant_<PID>/entry_screening.pdf
+# ============================================================
+
+ENTRY_SCREENING_CHECKBOX_KEYS = [
+    "core_independent_housing",
+    "core_daily_living",
+    "core_no_services",
+    "core_seek_help",
+    "core_responsibility",
+    "daily_hygiene",
+    "daily_meals",
+    "daily_laundry",
+    "daily_schedule",
+    "health_meds",
+    "health_appointments",
+    "health_emergency",
+    "health_911",
+    "decision_risks",
+    "decision_choices",
+    "decision_refuse",
+    "housing_lease",
+    "housing_shared",
+    "housing_violence",
+    "housing_conflicts",
+    "visitor_control",
+    "visitor_not_staff",
+    "visitor_not_supervised",
+    "visitor_responsibility",
+    "boundary_no_personal_care",
+    "boundary_no_medical",
+    "boundary_no_monitoring",
+    "boundary_no_intervention",
+    "boundary_no_relationships",
+    "boundary_no_outcomes",
+]
+
+ENTRY_SCREENING_TEXT_KEYS = [
+    "applicant_name",
+    "applicant_signature",
+    "applicant_date",
+    "admin_determination",
+    "staff_signature",
+    "staff_date",
+]
+
+
+def _entry_screening_save(current_participants):
+    try:
+        save_participants(current_participants)
+    except TypeError:
+        globals()["participants"] = current_participants
+        save_participants()
+
+
+def _entry_screening_folder(id):
+    from pathlib import Path
+    folder = Path("static") / "filled" / f"participant_{id}"
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder
+
+
+def _entry_screening_pdf(id):
+    return _entry_screening_folder(id) / "entry_screening.pdf"
+
+
+def _entry_screening_collect_form_data():
+    form_data = {}
+
+    for key in ENTRY_SCREENING_CHECKBOX_KEYS:
+        form_data[key] = "yes" if request.form.get(key) else ""
+
+    for key in ENTRY_SCREENING_TEXT_KEYS:
+        form_data[key] = request.form.get(key, "").strip()
+
+    return form_data
+
+
+def _entry_screening_make_pdf(id):
+    from pathlib import Path
+
+    pdf_path = _entry_screening_pdf(id)
+
+    # Remove old wrong-location completed PDF if it exists.
+    for old in [
+        Path("static/forms/entry_screening.pdf"),
+        Path("static/forms/entry-screening.pdf"),
+        Path("static/forms/Entry_Screening.pdf"),
+    ]:
+        try:
+            if old.exists():
+                old.unlink()
+        except Exception:
+            pass
+
+    # Preferred true-to-sight app PDF engine.
+    if "generate_true_to_sight_pdf" in globals():
+        attempts = [
+            (id, "/entry-screening-print/{id}", str(pdf_path)),
+            (id, f"/entry-screening-print/{id}", str(pdf_path)),
+            (id, "entry_screening_print.html", str(pdf_path)),
+        ]
+        for args in attempts:
+            try:
+                generate_true_to_sight_pdf(*args)
+                if pdf_path.exists() and pdf_path.stat().st_size > 0:
+                    return str(pdf_path)
+            except Exception:
+                pass
+
+    # Fallback PDF so a PDF is still created in the right folder.
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.units import inch
+
+    current_participants = load_participants()
+    participant = current_participants[id]
+    data = participant.get("forms", {}).get("entry_screening", {}).get("data", {})
+
+    c = canvas.Canvas(str(pdf_path), pagesize=letter)
+    width, height = letter
+    y = height - 0.55 * inch
+
+    def line(text="", size=8.5, gap=12):
+        nonlocal y
+        if y < 0.65 * inch:
+            c.showPage()
+            y = height - 0.55 * inch
+        c.setFont("Helvetica", size)
+        c.drawString(0.55 * inch, y, str(text)[:112])
+        y -= gap
+
+    def heading(text):
+        line("", 8, 5)
+        line(text, 10.5, 15)
+
+    def check(key, label):
+        mark = "YES" if data.get(key) else "NO"
+        line(f"[{mark}] {label}", 8.2, 10.5)
+
+    line("ENTRY SCREENING & SELF-DETERMINATION ACKNOWLEDGMENT", 12, 17)
+    line("© 2026 Pearlzz LLC. All Rights Reserved.", 8, 13)
+    line("Purpose: This screening confirms capacity for self-directed living without services or supervision.", 8.5, 11)
+    line("It does not assess worthiness, behavior control, social preferences, or relationship choices.", 8.5, 14)
+
+    heading("SECTION 1 — CORE ELIGIBILITY")
+    check("core_independent_housing", "I understand this is independent housing, not assisted or supervised living.")
+    check("core_daily_living", "I am capable of performing all daily living activities independently.")
+    check("core_no_services", "I understand no personal care, medical care, or supervision is provided.")
+    check("core_seek_help", "I can independently seek help when needed.")
+    check("core_responsibility", "I accept full responsibility for my health, safety, and personal decisions.")
+
+    heading("SECTION 2 — FUNCTIONAL SELF-MANAGEMENT SCREEN")
+    check("daily_hygiene", "Manages personal hygiene independently")
+    check("daily_meals", "Prepares or obtains meals independently")
+    check("daily_laundry", "Manages laundry and housekeeping independently")
+    check("daily_schedule", "Maintains a personal schedule without reminders")
+    check("health_meds", "Manages medications independently, if applicable")
+    check("health_appointments", "Schedules and attends medical appointments independently")
+    check("health_emergency", "Can identify when emergency services are needed")
+    check("health_911", "Can call 911 or emergency contacts without assistance")
+    check("decision_risks", "Understands personal risks and consequences")
+    check("decision_choices", "Makes informed choices without staff direction")
+    check("decision_refuse", "Can refuse services or seek them externally if desired")
+
+    heading("SECTION 3 — HOUSING & COMMUNITY COMPATIBILITY")
+    check("housing_lease", "Can comply with a normal lease or occupancy agreement")
+    check("housing_shared", "Can coexist in shared housing without supervision")
+    check("housing_violence", "No history of violent behavior toward others")
+    check("housing_conflicts", "Understands conflicts are handled personally, not by staff intervention")
+
+    heading("SECTION 4 — VISITOR & RELATIONSHIP AFFIRMATION")
+    check("visitor_control", "I understand I control my personal relationships and visitors.")
+    check("visitor_not_staff", "I understand visitors are not staff, not services, and not program activity.")
+    check("visitor_not_supervised", "I understand the program does not supervise or manage my visitors.")
+    check("visitor_responsibility", "I understand I am responsible for my guests' conduct.")
+
+    heading("SECTION 5 — PROGRAM BOUNDARIES ACKNOWLEDGMENT")
+    check("boundary_no_personal_care", "Does not provide personal care")
+    check("boundary_no_medical", "Does not provide medical services")
+    check("boundary_no_monitoring", "Does not monitor daily activities")
+    check("boundary_no_intervention", "Does not intervene in personal decisions")
+    check("boundary_no_relationships", "Does not manage relationships or visitors")
+    check("boundary_no_outcomes", "Is not responsible for participant outcomes")
+
+    heading("SECTION 6 — SELF-DETERMINATION STATEMENT")
+    line('"I am choosing Independent Living voluntarily. I understand that autonomy includes risk, responsibility,', 8, 10)
+    line('and personal decision-making. I do not expect supervision, care, or control from this program."', 8, 13)
+    line(f"Applicant Name: {data.get('applicant_name', '')}", 9, 13)
+    line(f"Signature: {data.get('applicant_signature', '')}", 9, 13)
+    line(f"Date: {data.get('applicant_date', '')}", 9, 13)
+
+    heading("SECTION 7 — ADMINISTRATIVE DETERMINATION")
+    line(f"Determination: {data.get('admin_determination', '')}", 9, 13)
+    line("Decision is based solely on functional independence and informed choice.", 8, 12)
+    line(f"Staff Signature: {data.get('staff_signature', '')}", 9, 13)
+    line(f"Date: {data.get('staff_date', '')}", 9, 13)
+
+    line("", 8, 8)
+    line("This screening verifies independence by documenting self-direction and informed choice,", 8, 10)
+    line("not by restricting adult freedoms.", 8, 13)
+    line("© 2026 Pearlzz LLC. All Rights Reserved. Single-Site License Granted to Purchaser.", 7, 9)
+    line("Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.", 7, 9)
+
+    c.save()
+    return str(pdf_path)
+
+
+
+@app.route("/entry-screening/<int:id>", methods=["GET", "POST"])
+def entry_screening(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    current_participants = load_participants()
+
+    if id < 0 or id >= len(current_participants):
+        return redirect(url_for("add_participant"))
+
+    participant = current_participants[id]
+    participant.setdefault("forms", {})
+    entry = participant["forms"].get("entry_screening", {})
+    data = entry.get("data", {})
+
+    if request.method == "POST":
+        form_data = _entry_screening_collect_form_data()
+
+        old_pdf = entry.get("pdf", "")
+
+        participant["forms"]["entry_screening"] = {
+            "data": form_data,
+            "locked": False,
+            "completed": False,
+            "pdf": old_pdf
+        }
+
+        # Remove old loose/special storage.
+        participant.pop("entry_screening", None)
+        participant.pop("entry_screening_pdf", None)
+
+        _entry_screening_save(current_participants)
+
+        return redirect(url_for("entry_screening_print", id=id))
+
+    if entry.get("locked"):
+        return redirect(url_for("entry_screening_print", id=id))
+
+    return render_template(
+        "entry_screening_form.html",
+        participant=participant,
+        id=id,
+        data=data,
+        entry=entry
+    )
+
+
+@app.route("/entry-screening-print/<int:id>")
+def entry_screening_print(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    current_participants = load_participants()
+
+    if id < 0 or id >= len(current_participants):
+        return redirect(url_for("add_participant"))
+
+    participant = current_participants[id]
+    participant.setdefault("forms", {})
+    entry = participant["forms"].get("entry_screening", {})
+    data = entry.get("data", {})
+
+    return render_template(
+        "entry_screening_print.html",
+        participant=participant,
+        id=id,
+        data=data,
+        entry=entry
+    )
+
+
+@app.route("/entry-screening-final/<int:id>", methods=["GET", "POST"])
+def entry_screening_final(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    current_participants = load_participants()
+
+    if id < 0 or id >= len(current_participants):
+        return redirect(url_for("add_participant"))
+
+    participant = current_participants[id]
+    participant.setdefault("forms", {})
+    entry = participant["forms"].get("entry_screening", {})
+    data = entry.get("data", {})
+
+    if not data:
+        return redirect(url_for("entry_screening", id=id))
+
+    pdf_path = _entry_screening_make_pdf(id)
+
+    participant["forms"]["entry_screening"] = {
+        "data": data,
+        "locked": True,
+        "completed": True,
+        "pdf": pdf_path
+    }
+
+    # Remove old loose/special storage.
+    participant.pop("entry_screening", None)
+    participant.pop("entry_screening_pdf", None)
+
+    _entry_screening_save(current_participants)
+
+    return redirect(url_for("packet_builder", id=id))
+
+
+@app.route("/entry-screening-unlock/<int:id>", methods=["GET", "POST"])
+def entry_screening_unlock(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    current_participants = load_participants()
+
+    if id < 0 or id >= len(current_participants):
+        return redirect(url_for("add_participant"))
+
+    participant = current_participants[id]
+    participant.setdefault("forms", {})
+    participant["forms"].setdefault("entry_screening", {"data": {}, "pdf": ""})
+    participant["forms"]["entry_screening"]["locked"] = False
+    participant["forms"]["entry_screening"]["completed"] = False
+
+    participant.pop("entry_screening", None)
+    participant.pop("entry_screening_pdf", None)
+
+    _entry_screening_save(current_participants)
+
+    return redirect(url_for("entry_screening", id=id))
+
+# ============================================================
+# END ENTRY SCREENING NORMALIZED FINAL
+# ============================================================
+
+
+
 @app.route("/packet-builder", methods=["GET", "POST"])
 def packet_builder_select():
     live_participants = load_participants()
@@ -2024,7 +2377,6 @@ def packet_builder(id):
             <div class="info">
                 <div><strong>Participant:</strong> {participant["name"]}</div>
                 <div><strong>PID:</strong> {id}</div>
-                <div><strong>Screening Status:</strong> {participant.get("screening_status","pending")}</div>
                 <div><strong>Program Type:</strong> {activated_system.get("program_type","ILH")}</div>
             </div>
 
@@ -2058,248 +2410,9 @@ def packet_builder(id):
 
 
 
-@app.route("/screening", methods=["GET", "POST"])
-def screening():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    if request.method == "GET":
-        return render_template(
-            "entry_screening.html",
-            participant=None,
-            participant_id=None,
-            pre_participant=True
-        )
-
-    from pathlib import Path
-    import json
-
-    data = request.form.to_dict(flat=True)
-    applicant_name = data.get("applicant_name", "").strip()
-
-    if not applicant_name:
-        flash("Applicant name is required before screening.")
-        return redirect(url_for("screening"))
-
-    answers = {k: v for k, v in data.items() if k.lower().startswith("q")}
-    no_count = sum(1 for v in answers.values() if str(v).strip().lower() in {"no", "n", "false", "0"})
-    passed = bool(answers) and no_count < 2
-    eligibility_status = "passed" if passed else "not_eligible"
-
-    records_path = Path("data/screening_records.json")
-    records_path.parent.mkdir(parents=True, exist_ok=True)
-
-    try:
-        screening_records = json.loads(records_path.read_text() or "[]")
-    except Exception:
-        screening_records = []
-
-    screening_id = len(screening_records)
-
-    record = {
-        "screening_id": screening_id,
-        "applicant_name": applicant_name,
-        "status": eligibility_status,
-        "no_count": no_count,
-        "answers": answers,
-        "signature": data.get("signature", ""),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-
-    if passed:
-        current_participants = load_participants()
-        program_type = "ILH"
-
-        new_id = len(current_participants)
-        current_participants.append({
-            "pid": new_id,
-            "participant_id": new_id,
-            "form_data": {},
-            "forms": {
-                "entry_screening": {
-                    "data": data,
-                    "completed": True,
-                    "locked": True
-                }
-            },
-            "name": applicant_name,
-            "participant_name": applicant_name,
-            "program_type": program_type,
-            "screening": {
-                "data": data,
-                "completed": True,
-                "locked": True,
-                "status": "passed",
-                "no_count": no_count,
-                "screening_record_id": screening_id
-            },
-            "screening_record_id": screening_id,
-            "entry_screening": data,
-            "entry_screening_pdf": "18_entry_screening.pdf",
-            "screening_status": "passed",
-            "screening_no_count": no_count
-        })
-
-        save_participants(current_participants)
-        record["created_pid"] = new_id
-
-    screening_records.append(record)
-    records_path.write_text(json.dumps(screening_records, indent=2))
-
-    if passed:
-        session["current_pid"] = new_id
-        return redirect(url_for("independent_living_disclosure", id=new_id))
-
-    return f"""
-    <html>
-    <body style="font-family:Arial; padding:40px;">
-        <h2>Not Eligible for ILH</h2>
-        <p>Entry Screening was recorded and retained.</p>
-        <p><strong>No answers:</strong> {no_count}</p>
-        <p>No participant/member PID was created.</p>
-        <p>This ILH path stops here.</p>
-        <p><a href="/screening">Start New Entry Screening</a></p>
-        <p><a href="/operations">Return to Operations</a></p>
-    </body>
-    </html>
-    """
 
 
 
-@app.route("/entry-screening/<int:id>", methods=["GET", "POST"])
-def entry_screening(id):
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    current_participants = load_participants()
-
-    if id < 0 or id >= len(current_participants):
-        return """
-        <html>
-        <body style="font-family:Arial; padding:40px;">
-            <h2>Entry Screening Not Passed</h2>
-            <p>No participant/member PID was created or advanced.</p>
-            <p>This ILH path stops here.</p>
-            <p><a href="/screening">Start New Entry Screening</a></p>
-        </body>
-        </html>
-        """
-
-    participant = current_participants[id]
-
-
-    if request.method == "POST":
-        data = request.form.to_dict(flat=True)
-
-        submitted_name = (
-            data.get("name")
-            or data.get("participant_name")
-            or data.get("member_name")
-            or ""
-        ).strip()
-
-        if submitted_name and not str(participant.get("name", "")).strip():
-            participant["name"] = submitted_name
-            participant["participant_name"] = submitted_name
-
-        data = lock_participant_identity_fields(data, participant)
-        participant["entry_screening"] = data
-        participant["entry_screening_pdf"] = "18_entry_screening.pdf"
-
-        # FULL SCREENING (no 5-question limit)
-        answers = {k: v for k, v in data.items() if k.lower().startswith("q")}
-        no_count = sum(1 for v in answers.values() if str(v).strip().lower() in {"no", "n", "false", "0"})
-        passed = bool(answers) and no_count < 2
-
-        participant["screening_status"] = "passed" if passed else "not_eligible"
-        participant["screening_no_count"] = no_count
-        participant.setdefault("forms", {})
-        participant["forms"]["entry_screening"] = {
-            "data": data,
-            "completed": True,
-            "locked": False,
-            "status": participant["screening_status"],
-            "no_count": no_count
-        }
-        save_participants(current_participants)
-
-        print("ENTRY SCREENING SAVED:", participant["name"])
-        print("SCREENING STATUS:", participant["screening_status"])
-
-        if passed:
-            return redirect(f"/independent-living-disclosure/{id}")
-
-        return """
-        <html>
-        <body style="font-family:Arial; padding:40px; background:#f7f3e8;">
-          <div style="max-width:720px;margin:0 auto;background:#fff;border:2px solid #b88a2c;border-radius:18px;padding:24px;">
-            <h2>Not Eligible for ILH</h2>
-            <p>Entry Screening was retained under this PID.</p>
-            <p>No further ILH forms should be completed.</p>
-            <p><a href="/operations">Return to Operations</a></p>
-          </div>
-        </body>
-        </html>
-        """
-
-    return render_template("entry_screening.html", participant=participant, id=id, participant_id=id)
-
-
-
-
-def lock_participant_identity_fields(form_data, participant):
-    """
-    Global ILH/TH participant identity integrity lock.
-
-    Participant name fields auto-lock to the participant record.
-    Signature fields do NOT auto-populate.
-    If a signature field is intentionally submitted/clicked, it is forced
-    to the participant record name so a second name cannot be entered.
-    Staff/operator/witness/prepared-by fields are not touched.
-    """
-    if not isinstance(form_data, dict) or not participant:
-        return form_data
-
-    participant_name = (
-        participant.get("name")
-        or participant.get("participant_name")
-        or participant.get("member_name")
-        or ""
-    ).strip()
-
-    if not participant_name:
-        return form_data
-
-    identity_keys = [
-        "participant",
-        "participant_name",
-        "participant_full_name",
-        "participant_signature_name",
-        "member_name",
-        "member_full_name",
-        "member_signature_name",
-    ]
-
-    for key in identity_keys:
-        if key in form_data:
-            form_data[key] = participant_name
-
-    signature_keys = [
-        "signature",
-        "participant_signature",
-        "member_signature",
-        "typed_signature",
-        "signature_name",
-        "signer_name",
-    ]
-
-    for key in signature_keys:
-        if key in form_data:
-            value = str(form_data.get(key, "")).strip()
-            if value:
-                form_data[key] = participant_name
-
-    return form_data
 
 
 @app.route("/participant-complete/<int:id>")
