@@ -918,61 +918,29 @@ def refresh_participants_from_storage():
 def add_participant():
     participants = load_participants()
 
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        program_type = "ILH"
-        if name:
-            new_id = len(participants)
-            participants.append({
-                "pid": new_id,
-                "participant_id": new_id,
-                "form_data": {},
-                "forms": {},
-                "name": name,
-                "participant_name": name,
-                "program_type": program_type,
-                "screening": {}
-            })
-            save_participants(participants)
-            session["current_pid"] = new_id
-            print("NEW PARTICIPANT:", name, "PID:", new_id)
-            print("ALL PARTICIPANTS:", participants)
-            if program_type == "ILH":
-                return redirect(url_for("entry_screening", id=new_id))
-            if program_type == "PSH":
-                  return "PSH module is parked and not active yet. Select ILH, Transitional, VA, DOC, or Reentry on the Dashboard."
-            return redirect(f"/intake-assessment/{new_id}")
-        return redirect(url_for("add_participant"))
+    # ILH now works like Intake:
+    # clicking Add Participant assigns a PID first,
+    # then Entry Screening collects/saves the name.
+    program_type = "ILH"
 
-    return """
-    <html>
-    <head>
-      <title>Add Participant / Member</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body{font-family:Arial;background:#f7f3e8;margin:0;padding:24px;}
-        .box{max-width:650px;margin:0 auto;background:white;border:2px solid #b88a2c;border-radius:18px;padding:24px;}
-        h1{text-align:center;margin-top:0;}
-        label{font-weight:bold;display:block;margin:16px 0 8px;}
-        input{width:100%;box-sizing:border-box;padding:14px;font-size:18px;border-radius:10px;border:1px solid #999;}
-        button{width:100%;margin-top:22px;padding:16px;border:0;border-radius:12px;background:#111;color:#f4d27a;font-size:20px;font-weight:bold;}
-        a{font-weight:bold;color:#111;}
-      </style>
-    </head>
-    <body>
-      <div class="box">
-        <h1>Add Participant / Member</h1>
-        <p>Enter the name to create the PID and begin ILH Entry Screening.</p>
-        <form method="POST" action="/add_participant">
-          <label>Name</label>
-          <input type="text" name="name" required>
-          <button type="submit">Create PID & Start Entry Screening</button>
-        </form>
-        <p><a href="/operations">Return to Operations</a></p>
-      </div>
-    </body>
-    </html>
-    """
+    new_id = len(participants)
+    participants.append({
+        "pid": new_id,
+        "participant_id": new_id,
+        "form_data": {},
+        "forms": {},
+        "name": "",
+        "participant_name": "",
+        "program_type": program_type,
+        "screening": {},
+        "screening_status": "pending"
+    })
+
+    save_participants(participants)
+    session["current_pid"] = new_id
+
+    return redirect(url_for("entry_screening", id=new_id))
+
 
 PROPERTY_PAPERS_FILE = "data/property_papers.json"
 
@@ -2212,6 +2180,18 @@ def entry_screening(id):
 
     if request.method == "POST":
         data = request.form.to_dict(flat=True)
+
+        submitted_name = (
+            data.get("name")
+            or data.get("participant_name")
+            or data.get("member_name")
+            or ""
+        ).strip()
+
+        if submitted_name and not str(participant.get("name", "")).strip():
+            participant["name"] = submitted_name
+            participant["participant_name"] = submitted_name
+
         _identity_participant = locals().get("participant") or locals().get("p")
         if _identity_participant:
             data = lock_participant_identity_fields(data, _identity_participant)

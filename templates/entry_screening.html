@@ -50,7 +50,7 @@ body { font-family: Arial; background:#fff; padding:20px; }
 <form method="POST" action="{{ url_for('screening') }}">
 
 <label><strong>Applicant / Participant Name:</strong></label><br>
-<input type="text" name="applicant_name" value="{{ participant.get('name', '') if participant else '' }}" required {% if participant %}readonly{% endif %}>
+<input type="text" name="applicant_name" value="{{ participant.get('name', '') if participant else '' }}" required {% if participant and participant.get('name') %}readonly{% endif %}>
 <br><br>
 
 <h2>SECTION 1 — CORE ELIGIBILITY</h2>
