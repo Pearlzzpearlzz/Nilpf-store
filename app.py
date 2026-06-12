@@ -2160,24 +2160,26 @@ def entry_screening_print(id):
 
 
 
+
 @app.route("/entry-screening-final/<int:id>", methods=["GET", "POST"])
 def entry_screening_final(id):
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
     current_participants = load_participants()
+
     if id < 0 or id >= len(current_participants):
         return redirect(url_for("add_participant"))
 
     participant = current_participants[id]
     participant.setdefault("forms", {})
+
     entry = participant["forms"].get("entry_screening", {})
     data = entry.get("data", {})
 
     if not data:
         return redirect(url_for("entry_screening", id=id))
 
-    # Generate PDF in correct participant folder
     pdf_path = _entry_screening_make_pdf(id)
 
     participant["forms"]["entry_screening"] = {
@@ -2187,10 +2189,15 @@ def entry_screening_final(id):
         "pdf": pdf_path
     }
 
+    # Remove old loose/special storage if any old record still has it.
+    participant.pop("entry_screening", None)
+    participant.pop("entry_screening_pdf", None)
+
     _entry_screening_save(current_participants)
 
-    # Redirect to the next ILH form according to rules
+    # ES final lock must continue to the next ILH form: ILD.
     return redirect(url_for("independent_living_disclosure", id=id))
+
 
 @app.route("/entry-screening-unlock/<int:id>", methods=["GET", "POST"])
 def entry_screening_unlock(id):

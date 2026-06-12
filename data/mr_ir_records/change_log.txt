@@ -275,3 +275,25 @@ This ensures ILH form sequence follows the correct order.
 
 Performed in local code folder: ~/NILPF_FRESH
 Render deploy requires commit & push.
+
+2026-06-12 17:28:11 — Mr. IR Repair Note: Correct ES Final Redirect Only
+
+Correction:
+The Entry Screening final route was corrected cleanly and narrowly.
+
+Correct behavior:
+Entry Screening final lock:
+- verifies logged-in session
+- loads the existing PID
+- reads participant["forms"]["entry_screening"]["data"]
+- creates PDF through _entry_screening_make_pdf(id)
+- stores PDF at participant["forms"]["entry_screening"]["pdf"]
+- marks Entry Screening locked/completed
+- removes old loose entry_screening / entry_screening_pdf keys if present
+- redirects ES → Independent Living Disclosure
+
+Correct destination:
+return redirect(url_for("independent_living_disclosure", id=id))
+
+Important:
+This correction does not rebuild routes, does not touch login guards, does not restore /screening, and does not change templates.
