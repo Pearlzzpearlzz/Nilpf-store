@@ -2163,7 +2163,9 @@ def entry_screening(id):
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
-    if id < 0 or id >= len(participants):
+    current_participants = load_participants()
+
+    if id < 0 or id >= len(current_participants):
         return """
         <html>
         <body style="font-family:Arial; padding:40px;">
@@ -2175,7 +2177,7 @@ def entry_screening(id):
         </html>
         """
 
-    participant = participants[id]
+    participant = current_participants[id]
 
 
     if request.method == "POST":
@@ -2213,7 +2215,7 @@ def entry_screening(id):
             "status": participant["screening_status"],
             "no_count": no_count
         }
-        save_participants_file()
+        save_participants(current_participants)
 
         print("ENTRY SCREENING SAVED:", participant["name"])
         print("SCREENING STATUS:", participant["screening_status"])
