@@ -263,7 +263,11 @@ def require_login():
     view_args = request.view_args or {}
     if "id" in view_args:
         pid = view_args.get("id")
-        if not isinstance(pid, int) or pid < 0 or pid >= len(participants):
+        try:
+            pid = int(pid)
+        except (ValueError, TypeError):
+            pid = -1
+        if pid < 0 or pid >= len(participants):
             flash("Participant not found.")
             return redirect(url_for("add_participant"))
 
