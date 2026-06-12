@@ -3972,5 +3972,21 @@ def exit_discharge_summary(id):
         d=d
     )
 
+
+@app.route("/version-check")
+def version_check():
+    return """
+    <html>
+    <head><title>NILPF Version Check</title></head>
+    <body style="font-family:Arial; padding:40px;">
+        <h1>NILPF Housing OS Version Check</h1>
+        <p><strong>Commit Marker:</strong> b0771d6</p>
+        <p><strong>Deploy Test:</strong> Render must show this page if latest code is live.</p>
+        <p><strong>Time Marker:</strong> 2026-06-11 Render tragedy check</p>
+    </body>
+    </html>
+    """
+
+
 if __name__ == "__main__":
     app.run(debug=True)
