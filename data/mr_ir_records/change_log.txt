@@ -147,3 +147,42 @@ ILH buyers need the participant-facing ILH form chain. TH has already been teste
 Test:
 - app.py compile check passed.
 - Next live ILH test: complete passing Entry Screening and confirm browser lands on /independent-living-disclosure/<pid>.
+
+2026-06-12 — Mr. IR Repair Note: ILH Entry Screening Gate / Home Redirect Issue
+
+Issue:
+ILH Entry Screening kept returning to Home even after the /screening route was patched.
+
+Cause:
+The live Add Participant / ILH start buttons were still pointing to /add_participant.
+The /add_participant GET path redirects home, so the user never actually entered the intended /screening eligibility gate.
+
+Repair:
+Updated ILH start buttons:
+- templates/dashboard.html
+- templates/packet_builder_select.html
+
+Changed Add Participant start links from:
+  /add_participant
+
+To:
+  /screening
+
+Current intended ILH flow:
+ILH start button → /screening → Entry Screening
+0 or 1 No answer → PASS → create participant/member PID → continue to Independent Living Disclosure
+2 or more No answers → NOT ELIGIBLE → stop → retain screening record → no participant/member PID
+
+Important:
+Entry Screening is the ILH eligibility/fit gate. It is not a normal ILH packet form.
+Failed ES records are retained, but no participant/member PID is created.
+Passed ES creates the PID and continues into the ILH form path.
+
+Proof-of-function to test after deploy:
+1. Click Add Participant / ILH start button.
+2. Confirm URL is /screening.
+3. Submit ES with 0 or 1 No.
+4. Confirm redirect to /independent-living-disclosure/<pid>.
+5. Submit ES with 2 or more No.
+6. Confirm Not Eligible page and no PID creation.
+
