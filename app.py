@@ -937,7 +937,7 @@ def add_participant():
             print("NEW PARTICIPANT:", name, "PID:", new_id)
             print("ALL PARTICIPANTS:", participants)
             if program_type == "ILH":
-                return redirect(url_for("entry_screening", id=new_id))
+                return redirect(url_for("screening"))
             if program_type == "PSH":
                   return "PSH module is parked and not active yet. Select ILH, Transitional, VA, DOC, or Reentry on the Dashboard."
             return redirect(f"/intake-assessment/{new_id}")
@@ -2107,11 +2107,23 @@ def screening():
             "pid": new_id,
             "participant_id": new_id,
             "form_data": {},
-            "forms": {},
+            "forms": {
+                "entry_screening": {
+                    "data": data,
+                    "completed": True,
+                    "locked": True
+                }
+            },
             "name": applicant_name,
             "participant_name": applicant_name,
             "program_type": program_type,
-            "screening": {},
+            "screening": {
+                "data": data,
+                "completed": True,
+                "locked": True,
+                "status": "passed",
+                "screening_record_id": screening_id
+            },
             "screening_record_id": screening_id,
             "entry_screening": data,
             "entry_screening_pdf": "18_entry_screening.pdf",
@@ -2130,7 +2142,7 @@ def screening():
 
     return """
     <h2>Screening Recorded</h2>
-    <p>This applicant did not pass screening. No participant PID was created.</p>
+    <p>Entry Screening did not pass. No participant/member PID was created.</p>
     <p><a href="/">Return Home</a></p>
     """
 
