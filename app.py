@@ -2202,9 +2202,7 @@ def entry_screening(id):
             participant["name"] = submitted_name
             participant["participant_name"] = submitted_name
 
-        _identity_participant = locals().get("participant") or locals().get("p")
-        if _identity_participant:
-            data = lock_participant_identity_fields(data, _identity_participant)
+        data = lock_participant_identity_fields(data, participant)
         participant["entry_screening"] = data
         participant["entry_screening_pdf"] = "18_entry_screening.pdf"
 
