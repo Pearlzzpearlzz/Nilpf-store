@@ -2077,7 +2077,9 @@ def screening():
         return redirect(url_for("screening"))
 
     answers = {k: v for k, v in data.items() if k.lower().startswith("q")}
-    passed = all(str(v).strip().lower() == "yes" for v in answers.values()) if answers else False
+    no_count = sum(1 for v in answers.values() if str(v).strip().lower() in {"no", "n", "false", "0"})
+    passed = bool(answers) and no_count < 2
+    eligibility_status = "passed" if passed else "not_eligible"
 
     records_path = Path("data/screening_records.json")
     records_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2092,7 +2094,8 @@ def screening():
     record = {
         "screening_id": screening_id,
         "applicant_name": applicant_name,
-        "status": "passed" if passed else "failed",
+        "status": eligibility_status,
+        "no_count": no_count,
         "answers": answers,
         "signature": data.get("signature", ""),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -2122,12 +2125,14 @@ def screening():
                 "completed": True,
                 "locked": True,
                 "status": "passed",
+                "no_count": no_count,
                 "screening_record_id": screening_id
             },
             "screening_record_id": screening_id,
             "entry_screening": data,
             "entry_screening_pdf": "18_entry_screening.pdf",
-            "screening_status": "passed"
+            "screening_status": "passed",
+            "screening_no_count": no_count
         })
 
         save_participants(current_participants)
@@ -2140,10 +2145,18 @@ def screening():
         session["current_pid"] = new_id
         return redirect(url_for("independent_living_disclosure", id=new_id))
 
-    return """
-    <h2>Screening Recorded</h2>
-    <p>Entry Screening did not pass. No participant/member PID was created.</p>
-    <p><a href="/">Return Home</a></p>
+    return f"""
+    <html>
+    <body style="font-family:Arial; padding:40px;">
+        <h2>Not Eligible for ILH</h2>
+        <p>Entry Screening was recorded and retained.</p>
+        <p><strong>No answers:</strong> {no_count}</p>
+        <p>No participant/member PID was created.</p>
+        <p>This ILH path stops here.</p>
+        <p><a href="/screening">Start New Entry Screening</a></p>
+        <p><a href="/operations">Return to Operations</a></p>
+    </body>
+    </html>
     """
 
 
