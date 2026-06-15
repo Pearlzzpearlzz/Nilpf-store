@@ -104,7 +104,7 @@
 <h3>PARTICIPANT INFORMATION</h3>
 
 <label>Participant Name:</label>
-<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
+<input type="text" name="participant_name" value="{{ d.get('participant_name', '') }}">
 
 <label>Address (if applicable):</label>
 <input type="text" name="address" value="{{ d.address }}">
@@ -144,10 +144,10 @@
 <p>● Emergency response is the responsibility of public emergency services</p>
 
 <label>Participant Signature:</label>
-<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', '') }}">
 
 <label>Date:</label>
-<input class="small-input" type="text" name="signature_date" value="{{ d.get('signature_date', today) }}">
+<input class="small-input" type="text" name="signature_date" value="{{ d.get('signature_date', '') }}">
 
 <p><strong>End of Form</strong></p>
 

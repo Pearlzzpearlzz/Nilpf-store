@@ -180,7 +180,17 @@
       </div>
 
       <div class="actions">
-        <a class="btn" href="{{ url_for('add_participant') }}">Add Participant</a>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <a class="btn" href="{{ url_for('add_participant') }}">Add New</a>
+
+          <select onchange="if(this.value){ window.location=this.value; }"
+                  style="width:100%;padding:16px;border-radius:12px;border:1px solid #d4af37;background:#0b0b0b;color:#fff;font-size:16px;font-weight:bold;">
+            <option value="">Incomplete</option>
+            {% for p in incomplete_participants or [] %}
+              <option value="/continue-flow/{{ p.id }}">PID {{ p.id }} — {{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
         <a class="btn" href="{{ url_for('operations') }}">Operations</a>
         <a class="btn btn-dark" href="{{ url_for('logout') }}">Logout</a>
       </div>

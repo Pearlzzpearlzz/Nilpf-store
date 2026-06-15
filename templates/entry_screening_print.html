@@ -106,10 +106,11 @@
       font-weight: bold;
       line-height: 1.4;
     }
+    .no-print { }
     @media print {
       body { background: #fff; padding: 0; }
       .page { box-shadow: none; border: none; }
-      .buttons { display: none; }
+      .buttons, .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -129,7 +130,7 @@
   </div>
 
   <h2>Section 1 — Core Eligibility (Non-Negotiable)</h2>
-  <p><strong>The applicant must answer YES to all items below.</strong></p>
+  <p><strong>The responses below help determine whether this independent housing setting is appropriate for the applicant.</strong></p>
   {{ checked('core_independent_housing', 'I understand this is independent housing, not assisted or supervised living.') }}
   {{ checked('core_daily_living', 'I am capable of performing all daily living activities independently.') }}
   {{ checked('core_no_services', 'I understand no personal care, medical care, or supervision is provided.') }}
@@ -236,17 +237,17 @@
 
   <div class="footer">© 2026 Pearlzz LLC. All Rights Reserved.</div>
 
-  <div class="buttons">
+  <div class="buttons no-print">
     {% if entry.get('locked') %}
       <a class="button" href="{{ url_for('entry_screening_unlock', id=id) }}">Unlock / Edit</a>
-      <a class="button" href="{{ url_for('packet_builder', id=id) }}">Back to Packet Builder</a>
-      <button onclick="window.print(); return false;">Print</button>
+      <button type="button" onclick="window.print(); return false;">Print This Form</button>
     {% else %}
       <a class="button" href="{{ url_for('entry_screening', id=id) }}">Edit</a>
-      <a class="button" href="{{ url_for('entry_screening_final', id=id) }}">Final Lock Entry Screening</a>
-      <button onclick="window.print(); return false;">Print Review</button>
+      <a class="button" href="{{ url_for('entry_screening_final', id=id) }}">Finalize and Lock</a>
+      <button type="button" onclick="window.print(); return false;">Print Review</button>
     {% endif %}
   </div>
+
 </div>
 </body>
 </html>

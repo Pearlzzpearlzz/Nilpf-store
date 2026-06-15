@@ -174,17 +174,17 @@
 
     <div class="field-row">
         Participant Name:
-        <input name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
+        <input name="participant_name" value="{{ d.get('participant_name', '') }}">
     </div>
 
     <div class="field-row">
         Signature:
-        <input name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
+        <input name="participant_signature" value="{{ d.get('participant_signature', '') }}">
     </div>
 
     <div class="field-row">
         Date:
-        <input class="date-input" name="signature_date" value="{{ d.get('signature_date', today) }}">
+        <input class="date-input" name="signature_date" value="{{ d.get('signature_date', '') }}">
     </div>
 </div>
 
@@ -194,7 +194,6 @@
 
 <div class="buttons">
     <button type="submit">Save / Review</button>
-    <a class="button" href="/packet-builder/{{ id }}">Back to Packet Builder</a>
 </div>
 
 </form>

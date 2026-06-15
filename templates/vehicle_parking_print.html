@@ -1,204 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Vehicle / Parking Information Form</title>
+<title>Vehicle Parking Review</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 <style>
-  body { font-family: Arial, sans-serif; margin: 42px; font-size: 14px; color:#000; }
-  h2 { text-align:center; margin-bottom: 4px; }
-  h3 { margin-top: 24px; border-bottom: 1px solid #000; padding-bottom: 4px; }
-  .sub { text-align:center; margin-bottom: 24px; }
-  .row { margin: 13px 0; }
-  .label { display:inline-block; width: 210px; font-weight: bold; }
-  .line { display:inline-block; border-bottom:1px solid #000; min-width: 300px; padding: 2px 6px; }
-  .short { min-width: 160px; }
-  .rule { margin: 10px 0; }
-  .page-break { page-break-before: always; }
-  @media print { body { margin: 28px; } .page-break { page-break-before: always; } }
+body{font-family:Arial;max-width:850px;margin:auto;padding:30px;line-height:1.5}
+.box{border:1px solid #000;padding:15px;margin:15px 0}
+.button{display:inline-block;background:#000;color:#fff;padding:12px 16px;text-decoration:none;border:0}
 </style>
-
-<style>
-  .print-now-btn {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 9999;
-    background: #d4af37;
-    color: #000;
-    border: 1px solid #8a680f;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  }
-  @media print {
-    .print-now-btn {
-      display: none !important;
-    }
-  }
-</style>
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
-
-<style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
-}
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-}
-@media print{
-  .nilpf-safe-nav{display:none !important;}
-}
-</style>
-
 </head>
 <body>
 
-<div class="nilpf-safe-nav">
-  <a href="/operations">Exit to Operations</a>
+<h1>Vehicle Parking Rules - Review</h1>
+
+<div class="box">
+<p><b>Participant Name:</b> {{ d.get('participant_name') or participant.get('name','') }}</p>
+<p><b>Date:</b> {{ d.get('date','') }}</p>
+<p><b>Vehicle:</b> {{ d.get('vehicle_make_model','') }}</p>
+<p><b>Plate:</b> {{ d.get('license_plate','') }}</p>
+<p><b>Parking Location:</b> {{ d.get('parking_location','') }}</p>
 </div>
 
-<button class="print-now-btn" type="button" onclick="window.print()">Print This Form</button>
-
-<h2>VEHICLE / PARKING INFORMATION FORM</h2>
-<div class="sub">Shared Housing Program</div>
-
-<h3>1. Participant Information</h3>
-
-<div class="row"><span class="label">Participant Name:</span>
-<span class="line">{{ d.participant_name }}</span></div>
-
-<div class="row"><span class="label">Room/Unit:</span>
-<span class="line">{{ d.room_unit }}</span></div>
-
-<h3>2. Vehicle Details</h3>
-
-<div class="row"><span class="label">Make:</span>
-<span class="line">{{ d.car_make }}</span></div>
-
-<div class="row"><span class="label">Model:</span>
-<span class="line">{{ d.car_model }}</span></div>
-
-<div class="row"><span class="label">Year:</span>
-<span class="line short">{{ d.year_of_car }}</span></div>
-
-<div class="row"><span class="label">Color:</span>
-<span class="line short">{{ d.car_color }}</span></div>
-
-<div class="row"><span class="label">License Plate Number:</span>
-<span class="line">{{ d.license_number }}</span></div>
-
-<div class="row"><span class="label">State:</span>
-<span class="line short">{{ d.state }}</span></div>
-
-<div class="row"><span class="label">Insurance Provider:</span>
-<span class="line">{{ d.insurance_provider }}</span></div>
-
-<div class="row"><span class="label">Policy Number:</span>
-<span class="line">{{ d.policy_number }}</span></div>
-
-<div class="page-break"></div>
-
-<h3>3. Additional Rules</h3>
-
-<div class="rule">{% if d.park_designated_spaces %}☑{% else %}☐{% endif %} Park only in designated spaces</div>
-<div class="rule">{% if d.keep_vehicle_registered %}☑{% else %}☐{% endif %} Maintain valid registration and insurance</div>
-<div class="rule">{% if d.no_inoperable_vehicles %}☑{% else %}☐{% endif %} Not store inoperable vehicles</div>
-<div class="rule">{% if d.no_mechanical_repairs %}☑{% else %}☐{% endif %} Not perform mechanical repairs on the property</div>
-<div class="rule">{% if d.report_vehicle_changes %}☑{% else %}☐{% endif %} Report changes in vehicle information</div>
-
-<p>Vehicles violating policies may be towed at the owner’s expense.</p>
-
-<h3>4. Emergency Contact</h3>
-
-<div class="row"><span class="label">Emergency Contact Name:</span>
-<span class="line">{{ d.emergency_contact }}</span></div>
-
-<div class="row"><span class="label">Phone:</span>
-<span class="line">{{ d.phone_number }}</span></div>
-
-<h3>5. Acknowledgment</h3>
-
-<div class="row"><span class="label">Resident Signature:</span>
-<span class="line">{{ d.participant_signature }}</span></div>
-
-<div class="row"><span class="label">Date:</span>
-<span class="line short">{{ d.signature_date }}</span></div>
-
-<div class="row"><span class="label">Operator Signature:</span>
-<span class="line">{{ d.operator_signature }}</span></div>
-
-<div class="row"><span class="label">Date:</span>
-<span class="line short">{{ d.operator_signature_date or d.signature_date }}</span></div>
-
-
-<br><br>
-
-{% if locked %}
-<div style="padding:14px 18px;background:#e8ffe8;border:1px solid #111;display:inline-block;border-radius:8px;font-weight:bold;">
-  FINAL LOCKED DOCUMENT
+<div class="box">
+<p><b>Valid registration:</b> {{ 'YES' if d.get('valid_registration') else 'NO' }}</p>
+<p><b>Approved parking:</b> {{ 'YES' if d.get('approved_parking') else 'NO' }}</p>
+<p><b>No blocking:</b> {{ 'YES' if d.get('no_blocking') else 'NO' }}</p>
+<p><b>No repairs:</b> {{ 'YES' if d.get('no_repairs') else 'NO' }}</p>
+<p><b>Removal acknowledged:</b> {{ 'YES' if d.get('removal_ack') else 'NO' }}</p>
 </div>
-<p><a href="/packet-builder/{{ id }}">Return to Packet Builder</a></p>
-{% else %}
-<p><a href="/vehicle-parking/{{ id }}">Edit</a></p>
-<form method="POST" action="/vehicle-parking-final/{{ id }}" style="margin-top:18px;" onsubmit="return disableFinalLock(this)">
-  <button type="submit" style="padding:12px 18px;background:#0b6b0b;color:#fff;border:0;border-radius:8px;font-size:16px;">
-    Final Lock
-  </button>
+
+<div class="box">
+<p><b>Participant Signature:</b> {{ d.get('participant_signature') or participant.get('name','') }}</p>
+<p><b>Staff / Operator Name:</b> {{ d.get('staff_name','') }}</p>
+</div>
+
+{% if not locked %}
+<a class="button" href="/vehicle-parking-unlock/{{ id }}">Edit</a>
+<form method="POST" action="/vehicle-parking-final/{{ id }}" style="display:inline;">
+<button class="button" type="submit">Final Submit / Lock Vehicle Parking</button>
 </form>
+{% else %}
+<p><b>Locked.</b></p>
 {% endif %}
 
-<script>
-{% if locked %}
-document.querySelectorAll("input, textarea, select").forEach(el => {
-    el.setAttribute("readonly","readonly");
-    el.setAttribute("disabled","disabled");
-});
-{% endif %}
-</script>
-
-<script>
-function disableFinalLock(formOrButton) {
-  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
-  if (btn) {
-    if (btn.dataset.locking === "1") {
-      return false;
-    }
-    btn.dataset.locking = "1";
-    btn.disabled = true;
-    btn.innerText = "Locking...";
-  }
-  return true;
-}
-
-function disableFinalLockLink(link) {
-  if (link.dataset.locking === "1") {
-    return false;
-  }
-  link.dataset.locking = "1";
-  link.style.pointerEvents = "none";
-  link.innerText = "Locking...";
-  return true;
-}
-</script>
+<p><a href="/packet-builder/{{ id }}">Back to Packet Builder</a></p>
 
 </body>
 </html>

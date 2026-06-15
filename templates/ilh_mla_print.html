@@ -59,21 +59,28 @@ body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
 </head>
 <body>
 
-<div class="nilpf-safe-nav">
+<div class="nilpf-safe-nav no-print">
   <a href="/operations">Exit to Operations</a>
 </div>
 
-<button class="print-now-btn" type="button" onclick="window.print()">Print This Form</button>
-{% include "ilh_mla_form.html" %}
-<hr>
-{% if locked %}
-{% if locked %}<p><strong>FINAL LOCKED DOCUMENT</strong></p>{% endif %}
-{% else %}
-<form method="POST" action="/ilh-mla-final/{{ id }}" onsubmit="return disableFinalLock(this)">
-<button type="submit">Lock</button>
-</form>
+<button class="print-now-btn no-print" type="button" onclick="window.print()">Print This Form</button>
 
+{% set review_mode = true %}
+{% include "ilh_mla_form.html" %}
+
+<hr class="no-print">
+
+<div class="no-print">
+{% if not locked %}
+  <a href="/ilh-mla-unlock/{{ id }}">Edit / Unlock</a>
+  <br><br>
+  <form method="POST" action="/ilh-mla-final/{{ id }}" onsubmit="return disableFinalLock(this)">
+    <button type="submit">Finalize and Lock</button>
+  </form>
+{% else %}
+  <p><strong>FINAL LOCKED DOCUMENT</strong></p>
 {% endif %}
+</div>
 
 <script>
 {% if locked %}
@@ -83,18 +90,6 @@ document.querySelectorAll("input, textarea, select").forEach(el => {
 });
 {% endif %}
 </script>
-
-<hr>
-{% if not locked %}
-<a href="/ilh-mla-unlock/{{ id }}">Edit / Unlock</a>
-<br><br>
-<form method="POST" action="/ilh-mla-final/{{ id }}" onsubmit="return disableFinalLock(this)">
-<button type="submit">Finalize and Lock</button>
-</form>
-{% else %}
-<p><strong>FINAL LOCKED DOCUMENT</strong></p>
-{% endif %}
-
 
 <script>
 function disableFinalLock(formOrButton) {
@@ -121,6 +116,11 @@ function disableFinalLockLink(link) {
 }
 </script>
 
+
+<div class="doc-footer">
+  <p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
+  <p>NILPF Housing OS / Independent Living Housing Program Document</p>
+</div>
 </body>
 </html>
 

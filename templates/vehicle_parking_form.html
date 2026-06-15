@@ -1,102 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Vehicle / Parking Information Form</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-h2 { text-align: center; }
-.section { margin-top: 20px; }
-input { border: none; border-bottom: 1px solid black; width: 300px; }
-.line { margin-top: 10px; }
-</style>
+  <title>Vehicle Parking Rules</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
-
-<style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
-}
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-}
-@media print{
-  .nilpf-safe-nav{display:none !important;}
-}
-</style>
-
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: auto; padding: 30px; line-height: 1.5; }
+    h1, h2 { text-align: center; }
+    .box { border: 1px solid #000; padding: 16px; margin: 16px 0; }
+    label { display: block; margin: 10px 0; }
+    input[type="text"], input[type="date"] { width: 100%; padding: 8px; box-sizing: border-box; }
+    .button { padding: 12px 18px; background: #000; color: #fff; border: 0; }
+  </style>
 </head>
 <body>
 
-<div class="nilpf-safe-nav">
-  <a href="/operations">Exit to Operations</a>
+<h1>Vehicle Parking Rules</h1>
+<h2>Shared Housing Program</h2>
+
+<form method="POST">
+
+<div class="box">
+  <h3>Participant Information</h3>
+
+  <label>Participant Name
+    <input type="text" name="participant_name" value="{{ d.get('participant_name') or participant.get('name', '') }}" required>
+  </label>
+
+  <label>Date
+    <input type="date" name="date" value="{{ d.get('date', '') }}">
+  </label>
 </div>
 
-<div class="mobile-container">
+<div class="box">
+  <h3>Vehicle Information</h3>
 
-<h2>VEHICLE / PARKING INFORMATION FORM</h2>
-<p><strong>Shared Housing Program</strong></p>
+  <label>Vehicle Make / Model
+    <input type="text" name="vehicle_make_model" value="{{ d.get('vehicle_make_model', '') }}">
+  </label>
 
-<div class="section">
-<p><strong>1. Participant Information</strong></p>
-<div class="line">Participant Name: <input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"></div>
-<div class="line">Room/Unit: <input type="text" name="room_unit" value="{{ d.room_unit }}"></div>
+  <label>License Plate Number
+    <input type="text" name="license_plate" value="{{ d.get('license_plate', '') }}">
+  </label>
+
+  <label>Parking Location / Space
+    <input type="text" name="parking_location" value="{{ d.get('parking_location', '') }}">
+  </label>
 </div>
 
-<div class="section">
-<p><strong>2. Vehicle Details</strong></p>
-<div class="line">Make: <input type="text" name="car_make" value="{{ d.car_make }}"></div>
-<div class="line">Model: <input type="text" name="car_model" value="{{ d.car_model }}"></div>
-<div class="line">Year: <input type="text" name="year_of_car" value="{{ d.year_of_car }}"></div>
-<div class="line">Color: <input type="text" name="car_color" value="{{ d.car_color }}"></div>
-<div class="line">License Plate Number: <input type="text" name="license_number" value="{{ d.license_number }}"></div>
-<div class="line">State: <input type="text" name="state" value="{{ d.state }}"></div>
-<div class="line">Insurance Provider: <input type="text" name="insurance_provider" value="{{ d.insurance_provider }}"></div>
-<div class="line">Policy Number: <input type="text" name="policy_number" value="{{ d.policy_number }}"></div>
+<div class="box">
+  <h3>Parking Rules</h3>
+
+  <label><input type="checkbox" name="valid_registration" {% if d.get('valid_registration') %}checked{% endif %}> Vehicle must have current registration and insurance where required.</label>
+
+  <label><input type="checkbox" name="approved_parking" {% if d.get('approved_parking') %}checked{% endif %}> Vehicle may only be parked in approved areas.</label>
+
+  <label><input type="checkbox" name="no_blocking" {% if d.get('no_blocking') %}checked{% endif %}> Vehicle may not block driveways, exits, sidewalks, or emergency access.</label>
+
+  <label><input type="checkbox" name="no_repairs" {% if d.get('no_repairs') %}checked{% endif %}> Major vehicle repairs are not permitted on the property.</label>
+
+  <label><input type="checkbox" name="removal_ack" {% if d.get('removal_ack') %}checked{% endif %}> Unauthorized, unsafe, abandoned, or inoperable vehicles may be subject to removal according to property rules and applicable law.</label>
 </div>
 
-<div class="section">
-<p><strong>3. Additional Rules</strong></p>
-<p>Residents must:</p>
-<p><input type="checkbox" name="park_designated_spaces" {% if d.park_designated_spaces %}checked{% endif %}> Park only in designated spaces</p>
-<p><input type="checkbox" name="keep_vehicle_registered" {% if d.keep_vehicle_registered %}checked{% endif %}> Maintain valid registration and insurance</p>
-<p><input type="checkbox" name="no_inoperable_vehicles" {% if d.no_inoperable_vehicles %}checked{% endif %}> Not store inoperable vehicles</p>
-<p><input type="checkbox" name="no_mechanical_repairs" {% if d.no_mechanical_repairs %}checked{% endif %}> Not perform mechanical repairs on the property</p>
-<p><input type="checkbox" name="report_vehicle_changes" {% if d.report_vehicle_changes %}checked{% endif %}> Report changes in vehicle information</p>
-<p>Vehicles violating policies may be towed at the owner’s expense.</p>
+<div class="box">
+  <h3>Acknowledgment</h3>
+
+  <label>Participant Signature
+    <input type="text" name="participant_signature" value="{{ d.get('participant_signature') or participant.get('name', '') }}" required>
+  </label>
+
+  <label>Staff / Operator Name
+    <input type="text" name="staff_name" value="{{ d.get('staff_name', '') }}">
+  </label>
 </div>
 
-<div class="section">
-<p><strong>4. Emergency Contact</strong></p>
-<div class="line">Emergency Contact Name: <input type="text" name="emergency_contact" value="{{ d.emergency_contact }}"></div>
-<div class="line">Phone: <input type="text" name="phone_number" value="{{ d.phone_number }}"></div>
-</div>
+<button class="button" type="submit">Save and Review</button>
 
-<div class="section">
-<p><strong>5. Acknowledgment</strong></p>
-<div class="line">Participant Signature: <input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}"></div>
-<div class="line">Date: <input type="text" name="signature_date" value="{{ d.get('signature_date', today) }}"></div>
-<div class="line">Operator Signature: <input type="text" name="operator_signature" value="{{ d.operator_signature }}"></div>
-<div class="line">Date: <input type="text" name="operator_signature_date" value="{{ d.operator_signature_date }}"></div>
-</div>
-
-<form method="POST" action="/vehicle-parking/{{ id }}">
-    <button type="submit">Save / Review</button>
 </form>
-</div>
+
 </body>
 </html>

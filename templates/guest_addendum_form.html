@@ -1,258 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Guest Addendum</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f1ea;
-            color: #111;
-            padding: 30px;
-        }
-        .page {
-            background: white;
-            max-width: 850px;
-            margin: auto;
-            padding: 45px;
-            border: 1px solid #bbb;
-            box-shadow: 0 0 10px #999;
-        }
-        h1, h2, h3 {
-            text-align: center;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-        h2 {
-            font-size: 18px;
-            margin-top: 0;
-        }
-        h3 {
-            text-align: left;
-            margin-top: 28px;
-            border-bottom: 1px solid #222;
-            padding-bottom: 4px;
-        }
-        p, li {
-            font-size: 16px;
-            line-height: 1.55;
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 18px;
-        }
-        input[type="text"], input[type="date"], textarea {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #777;
-            border-radius: 4px;
-            margin-top: 5px;
-        }
-        textarea {
-            min-height: 80px;
-        }
-        .checkbox-line {
-            margin: 12px 0;
-            font-size: 16px;
-        }
-        .checkbox-line input {
-            transform: scale(1.2);
-            margin-right: 8px;
-        }
-        .buttons {
-            margin-top: 35px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        button, a.button {
-            background: #111;
-            color: white;
-            padding: 12px 18px;
-            text-decoration: none;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .gold {
-            background: #b8860b;
-        }
-        .saved {
-            background: #e7ffe7;
-            border: 1px solid #3c8c3c;
-            padding: 12px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-    </style>
+  <title>Guest Addendum</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
-
-<style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
-}
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-}
-@media print{
-  .nilpf-safe-nav{display:none !important;}
-}
-</style>
-
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: auto; padding: 30px; line-height: 1.5; }
+    h1, h2 { text-align: center; }
+    .box { border: 1px solid #000; padding: 16px; margin: 16px 0; }
+    label { display: block; margin: 10px 0; }
+    input[type="text"], input[type="date"] { width: 100%; padding: 8px; box-sizing: border-box; }
+    .button { padding: 12px 18px; background: #000; color: #fff; border: 0; }
+  </style>
 </head>
 <body>
 
-<div class="nilpf-safe-nav">
-  <a href="/operations">Exit to Operations</a>
-</div>
-
-<div class="mobile-container">
-<div class="page">
-
-{% if saved %}
-<div class="saved">Saved. You may review, continue editing, or lock when final.</div>
-{% endif %}
-
 <h1>09 – Guest Addendum</h1>
 <h2>Shared Housing Program</h2>
-<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
 
-<form method="POST" action="/guest-addendum/{{ id }}">
+<p><strong>Purpose:</strong> This Guest Addendum outlines expectations and responsibilities related to guests within shared housing.</p>
 
-<h3>PURPOSE</h3>
-<p>
-This Guest Addendum outlines expectations and responsibilities related to guests
-within shared housing program.
-</p>
-<p>
-This document applies to shared housing only and does not create supervision,
-services, or program oversight.
-</p>
+<form method="POST">
 
-<h3>GUEST DEFINITION</h3>
-<p>
-A guest is any individual invited onto the premises by a participant who is not
-an approved participant of the housing.
-</p>
+<div class="box">
+  <h3>Participant Information</h3>
 
-<h3>PARTICIPANT RESPONSIBILITY FOR GUESTS</h3>
-<p>Participants are solely responsible for their guests, including:</p>
+  <label>Participant Name
+    <input type="text" name="participant_name" value="{{ d.get('participant_name') or participant.get('name', '') }}" required>
+  </label>
 
-<div class="checkbox-line">
-<input type="checkbox" name="guest_behavior" value="Yes" {% if d.get('guest_behavior') %}checked{% endif %}>
-Guest behavior and conduct
+  <label>Date
+    <input type="date" name="date" value="{{ d.get('date', '') }}">
+  </label>
 </div>
 
-<div class="checkbox-line">
-<input type="checkbox" name="house_rules" value="Yes" {% if d.get('house_rules') %}checked{% endif %}>
-Compliance with house rules and community standards
+<div class="box">
+  <h3>Participant Responsibility for Guests</h3>
+
+  <label><input type="checkbox" name="guest_behavior" {% if d.get('guest_behavior') %}checked{% endif %}> Guest behavior and conduct</label>
+  <label><input type="checkbox" name="house_rules" {% if d.get('house_rules') %}checked{% endif %}> Compliance with house rules and community standards</label>
+  <label><input type="checkbox" name="guest_damage" {% if d.get('guest_damage') %}checked{% endif %}> Any damage caused by the guest</label>
+  <label><input type="checkbox" name="rights_of_others" {% if d.get('rights_of_others') %}checked{% endif %}> Guests must not interfere with the rights of others</label>
 </div>
 
-<div class="checkbox-line">
-<input type="checkbox" name="guest_damage" value="Yes" {% if d.get('guest_damage') %}checked{% endif %}>
-Any damage caused by the guest
+<div class="box">
+  <h3>Guest Limitations</h3>
+
+  <label><input type="checkbox" name="no_living_without_approval" {% if d.get('no_living_without_approval') %}checked{% endif %}> Guests may not live in the residence without written approval</label>
+  <label><input type="checkbox" name="no_mail" {% if d.get('no_mail') %}checked{% endif %}> Guests may not receive mail at the property</label>
+  <label><input type="checkbox" name="no_keys" {% if d.get('no_keys') %}checked{% endif %}> Guests may not receive keys, access codes, or entry devices</label>
+  <label><input type="checkbox" name="no_disruption" {% if d.get('no_disruption') %}checked{% endif %}> Guests may not create disruption, unsafe conditions, or conflict</label>
 </div>
 
-<div class="checkbox-line">
-<input type="checkbox" name="rights_of_others" value="Yes" {% if d.get('rights_of_others') %}checked{% endif %}>
-Ensuring guests do not interfere with the rights of others
+<div class="box">
+  <h3>Overnight Guests</h3>
+
+  <p>Overnight guests are not automatically permitted. Any overnight guest must be approved according to property/operator rules.</p>
+
+  <label><input type="checkbox" name="overnight_acknowledgment" {% if d.get('overnight_acknowledgment') %}checked{% endif %}> I understand overnight guests require approval and are not automatically permitted.</label>
 </div>
 
-<h3>GUEST LIMITATIONS</h3>
-<p>Guests may not:</p>
+<div class="box">
+  <h3>Acknowledgment</h3>
 
-<div class="checkbox-line">
-<input type="checkbox" name="no_live_in" value="Yes" {% if d.get('no_live_in') %}checked{% endif %}>
-Live in the residence without written approval
+  <label>Participant Signature
+    <input type="text" name="participant_signature" value="{{ d.get('participant_signature') or participant.get('name', '') }}" required>
+  </label>
+
+  <label>Staff / Operator Name
+    <input type="text" name="staff_name" value="{{ d.get('staff_name', '') }}">
+  </label>
 </div>
 
-<div class="checkbox-line">
-<input type="checkbox" name="no_receive_mail" value="Yes" {% if d.get('no_receive_mail') %}checked{% endif %}>
-Receive mail at the property
-</div>
-
-<div class="checkbox-line">
-<input type="checkbox" name="no_keys" value="Yes" {% if d.get('no_keys') %}checked{% endif %}>
-Receive keys, access codes, or entry devices
-</div>
-
-<div class="checkbox-line">
-<input type="checkbox" name="no_disruption" value="Yes" {% if d.get('no_disruption') %}checked{% endif %}>
-Create disruption, unsafe conditions, or conflict
-</div>
-
-<h3>OVERNIGHT GUESTS</h3>
-<p>
-Overnight guests are not automatically permitted. Any overnight guest must be
-approved according to house rules and property expectations.
-</p>
-
-<label>Overnight guest rules / notes:</label>
-<textarea name="overnight_guest_notes">{{ d.get('overnight_guest_notes', '') }}</textarea>
-
-<h3>NO TENANCY OR OCCUPANCY RIGHTS</h3>
-<p>
-Guests do not obtain tenancy, residency, program participation, or occupancy
-rights by visiting the property.
-</p>
-
-<h3>PROPERTY OWNER / HOUSING PROVIDER RIGHTS</h3>
-<p>
-The housing provider may restrict or prohibit guests who violate house rules,
-create disruption, damage property, threaten safety, or interfere with the rights
-of other participants.
-</p>
-
-<h3>PARTICIPANT ACKNOWLEDGEMENT</h3>
-<p>
-By signing below, the participant acknowledges that they understand the guest
-rules and accept responsibility for invited guests.
-</p>
-
-<label>Participant Name:</label>
-<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name','')) }}">
-
-<label>Participant Signature:</label>
-<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
-
-<label>Date:</label>
-<input type="date" name="signature_date" value="{{ d.get('signature_date', today) }}">
-
-<label>Operator / Housing Provider Name:</label>
-<input type="text" name="operator_name" value="{{ d.get('operator_name','') }}">
-
-<label>Operator Signature:</label>
-<input type="text" name="operator_signature" value="{{ d.get('operator_signature','') }}">
-
-<label>Date:</label>
-<input type="date" name="operator_date" value="{{ d.get('operator_date','') }}">
-
-<div class="buttons">
-  <button type="submit">Save</button>
-</div>
+<button class="button" type="submit">Save and Review</button>
 
 </form>
-</div>
 
-</div>
 </body>
 </html>

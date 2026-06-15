@@ -205,6 +205,52 @@ def fill_pdf(src, out, data):
 
 app.secret_key = os.environ.get("SECRET_KEY", "dev-local-nilpf-secret-change-in-render")
 
+
+def lock_participant_identity_fields(data, participant):
+    """
+    Preserve participant identity fields once a participant record exists.
+    This prevents later forms from losing or overwriting the participant/member name,
+    PID, and program type during form save/review/final-lock flows.
+    """
+    data = data or {}
+    participant = participant or {}
+
+    name = (
+        participant.get("name")
+        or participant.get("participant_name")
+        or data.get("name")
+        or data.get("participant_name")
+        or data.get("applicant_name")
+        or ""
+    )
+
+    pid = (
+        participant.get("pid")
+        if participant.get("pid") is not None
+        else participant.get("participant_id")
+    )
+
+    program_type = (
+        participant.get("program_type")
+        or data.get("program_type")
+        or "ILH"
+    )
+
+    if name:
+        data["name"] = name
+        data["participant_name"] = name
+        data["applicant_name"] = name
+
+    if pid is not None:
+        data["pid"] = pid
+        data["participant_id"] = pid
+
+    if program_type:
+        data["program_type"] = program_type
+
+    return data
+
+
 def license_access_allowed(activation):
     """
     Live access rule:
@@ -260,6 +306,15 @@ def require_login():
         session.clear()
         return redirect(url_for("login"))
 
+    # Refresh participants BEFORE validating PID-based routes.
+    # This prevents Add Participant -> Entry Screening from bouncing
+    # when the global participant list is stale.
+    global participants
+    try:
+        participants = load_participants_file()
+    except Exception as exc:
+        logger.exception("Participant refresh failed inside login guard: %s", exc)
+
     view_args = request.view_args or {}
     if "id" in view_args:
         pid = view_args.get("id")
@@ -307,9 +362,23 @@ PRN_FORMS = [
 
 PACKET_MANIFEST = {
     "ILH": [
-        {"title": "Independent Living Disclosure", "completed_file": "01_independent_living_disclosure.pdf"},
-        {"title": "Master License Agreement", "completed_file": "/mla/{id}"},
-        {"title": "Bill of Dignity", "completed_file": "15_member_bill_of_dignity_independence.pdf"}
+        {"title": "Entry Screening & Self-Determination", "file": "/entry-screening/{id}"},
+        {"title": "Independent Living Disclosure", "file": "/independent-living-disclosure/{id}"},
+        {"title": "House Rules & Community Standards", "file": "/house-rules/{id}"},
+        {"title": "Fire Safety & Self-Preservation", "file": "/fire-safety/{id}"},
+        {"title": "Emergency Contact", "file": "/emergency-contact/{id}"},
+        {"title": "Emergency Evacuation", "file": "/emergency-evacuation/{id}"},
+        {"title": "Guest Addendum", "file": "/guest-addendum/{id}"},
+        {"title": "No Services / No Supervision", "file": "/no-services-supervision/{id}"},
+        {"title": "Common Area Security", "file": "/common-area-security/{id}"},
+        {"title": "Property Belongings Acknowledgment", "file": "/property-belongings/{id}"},
+        {"title": "Privacy Acknowledgment", "file": "/privacy-acknowledgment/{id}"},
+        {"title": "Privacy Noncommercial", "file": "/privacy-noncommercial/{id}"},
+        {"title": "Vehicle Parking Rules", "file": "/vehicle-parking/{id}"},
+        {"title": "Security Camera Disclosure", "file": "/security-camera/{id}"},
+        {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"},
+        {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"},
+        {"title": "Master License Agreement / MLA", "file": "/ilh-mla/{id}"},
     ],
     "Transitional": [
         {"title": "Master Lease Agreement", "completed_file": "02_MASTER LEASE AGREEMENT.pdf"},
@@ -341,27 +410,20 @@ CORE_DOCS_BY_PROGRAM = {
         {"title": "Guest Addendum", "file": "/guest-addendum/{id}"},
         {"title": "No Services / No Supervision", "file": "/no-services-supervision/{id}"},
         {"title": "Common Area Security", "file": "/common-area-security/{id}"},
-        {"title": "Personal Belongings", "file": "/personal-belongings/{id}"},
-        {"title": "Property Belongings", "file": "/property-belongings/{id}"},
-        {"title": "Pet Animal Information", "file": "/pet-animal/{id}"},
+        {"title": "Property Belongings Acknowledgment", "file": "/property-belongings/{id}"},
         {"title": "Privacy Acknowledgment", "file": "/privacy-acknowledgment/{id}"},
         {"title": "Privacy Noncommercial", "file": "/privacy-noncommercial/{id}"},
-        {"title": "Vehicle Parking", "file": "/vehicle-parking/{id}"},
-        {"title": "Transfer Form", "file": "/transfer/{id}"},
+        {"title": "Vehicle Parking Rules", "file": "/vehicle-parking/{id}"},
         {"title": "Security Camera Disclosure", "file": "/security-camera/{id}"},
         {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"},
-        {"title": "Incident Report", "file": "/incident-report/{id}"},
-          {"title": "🔒 Sensitivity Vault", "file": "/sensitive-identity-record/{id}", "vault": True},
-        {"title": "Release of Information / Authorization to Communicate", "file": "/release-of-information/{id}"},
         {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"},
-        {"title": "ILH Master License Agreement", "file": "/ilh-mla/{id}"},
+        {"title": "Master License Agreement / MLA", "file": "/ilh-mla/{id}"},
     ],
     "Transitional": [
         {"title": "Initial Intake Assessment", "file": "/intake-assessment/{id}"},
         {"title": "Master License Agreement", "file": "/mla/{id}"},
         {"title": "Program Compliance Addendum", "file": "/program-compliance-addendum/{id}"},
         {"title": "Program Participation Agreement", "file": "/program-participation-agreement/{id}"},
-          {"title": "🔒 Sensitivity Vault", "file": "/sensitive-identity-record/{id}", "vault": True},
         {"title": "Release of Information / Authorization to Communicate", "file": "/release-of-information/{id}"},
     ],
     "VA_GPD_Aligned": [
@@ -380,16 +442,12 @@ SHARED_HOUSING_FORMS = [
     {"title": "Emergency Evacuation", "file": "/emergency-evacuation/{id}"},
     {"title": "Guest Addendum", "file": "/guest-addendum/{id}"},
     {"title": "Common Area Security", "file": "/common-area-security/{id}"},
-    {"title": "Personal Belongings", "file": "/personal-belongings/{id}"},
     {"title": "Property Belongings", "file": "/property-belongings/{id}"},
-    {"title": "Pet Animal Information", "file": "/pet-animal/{id}"},
     {"title": "Privacy Acknowledgment", "file": "/privacy-acknowledgment/{id}"},
     {"title": "Privacy Noncommercial", "file": "/privacy-noncommercial/{id}"},
     {"title": "Vehicle Parking", "file": "/vehicle-parking/{id}"},
-    {"title": "Transfer Form", "file": "/transfer/{id}"},
     {"title": "Security Camera Disclosure", "file": "/security-camera/{id}"},
-    {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"},
-    {"title": "Incident Report", "file": "/incident-report/{id}"}
+    {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"}
 ]
 
 
@@ -490,7 +548,26 @@ def home():
         return redirect(url_for("activate"))
     if not session.get("logged_in"):
         return redirect(url_for("login"))
-    return render_template("home.html", activation=activated_system)
+    participants = load_participants()
+    incomplete_participants = []
+
+    for i, person in enumerate(participants):
+        forms = person.get("forms", {})
+        program_type = person.get("program_type", "ILH")
+
+        if program_type == "ILH":
+            completed_all = bool(forms.get("ilh_mla", {}).get("completed"))
+        else:
+            completed_all = False
+
+        if not completed_all:
+            incomplete_participants.append({
+                "id": i,
+                "name": person.get("name", "Unnamed"),
+                "program_type": program_type
+            })
+
+    return render_template("home.html", activation=activated_system, incomplete_participants=incomplete_participants)
 
 @app.route("/activate", methods=["GET", "POST"])
 def activate():
@@ -924,28 +1001,40 @@ def refresh_participants_from_storage():
 
 @app.route("/add_participant", methods=["GET", "POST"])
 def add_participant():
-    participants = load_participants()
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
 
-    # ILH now works like Intake:
-    # clicking Add Participant assigns a PID first,
-    # then Entry Screening collects/saves the name.
-    program_type = "ILH"
+    if request.method == "POST":
+        participants = load_participants()
 
-    new_id = len(participants)
-    participants.append({
-        "pid": new_id,
-        "participant_id": new_id,
-        "form_data": {},
-        "forms": {},
-        "name": "",
-        "participant_name": "",
-        "program_type": program_type,
-    })
+        program_type = request.form.get("program_type") or "ILH"
+        name = (
+            request.form.get("name")
+            or request.form.get("participant_name")
+            or ""
+        ).strip()
 
-    save_participants(participants)
-    session["current_pid"] = new_id
+        new_id = len(participants)
 
-    return redirect(url_for("entry_screening", id=new_id))
+        participants.append({
+            "pid": new_id,
+            "participant_id": new_id,
+            "form_data": {},
+            "forms": {},
+            "name": name,
+            "participant_name": name,
+            "program_type": program_type,
+        })
+
+        save_participants(participants)
+        session["current_pid"] = new_id
+
+        if program_type == "ILH":
+            return redirect(url_for("entry_screening", id=new_id))
+
+        return redirect(url_for("packet_builder", id=new_id))
+
+    return render_template("add_participant.html")
 
 
 PROPERTY_PAPERS_FILE = "data/property_papers.json"
@@ -1754,16 +1843,12 @@ def single_form_print_center():
         {"title": "Emergency Evacuation", "key": "emergency_evacuation", "print_route": "/emergency-evacuation-print/{id}"},
         {"title": "Guest Addendum", "key": "guest_addendum", "print_route": "/guest-addendum-print/{id}"},
         {"title": "Common Area Security", "key": "common_area_security", "print_route": "/common-area-security-print/{id}"},
-        {"title": "Personal Belongings", "key": "personal_belongings", "print_route": "/personal-belongings-print/{id}"},
         {"title": "Property Belongings", "key": "property_belongings", "print_route": "/property-belongings-print/{id}"},
-        {"title": "Pet Animal Information", "key": "pet_animal", "print_route": "/pet-animal-print/{id}"},
         {"title": "Privacy Acknowledgment", "key": "privacy_acknowledgment", "print_route": "/privacy-acknowledgment-print/{id}"},
         {"title": "Privacy Noncommercial", "key": "privacy_noncommercial", "print_route": "/privacy-noncommercial-print/{id}"},
         {"title": "Vehicle Parking", "key": "vehicle_parking", "print_route": "/vehicle-parking-print/{id}"},
-        {"title": "Transfer Form", "key": "transfer", "print_route": "/transfer-print/{id}"},
         {"title": "Security Camera Disclosure", "key": "security_camera", "print_route": "/security-camera-print/{id}"},
         {"title": "Voluntary Participation", "key": "voluntary_participation", "print_route": "/voluntary-participation-print/{id}"},
-        {"title": "Incident Report", "key": "incident_report", "print_route": "/incident-report-print/{id}"},
         {"title": "ACH Authorization", "key": "ach_authorization", "print_route": "/ach-print/{id}"},
         {"title": "No Services / No Supervision", "key": "no_services_supervision", "print_route": "/no-services-supervision-print/{id}"},
         {"title": "Independent Living Disclosure", "key": "independent_living_disclosure", "print_route": "/independent-living-disclosure-print/{id}"},
@@ -1880,7 +1965,7 @@ def switch_program(program):
 # ============================================================
 # ENTRY SCREENING NORMALIZED FINAL
 # Stores under participant["forms"]["entry_screening"]
-# Saves PDF under static/filled/participant_<PID>/entry_screening.pdf
+# Saves PDF under static/filled/participant_<PID>/entry_screening_true_to_sight.pdf
 # ============================================================
 
 ENTRY_SCREENING_CHECKBOX_KEYS = [
@@ -1942,7 +2027,7 @@ def _entry_screening_folder(id):
 
 
 def _entry_screening_pdf(id):
-    return _entry_screening_folder(id) / "entry_screening.pdf"
+    return _entry_screening_folder(id) / "entry_screening_true_to_sight.pdf"
 
 
 def _entry_screening_collect_form_data():
@@ -2518,7 +2603,7 @@ def _load_mapper():
 def _participant_common_data(participant):
     return {
         "participant_name": _safe_str(participant.get("name", "")),
-        "participant_signature": _safe_str(participant.get("signature", participant.get("name", ""))),
+        "participant_signature": _safe_str(participant.get("signature", "")),
         "signature_date": _safe_str(participant.get("signature_date", "")),
         "bank_account_holder": _safe_str(participant.get("name", "")),
     }
@@ -2924,7 +3009,7 @@ def vehicle_parking_final(id):
     save_participants_file()
 
 
-    return redirect(f"/transfer/{id}")
+    return redirect(f"/security-camera/{id}")
 
 
 @app.route("/bill-of-dignity/<int:id>", methods=["GET", "POST"])
@@ -3125,6 +3210,9 @@ def download_packet(id):
     # Generate true-to-sight PDFs during Download Packet.
     # This makes Packet Builder create the real form PDFs instead of only making a summary list.
     FORM_PDF_EXPORTS = {
+        "entry_screening": ("/entry-screening-print/{id}", "entry_screening_true_to_sight.pdf"),
+        "independent_living_disclosure": ("/independent-living-disclosure-print/{id}", "independent_living_disclosure_true_to_sight.pdf"),
+        "no_services_supervision": ("/no-services-supervision-print/{id}", "no_services_supervision_true_to_sight.pdf"),
         "intake_assessment": ("/intake-assessment-print/{id}", "intake_assessment_true_to_sight.pdf"),
         "mla": ("/mla-print/{id}", "mla_true_to_sight.pdf"),
         "program_compliance_addendum": ("/program-compliance-addendum-print/{id}", "program_compliance_addendum_true_to_sight.pdf"),
@@ -3135,18 +3223,15 @@ def download_packet(id):
         "emergency_evacuation": ("/emergency-evacuation-print/{id}", "emergency_evacuation_true_to_sight.pdf"),
         "guest_addendum": ("/guest-addendum-print/{id}", "guest_addendum_true_to_sight.pdf"),
         "common_area_security": ("/common-area-security-print/{id}", "common_area_security_true_to_sight.pdf"),
-        "personal_belongings": ("/personal-belongings-print/{id}", "personal_belongings_true_to_sight.pdf"),
         "property_belongings": ("/property-belongings-print/{id}", "property_belongings_true_to_sight.pdf"),
-        "pet_animal": ("/pet-animal-print/{id}", "pet_animal_true_to_sight.pdf"),
         "privacy_acknowledgment": ("/privacy-acknowledgment-print/{id}", "privacy_acknowledgment_true_to_sight.pdf"),
         "privacy_noncommercial": ("/privacy-noncommercial-print/{id}", "privacy_noncommercial_true_to_sight.pdf"),
         "vehicle_parking": ("/vehicle-parking-print/{id}", "vehicle_parking_true_to_sight.pdf"),
-        "transfer": ("/transfer-print/{id}", "transfer_true_to_sight.pdf"),
         "security_camera": ("/security-camera-print/{id}", "security_camera_true_to_sight.pdf"),
         "voluntary_participation": ("/voluntary-participation-print/{id}", "voluntary_participation_true_to_sight.pdf"),
-        "incident_report": ("/incident-report-print/{id}", "incident_report_true_to_sight.pdf"),
         "release_of_information": ("/release-of-information-print/{id}", "release_of_information_true_to_sight.pdf"),
         "bill_of_dignity": ("/bill-of-dignity-print/{id}", "bill_of_dignity_true_to_sight.pdf"),
+        "ilh_mla": ("/ilh-mla-print/{id}", "ilh_mla_true_to_sight.pdf"),
     }
 
     generation_errors = []
@@ -3169,7 +3254,11 @@ def download_packet(id):
             continue
 
         try:
-            created_pdf = generate_true_to_sight_pdf(id, route_template, pdf_name)
+            if form_key == "entry_screening":
+                created_pdf = _entry_screening_make_pdf(id)
+            else:
+                created_pdf = generate_true_to_sight_pdf(id, route_template, pdf_name)
+
             print(f"Download Packet generated true-to-sight PDF: {created_pdf}")
         except Exception as e:
             error_msg = f"{form_key}: {type(e).__name__}: {e}"
@@ -3269,25 +3358,8 @@ def download_packet(id):
 
     
 
-    # --- ADD PRN SECTION AT END ---
-    prn_cover = "static/forms/PRN_COVER_PAGE.pdf"
-    if os.path.exists(prn_cover):
-        merger.append(prn_cover)
-    else:
-        print("PRN cover page missing")
-
-    PRN_FORMS = [
-        "08_reported_occurrence_form.pdf",
-        "12_transfer_form.pdf",
-        "09_guest_addendum.pdf",
-        "17_vehicle_parking_information_form.pdf",
-        "07_emergency_contact_form.pdf"
-    ]
-
-    for prn_file in PRN_FORMS:
-        prn_path = os.path.join(folder, prn_file)
-        if os.path.exists(prn_path):
-            merger.append(prn_path)
+    # PRN section intentionally not auto-appended to CLEAN_PACKET.
+    # PRN documents should only be printed/included when staff intentionally selects them.
 
     merger.write(output_path)
     merger.close()
@@ -3310,19 +3382,20 @@ STANDARD_NEXT_FORMS = {
     "fire-safety": "emergency-contact",
     "emergency-contact": "emergency-evacuation",
     "emergency-evacuation": "guest-addendum",
-    "guest-addendum": "common-area-security",
-    "common-area-security": "personal-belongings",
-    "personal-belongings": "property-belongings",
-    "property-belongings": "pet-animal",
-    "pet-animal": "privacy-acknowledgment",
+    "guest-addendum": "no-services-supervision",
+    "no-services-supervision": "common-area-security",
+    "common-area-security": "property-belongings",
+    # # "personal-belongings": "property-belongings",  # Admin Forms only  # moved to Admin Forms
+    "property-belongings": "privacy-acknowledgment",
+    # # "pet-animal": "privacy-acknowledgment",  # Admin Forms only  # moved to Admin Forms
     "privacy-acknowledgment": "privacy-noncommercial",
     "privacy-noncommercial": "vehicle-parking",
-    "vehicle-parking": "transfer",
-    "transfer": "security-camera",
+    "vehicle-parking": "security-camera",
+    # # "transfer": "security-camera",  # Admin Forms only  # moved to Admin Forms
     "security-camera": "voluntary-participation",
-    "voluntary-participation": "incident-report",
-    "incident-report": "bill-of-dignity",
-    "bill-of-dignity": None,
+    "voluntary-participation": "bill-of-dignity",
+    # # "incident-report": "bill-of-dignity",  # Admin Forms only  # moved to Admin Forms
+    "bill-of-dignity": "ilh-mla",
 }
 
 # STANDARD SAVE / REVIEW / FINAL LOCK ROUTE BUILDER
@@ -3381,8 +3454,11 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
         if next_form:
             return redirect(f"/{next_form}/{id}")
 
+        if route_name == "ilh-mla":
+            return redirect(f"/participant-complete/{id}")
+
         if is_property_paper_route(route_name):
-            save_locked_property_paper(route, participant["forms"][form_key].get("data", {}))
+            save_locked_property_paper(route_name, participant["forms"][form_key].get("data", {}))
             return redirect("/property-papers")
 
         return redirect(f"/packet-builder/{id}")
@@ -3400,6 +3476,49 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
 
     unlock_view.__name__ = endpoint_base + "_unlock"
     app.add_url_rule(f"/{route_name}-unlock/<int:id>", endpoint_base + "_unlock", unlock_view)
+
+
+@app.route("/continue-flow/<int:id>")
+def continue_flow(id):
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    participants = load_participants()
+
+    if id < 0 or id >= len(participants):
+        return redirect(url_for("add_participant"))
+
+    participant = participants[id]
+    forms = participant.get("forms", {})
+    program_type = participant.get("program_type", "ILH")
+
+    ilh_flow = [
+        ("entry_screening", "entry-screening"),
+        ("independent_living_disclosure", "independent-living-disclosure"),
+        ("house_rules", "house-rules"),
+        ("fire_safety", "fire-safety"),
+        ("emergency_contact", "emergency-contact"),
+        ("emergency_evacuation", "emergency-evacuation"),
+        ("guest_addendum", "guest-addendum"),
+        ("no_services_supervision", "no-services-supervision"),
+        ("common_area_security", "common-area-security"),
+        ("property_belongings", "property-belongings"),
+        ("privacy_acknowledgment", "privacy-acknowledgment"),
+        ("privacy_noncommercial", "privacy-noncommercial"),
+        ("vehicle_parking", "vehicle-parking"),
+        ("security_camera", "security-camera"),
+        ("voluntary_participation", "voluntary-participation"),
+        ("bill_of_dignity", "bill-of-dignity"),
+        ("ilh_mla", "ilh-mla"),
+    ]
+
+    if program_type == "ILH":
+        for form_key, route_name in ilh_flow:
+            if not forms.get(form_key, {}).get("completed"):
+                return redirect(f"/{route_name}/{id}")
+        return redirect(f"/participant-complete/{id}")
+
+    return redirect(f"/packet-builder/{id}")
 
 
 # STANDARD ROUTE REGISTRATION FOR REMAINING FORMS

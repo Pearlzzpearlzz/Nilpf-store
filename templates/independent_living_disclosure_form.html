@@ -142,12 +142,12 @@
 
 <div class="field">
 <label>Participant Signature</label>
-<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature', '') }}">
 </div>
 
 <div class="field">
 <label>Date</label>
-<input type="date" name="signature_date" value="{{ d.get('signature_date', today) }}">
+<input type="date" name="signature_date" value="{{ d.get('signature_date', '') }}">
 </div>
 
 <p style="margin-top:80px;">© 2026 Pearlzz LLC. All Rights Reserved Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>

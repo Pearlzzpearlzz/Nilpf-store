@@ -69,13 +69,13 @@
 <form method="POST" action="/privacy-noncommercial/{{ id }}">
 
 <p><strong>Participant Name:</strong></p>
-<input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
+<input type="text" name="participant_name" value="{{ d.get('participant_name') or participant.get('name', '') }}">
 
 <p><strong>Participant Signature:</strong></p>
-<input type="text" name="participant_signature" value="{{ d.get('participant_signature', participant.get('name', '')) }}">
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature') or participant.get('name', '') }}">
 
 <p><strong>Date:</strong></p>
-<input class="small" type="text" name="signature_date" value="{{ d.get('signature_date', today) }}">
+<input class="small" type="text" name="signature_date" value="{{ d.get('signature_date', '') }}">
 
 <div class="footer">
 <p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>

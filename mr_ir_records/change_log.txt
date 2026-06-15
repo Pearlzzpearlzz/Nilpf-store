@@ -178,3 +178,46 @@ Status:
 - app.py compiled successfully after patch.
 - Render/live verification still pending after deploy.
 - Do not run another full Entry Screening stress test tonight; verify login and Packet Builder first.
+
+============================================================
+MR. INTERNAL REPAIRMAN CHANGE NOTE
+Date: 2026-06-15
+Checkpoint: WORKING ILH 17-FORM PACKET
+
+Completed today:
+- ILH participant/member flow reached Forms Complete.
+- Forms Complete page cleaned:
+  - Keeps “Please return the device to program staff.”
+  - Only two staff options remain:
+    1. Print Current Participant Packet
+    2. Exit to Operations
+- ILH MLA print/review page cleaned:
+  - Removed old NILPF v2 footer text.
+  - Removed old Pearlzz Llc v2 text.
+  - Removed Save button from print/review mode.
+  - Removed duplicate FINAL LOCKED DOCUMENT.
+  - Added clean footer.
+- Packet generation fixed:
+  - Playwright Chromium installed locally.
+  - Missing local Linux dependency issue identified.
+  - PRN auto-section removed from clean ILH packet.
+  - ILH MLA added to packet export.
+  - Entry Screening added to packet export and forced to generate.
+  - Independent Living Disclosure added to packet export.
+  - No Services / No Supervision added to packet export.
+- Verified uploaded packet:
+  - 17 completed/locked forms listed.
+  - 17 actual form sections present.
+  - Entry Screening included.
+  - ILH MLA included.
+  - PRN page removed.
+
+Remaining cleanup after checkpoint:
+- Single Form Print / Upload Center dropdown currently shows Initial Intake Assessment for ILH participant.
+- Need to filter Single Form Print form choices by participant program type.
+- Need later cleanup of print/PDF navigation text such as Continue to Next Form / Return to Packet Builder where appropriate.
+
+Restore point goal:
+- Commit and tag this as a working ILH 17-form packet checkpoint before further changes.
+============================================================
+

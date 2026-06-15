@@ -2,82 +2,50 @@
 <html>
 <head>
 <title>Member Bill of Dignity & Independence</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 <style>
-body { font-family: Georgia, serif; max-width: 900px; margin: 30px auto; line-height: 1.55; }
-h1, h2 { text-align:center; }
-.section { border-bottom:1px solid #999; padding:14px 0; }
-label { font-weight:bold; display:block; margin-top:12px; }
-input { width:100%; padding:8px; font-size:16px; }
-button, .button { padding:10px 18px; margin-top:20px; font-weight:bold; }
+body{font-family:Arial;max-width:900px;margin:auto;padding:30px;line-height:1.55}
+h1,h2{text-align:center}
+.box{border:1px solid #000;padding:16px;margin:16px 0}
+label{display:block;margin:10px 0}
+input[type=text],input[type=date]{width:100%;padding:8px;box-sizing:border-box}
+.button{background:#000;color:#fff;padding:12px 16px;border:0}
+.footer{text-align:center;margin-top:30px;font-size:12px}
 </style>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
-
-<style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
-}
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-}
-@media print{
-  .nilpf-safe-nav{display:none !important;}
-}
-</style>
-
 </head>
 <body>
 
-<div class="nilpf-safe-nav">
-  <a href="/operations">Exit to Operations</a>
-</div>
-
-<div class="mobile-container">
-
 <h1>Member Bill of Dignity & Independence</h1>
-<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
 <h2>Independent Living Program</h2>
+<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
 
-<form method="POST" action="/bill-of-dignity/{{ id }}">
+<form method="POST">
 
-<div class="section">
+<div class="box">
 <h3>Purpose</h3>
 <p>This Independent Living Program is founded on the principles of personal autonomy, dignity, responsibility, and ordinary civic participation.</p>
 <p>Members are adults who independently manage their lives while participating in a structured program that permits shared living access.</p>
 </div>
-
-<div class="section">
+<div class="box">
 <h3>1. Recognition as Independent Adults</h3>
 <p>Members are recognized as autonomous adults capable of managing their daily affairs, personal schedules, employment, finances, and household coordination without supervision or care.</p>
+<label><input type="checkbox" name="recognition_independent_adult" {% if d.get('recognition_independent_adult') %}checked{% endif %}> I acknowledge recognition as an independent adult.</label>
 </div>
 
-<div class="section">
+<div class="box">
 <h3>2. Household Self-Governance</h3>
 <p>Members collectively manage the shared household environment, including cleanliness, shared space use, and interpersonal norms.</p>
 <p>The Program Owner does not manage the household, assign duties, supervise conduct, or intervene in daily living matters.</p>
+<label><input type="checkbox" name="household_self_governance" {% if d.get('household_self_governance') %}checked{% endif %}> I acknowledge household self-governance.</label>
 </div>
 
-<div class="section">
+<div class="box">
 <h3>3. Freedom from Institutional Treatment</h3>
 <p>Members are not clients, patients, tenants, or residents of an institution.</p>
 <p>No treatment, supervision, case management, monitoring, or daily living assistance is provided or implied.</p>
+<label><input type="checkbox" name="freedom_from_institutional_treatment" {% if d.get('freedom_from_institutional_treatment') %}checked{% endif %}> I acknowledge that this is not institutional treatment, care, supervision, or tenancy.</label>
 </div>
-
-<div class="section">
+<div class="box">
 <h3>4. Civic Participation & Ordinary Life</h3>
 <p>Members retain full participation in ordinary civic and community life, including but not limited to:</p>
 <ul>
@@ -89,53 +57,49 @@ button, .button { padding:10px 18px; margin-top:20px; font-weight:bold; }
 <li>Community involvement</li>
 </ul>
 <p>Participation in the Program does not restrict lawful personal activities.</p>
+<label><input type="checkbox" name="civic_participation" {% if d.get('civic_participation') %}checked{% endif %}> I acknowledge ordinary civic participation and lawful personal activity.</label>
 </div>
 
-<div class="section">
+<div class="box">
 <h3>5. Personal Mail & Administrative Address Use</h3>
 <p>Members may receive personal mail as part of ordinary civic life.</p>
-<p>Mail receipt is recognized solely as:</p>
-<ul>
-<li>A personal identification and correspondence function, and</li>
-<li>An administrative acknowledgment of Program participation</li>
-</ul>
-<p>Mail access:</p>
-<ul>
-<li>Does not grant tenancy</li>
-<li>Does not create residency rights</li>
-<li>Does not establish exclusive possession</li>
-<li>Does not create a landlord-tenant relationship</li>
-</ul>
+<p>Mail receipt is recognized solely as a personal identification and correspondence function and as an administrative acknowledgment of Program participation.</p>
+<p>Mail access does not grant tenancy, create residency rights, establish exclusive possession, or create a landlord-tenant relationship.</p>
 <p>The Program Owner does not manage, distribute, censor, or control member mail except where legally required.</p>
+<label><input type="checkbox" name="mail_address_ack" {% if d.get('mail_address_ack') %}checked{% endif %}> I acknowledge the personal mail and administrative address limits.</label>
 </div>
-
-<div class="section">
+<div class="box">
 <h3>6. Privacy & Personal Responsibility</h3>
 <p>Members maintain privacy over their personal affairs.</p>
 <p>The Program Owner does not monitor personal behavior, relationships, schedules, or communications.</p>
 <p>Members are responsible for their own conduct and choices.</p>
+<label><input type="checkbox" name="privacy_personal_responsibility" {% if d.get('privacy_personal_responsibility') %}checked{% endif %}> I acknowledge privacy and personal responsibility.</label>
 </div>
 
-<div class="section">
+<div class="box">
 <h3>7. Program Compliance Oversight Only</h3>
 <p>The Program Owner’s role is strictly limited to verifying compliance with Program participation conditions.</p>
 <p>The Program Owner does not manage daily life, household operations, or interpersonal matters.</p>
 <p>Failure to meet Program conditions may affect Program participation but does not constitute eviction or tenancy enforcement.</p>
+<label><input type="checkbox" name="compliance_oversight_only" {% if d.get('compliance_oversight_only') %}checked{% endif %}> I acknowledge Program compliance oversight only.</label>
 </div>
 
-<div class="section">
+<div class="box">
 <h3>8. Respect & Non-Discrimination</h3>
 <p>Members are entitled to respect, dignity, and equal treatment.</p>
 <p>Participation in this Program is not intended to stigmatize, segregate, or institutionalize any individual.</p>
+<label><input type="checkbox" name="respect_non_discrimination" {% if d.get('respect_non_discrimination') %}checked{% endif %}> I acknowledge respect, dignity, and equal treatment.</label>
 </div>
 
-<div class="section">
+<div class="box">
 <h3>Affirmation</h3>
 <p>By participating in the Independent Living Program, Members affirm their independence, responsibility, and commitment to shared living based on mutual respect and self-governance.</p>
+<label><input type="checkbox" name="affirmation_ack" {% if d.get('affirmation_ack') %}checked{% endif %}> I affirm my independence, responsibility, and commitment to mutual respect and self-governance.</label>
 </div>
 
-<div class="section">
+<div class="box">
 <h3>Acknowledgment & Signatures</h3>
+
 <p>By signing below, the undersigned acknowledges that this document:</p>
 <ul>
 <li>Expresses Program principles and expectations</li>
@@ -144,34 +108,28 @@ button, .button { padding:10px 18px; margin-top:20px; font-weight:bold; }
 <li>Does not alter the license-based nature of Program participation</li>
 </ul>
 
-<label>Member Name (Print):</label>
-<input name="member_name" value="{{ participant.get('name', '') }}" readonly>
+<label>Member Name (Print)
+<input type="text" name="member_name" value="{{ d.get('member_name') or participant.get('name','') }}" required>
+</label>
 
-<label>Member Signature:</label>
-<input name="member_signature" value="{{ d.get('member_signature', participant.get('name', '')) }}">
+<label>Member Signature
+<input type="text" name="member_signature" value="{{ d.get('member_signature') or participant.get('name','') }}" required>
+</label>
 
-<label>Date:</label>
-<input name="member_date" value="{{ d.get('member_date', today) }}">
+<label>Date
+<input type="date" name="member_date" value="{{ d.get('member_date','') }}">
+</label>
 
-<label>Program Name:</label>
-<input name="program_name" value="{{ d.get('program_name','Independent Living Program') }}">
-
-<label>Program Owner / Operator Representative (Print):</label>
-<input name="operator_name" value="{{ d.get('operator_name','') }}">
-
-<label>Signature:</label>
-<input name="operator_signature" value="{{ d.get('operator_signature','') }}">
-
-<label>Date:</label>
-<input name="operator_date" value="{{ d.get('operator_date','') }}">
+<label>Program Name
+<input type="text" name="program_name" value="{{ d.get('program_name') or 'Independent Living Program' }}">
+</label>
 </div>
 
-<p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
-
-<button type="submit">Save / Review</button>
-<a class="button" href="/participant-complete/{{ id }}">Finish / Return Device to Staff</a>
+<button class="button" type="submit">Save and Review</button>
 
 </form>
-</div>
+
+<div class="footer">© 2026 Pearlzz LLC. All Rights Reserved.</div>
+
 </body>
 </html>

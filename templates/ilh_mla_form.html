@@ -273,7 +273,7 @@ button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
 <li>Expectations of tenancy or permanence</li>
 </ul>
 
-<p><strong>Pearlzz Llc 2026 v2.0 2026</strong></p>
+
 </div>
 
 <div class="section">
@@ -324,15 +324,15 @@ button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
 <input name="operator_date" value="{{ d.get('operator_date','') }}"></p>
 </div>
 
-<p><strong>NILPF Framework – Version 2.0 (2026)</strong></p>
-<p><strong>Pearlzz Llc 2026 v2</strong></p>
+
+
 
 
 
 
 
 <form method="POST" action="/ilh-mla/{{ id }}">
-<button type="submit">Save</button>
+{% if not locked and not review_mode|default(false) %}<button type="submit">Save</button>{% endif %}
 </form>
 </div>
 </body>

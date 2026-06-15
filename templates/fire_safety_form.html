@@ -70,7 +70,7 @@ button { padding: 12px 28px; font-size: 16px; font-weight: bold; margin-top: 25p
 </ul>
 
 <p class="signature-line">Participant Name:
-<input name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}"></p>
+<input name="participant_name" value="{{ d.get('participant_name', '') }}"></p>
 
 <p class="signature-line">Signature:
 <input name="signature" value="{{ d.get('signature','') }}"></p>

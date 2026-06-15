@@ -140,7 +140,7 @@
 
   <form method="POST">
     <h2>Section 1 — Core Eligibility (Non-Negotiable)</h2>
-    <p><strong>The applicant must answer YES to all items below.</strong></p>
+    <p><strong>The responses below help determine whether this independent housing setting is appropriate for the applicant.</strong></p>
 
     <label><input type="checkbox" name="core_independent_housing" {% if data.get('core_independent_housing') %}checked{% endif %}> I understand this is independent housing, not assisted or supervised living.</label>
     <label><input type="checkbox" name="core_daily_living" {% if data.get('core_daily_living') %}checked{% endif %}> I am capable of performing all daily living activities independently.</label>
@@ -278,7 +278,7 @@
 
     <div class="buttons">
       <button type="submit">Save & Review Entry Screening</button>
-      <a class="button" href="{{ url_for('packet_builder', id=id) }}">Back to Packet Builder</a>
+      <a class="button" href="{{ url_for('packet_builder', id=id) }}"></a>
     </div>
   </form>
 </div>
