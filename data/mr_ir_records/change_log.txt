@@ -323,3 +323,22 @@ Confirmed:
 Test:
 python3 -m py_compile app.py returned APP COMPILES OK.
 
+
+Date: 2026-06-17
+Area: True-to-sight packet PDF generation / workflow-control cleanup
+Issue:
+Generated Transitional packets were printing browser workflow controls and lock banners inside the final packet, including Back Home, Lock, FINAL LOCKED DOCUMENT, Continue to Next Form, Return to Packet Builder, and Print This Form.
+
+Fix:
+Moved cleanup into generate_true_to_sight_pdf() in app.py. The PDF engine now removes browser-only workflow controls from the rendered HTML in memory before Playwright creates the PDF. This avoids mass-editing templates and prevents breaking Jinja blocks.
+
+Confirmed:
+- All 18 Transitional print routes render successfully.
+- Regenerated participant 194 Transitional packet contains 18 completed/locked forms.
+- Packet body text returned for House Rules and Fire Safety after stopping removal of all form containers.
+- Regenerated packet no longer contains browser workflow-control text.
+
+Test:
+python3 -m py_compile app.py returned APP COMPILES OK.
+Regenerated packet: participant_194_Transitional_CLEAN_PACKET.pdf.
+

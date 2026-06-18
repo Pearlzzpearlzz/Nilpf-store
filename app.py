@@ -157,6 +157,79 @@ def generate_true_to_sight_pdf(pid, route_template, filename):
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page()
         page.set_content(html_content, wait_until="load")
+
+        # PDF-only cleanup: remove browser workflow controls before packet PDF creation.
+        # Do not edit templates or Jinja blocks here.
+        page.add_style_tag(content=r"""
+            .no-print,
+            .nilpf-safe-nav,
+            .print-now-btn,
+            .print-actions,
+            .workflow-controls,
+            .navigation-controls,
+            .nav-bar,
+            nav,
+            button,
+            input[type="submit"],
+            input[type="button"],
+            form[action*="final"],
+            form[action*="unlock"],
+            a[href="/"],
+            a[href="/home"],
+            a[href*="packet-builder"],
+            a[href*="unlock"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                max-height: 0 !important;
+                overflow: hidden !important;
+            }
+        """)
+
+        page.evaluate(r"""
+            () => {
+                const phrases = [
+                    "Back Home",
+                    "Lock",
+                    "Final Lock",
+                    "Finalize and Lock",
+                    "Final Submit / Lock",
+                    "Continue to Next Form",
+                    "Return to Packet Builder",
+                    "Back to Packet Builder",
+                    "Print This Form",
+                    "Edit",
+                    "Edit / Unlock",
+                    "Unlock",
+                    "FINAL LOCKED DOCUMENT",
+                    "LOCKED FINAL DOCUMENT",
+                    "FINAL SUBMITTED",
+                    "This document is locked and cannot be edited.",
+                    "This Program Compliance Addendum has been finalized and locked."
+                ];
+
+                const removableTags = new Set(["A", "BUTTON"]);
+
+                Array.from(document.querySelectorAll("*")).reverse().forEach(el => {
+                    const txt = (el.innerText || "").replace(/\s+/g, " ").trim();
+                    if (!txt) return;
+
+                    if (removableTags.has(el.tagName)) {
+                        el.remove();
+                        return;
+                    }
+
+                    // Remove only small standalone control/banner blocks.
+                    // This avoids deleting full document sections.
+                    if (txt.length <= 220 && phrases.some(p => txt.includes(p))) {
+                        el.remove();
+                    }
+                });
+            }
+        """)
+
+        page.emulate_media(media="print")
+
         page.pdf(
             path=str(output),
             format="Letter",
@@ -1007,7 +1080,13 @@ def add_participant():
     if request.method == "POST":
         participants = load_participants()
 
-        program_type = request.form.get("program_type") or "ILH"
+        activated_system = load_activation()
+        program_type = (
+            request.form.get("program_type")
+            or activated_system.get("program_type")
+            or "ILH"
+        )
+
         name = (
             request.form.get("name")
             or request.form.get("participant_name")
@@ -1032,7 +1111,7 @@ def add_participant():
         if program_type == "ILH":
             return redirect(url_for("entry_screening", id=new_id))
 
-        return redirect(url_for("packet_builder", id=new_id))
+        return redirect(f"/intake-assessment/{new_id}")
 
     return render_template("add_participant.html")
 
