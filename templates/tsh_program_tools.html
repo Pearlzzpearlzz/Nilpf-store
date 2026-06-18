@@ -83,9 +83,70 @@
       margin-top: 24px;
     }
 
-    @media (max-width: 520px) {
+    @media (max-width: 760px) {
+      .wrap {
+        padding: 26px 14px 34px;
+      }
+
       .grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+        max-width: 420px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .card {
+        min-height: auto;
+        padding: 20px 16px;
+      }
+
+      .icon {
+        font-size: 34px;
+      }
+
+      h2 {
+        font-size: 22px;
+        line-height: 1.15;
+      }
+
+      p {
+        font-size: 15px;
+        line-height: 1.4;
+      }
+
+      .button {
+        display: block;
+        width: 100%;
+        max-width: 340px;
+        margin: 14px auto 0;
+        padding: 13px 14px;
+        font-size: 15px;
+        text-align: center;
+      }
+
+      .bottom-row {
+        flex-direction: column;
+        gap: 12px;
+        max-width: 420px;
+        margin: 24px auto 0;
+      }
+    }
+
+    @media (max-width: 520px) {
+      h1 {
+        font-size: 28px;
+        line-height: 1.08;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 22px;
+      }
+
+      .card {
+        padding: 18px 14px;
       }
     }
   </style>
