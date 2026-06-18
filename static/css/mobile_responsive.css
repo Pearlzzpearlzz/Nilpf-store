@@ -157,3 +157,205 @@
     max-width: 920px;
   }
 }
+
+/* ================================
+   OPERATIONS PHONE COMPACT VIEW
+   Added: 2026-06-18
+   Purpose: Keep luxury layout but reduce oversized mobile cards.
+================================ */
+
+@media (max-width: 768px) {
+
+  body {
+    overflow-x: hidden !important;
+  }
+
+  .operations-title,
+  h1 {
+    font-size: 2.1rem !important;
+    line-height: 1.05 !important;
+    margin: 14px auto 12px auto !important;
+    text-align: center !important;
+    letter-spacing: 1px !important;
+  }
+
+  .clock-box,
+  .operations-clock,
+  .live-clock {
+    width: 86% !important;
+    max-width: 360px !important;
+    min-height: auto !important;
+    padding: 18px 12px !important;
+    margin: 12px auto 22px auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .clock-box .time,
+  .operations-clock .time,
+  .live-clock .time {
+    font-size: 2.2rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .clock-box .date,
+  .operations-clock .date,
+  .live-clock .date {
+    font-size: 1.05rem !important;
+  }
+
+  .clock-box .label,
+  .operations-clock .label,
+  .live-clock .label {
+    font-size: 0.85rem !important;
+    letter-spacing: 1px !important;
+  }
+
+  .operations-grid,
+  .ops-grid,
+  .dashboard-grid,
+  .card-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+
+  .operations-card,
+  .ops-card,
+  .dashboard-card,
+  .card {
+    width: 84% !important;
+    max-width: 340px !important;
+    min-height: auto !important;
+    padding: 22px 18px !important;
+    margin: 0 auto 14px auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .operations-card h2,
+  .ops-card h2,
+  .dashboard-card h2,
+  .card h2 {
+    font-size: 1.75rem !important;
+    line-height: 1.1 !important;
+    margin: 8px 0 12px 0 !important;
+  }
+
+  .operations-card p,
+  .ops-card p,
+  .dashboard-card p,
+  .card p {
+    font-size: 1rem !important;
+    line-height: 1.35 !important;
+    margin: 10px auto 18px auto !important;
+  }
+
+  .operations-card .icon,
+  .ops-card .icon,
+  .dashboard-card .icon,
+  .card .icon {
+    font-size: 2.1rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  .operations-card a,
+  .ops-card a,
+  .dashboard-card a,
+  .card a,
+  .operations-card button,
+  .ops-card button,
+  .dashboard-card button,
+  .card button {
+    width: 92% !important;
+    max-width: 280px !important;
+    padding: 12px 14px !important;
+    font-size: 1rem !important;
+    margin: 8px auto 0 auto !important;
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .operations-actions,
+  .ops-actions,
+  .bottom-actions,
+  .button-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin-top: 18px !important;
+  }
+
+  .operations-actions a,
+  .ops-actions a,
+  .bottom-actions a,
+  .button-row a,
+  .operations-actions button,
+  .ops-actions button,
+  .bottom-actions button,
+  .button-row button {
+    width: 82% !important;
+    max-width: 320px !important;
+    padding: 12px 14px !important;
+    font-size: 1rem !important;
+    text-align: center !important;
+  }
+
+  footer,
+  .footer {
+    width: 88% !important;
+    max-width: 360px !important;
+    margin: 22px auto !important;
+    padding: 14px 10px !important;
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .operations-title,
+  h1 {
+    font-size: 1.9rem !important;
+  }
+
+  .clock-box,
+  .operations-clock,
+  .live-clock {
+    width: 88% !important;
+    max-width: 340px !important;
+    padding: 16px 10px !important;
+  }
+
+  .clock-box .time,
+  .operations-clock .time,
+  .live-clock .time {
+    font-size: 1.95rem !important;
+  }
+
+  .operations-card,
+  .ops-card,
+  .dashboard-card,
+  .card {
+    width: 86% !important;
+    max-width: 330px !important;
+    padding: 20px 16px !important;
+  }
+
+  .operations-card h2,
+  .ops-card h2,
+  .dashboard-card h2,
+  .card h2 {
+    font-size: 1.55rem !important;
+  }
+
+  .operations-card p,
+  .ops-card p,
+  .dashboard-card p,
+  .card p {
+    font-size: 0.95rem !important;
+  }
+}
