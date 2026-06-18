@@ -342,3 +342,43 @@ Test:
 python3 -m py_compile app.py returned APP COMPILES OK.
 Regenerated packet: participant_194_Transitional_CLEAN_PACKET.pdf.
 
+
+Date: 2026-06-18
+Area: Live Transitional Housing form cleanup list
+Status: Pending cleanup after successful packet-engine repair
+
+Notes:
+The live Render packet PDF generation is working and browser workflow controls are no longer leaking into the merged packet PDF.
+
+Remaining live browser/template cleanup items:
+- /intake-assessment/546: Back to Operations appears at bottom.
+- /program-participation-agreement/546: operator/program representative signature block remains.
+- /guest-addendum/546: operator signature block remains.
+- /no-services-supervision-print/546: bottom browser workflow text remains on print page, including Correct No Services / No Supervision Acknowledgement, Final Submit / Lock, Back Home, and Locking...
+- /property-belongings/546: operator signature/operator representative block remains.
+- /vehicle-parking-print/546: Back to Packet Builder appears at bottom.
+- /voluntary-participation/546: page/layout shifts off to the right.
+
+Repair rule:
+Do not mass-edit all print templates. Patch only the listed templates/routes. Preserve Jinja blocks and test each route after changes.
+
+
+Date: 2026-06-18
+Area: Live Transitional Housing form cleanup list
+Status: Pending cleanup after successful packet-engine repair
+
+Notes:
+The live Render packet PDF generation is working and browser workflow controls are no longer leaking into the merged packet PDF.
+
+Remaining live browser/template cleanup items:
+- /intake-assessment/546: Back to Operations appears at bottom.
+- /program-participation-agreement/546: operator/program representative signature block remains.
+- /guest-addendum/546: operator signature block remains.
+- /no-services-supervision-print/546: bottom browser workflow text remains on print page, including Correct No Services / No Supervision Acknowledgement, Final Submit / Lock, and Back Home. “Locking...” is acceptable and is not part of this cleanup item.
+- /property-belongings/546: operator signature/operator representative block remains.
+- /vehicle-parking-print/546: Back to Packet Builder appears at bottom.
+- /voluntary-participation/546: page/layout shifts off to the right.
+
+Repair rule:
+Do not mass-edit all print templates. Patch only the listed templates/routes. Preserve Jinja blocks and test each route after changes.
+

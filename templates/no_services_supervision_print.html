@@ -179,17 +179,13 @@ button { padding:14px 24px; font-size:18px; font-weight:bold; }
 
 <div class="center">
 {% if not locked %}
-<a href="/no-services-supervision/{{ id }}">Correct No Services / No Supervision Acknowledgement</a>
-<form method="POST" action="/no-services-supervision-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
-<button type="submit">Final Submit / Lock No Services / No Supervision Acknowledgement</button>
-</form>
+<a href="/no-services-supervision/{{ id }}"></a>
+
 {% endif %}
-<a href="/">Back Home</a>
+
 </div>
 
-<form method="POST" action="/no-services-supervision-final/{{ id }}" onsubmit="return disableFinalLock(this)">
-<button type="submit">Lock</button>
-</form>
+
 
 <script>
 {% if locked %}
