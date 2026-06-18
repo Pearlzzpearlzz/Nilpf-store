@@ -240,10 +240,14 @@
       <form method="GET" action="/audit-packet-builder-summary">
       <div class="grid">
         <div class="item">
-          <strong>Select Participant</strong>
+          <strong>Select Participant / PID</strong>
           <select name="participant_scope">
             <option value="all">All Participants</option>
-            <option value="single">Single Participant</option>
+            {% for p in participants %}
+              <option value="pid_{{ loop.index0 }}">
+                PID {{ loop.index0 }} - {{ p.get('name') or p.get('participant_name') or 'Unnamed Participant' }}
+              </option>
+            {% endfor %}
           </select>
         </div>
         <div class="item">

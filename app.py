@@ -1669,7 +1669,8 @@ def build_apb_hmis_readiness_summary():
 
 @app.route("/audit-packet-builder")
 def audit_packet_builder():
-    return render_template("audit_packet_builder.html")
+    current_participants = load_participants()
+    return render_template("audit_packet_builder.html", participants=current_participants)
 
 @app.route("/audit-packet-builder-summary")
 def audit_packet_builder_summary():
@@ -1677,6 +1678,18 @@ def audit_packet_builder_summary():
         return redirect(url_for("login"))
 
     participant_scope = request.args.get("participant_scope", "")
+    current_participants = load_participants()
+    participant_scope_label = "All Participants" if participant_scope == "all" else participant_scope
+
+    if participant_scope.startswith("pid_"):
+        try:
+            pid = int(participant_scope.replace("pid_", "", 1))
+            if 0 <= pid < len(current_participants):
+                person = current_participants[pid]
+                participant_name = person.get("name") or person.get("participant_name") or "Unnamed Participant"
+                participant_scope_label = f"PID {pid} - {participant_name}"
+        except Exception:
+            participant_scope_label = participant_scope
     start_date = request.args.get("start_date", "")
     end_date = request.args.get("end_date", "")
     requesting_entity = request.args.get("requesting_entity", "")
@@ -1686,7 +1699,8 @@ def audit_packet_builder_summary():
 
     return render_template(
         "audit_packet_builder_summary.html",
-        participant_scope=participant_scope,
+        participant_scope=participant_scope_label,
+        participant_scope_raw=participant_scope,
         start_date=start_date,
         end_date=end_date,
         requesting_entity=requesting_entity,
