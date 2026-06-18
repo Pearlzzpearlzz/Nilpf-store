@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Participant Check-In / Check-Out</title>
   <style>
     body {
@@ -117,8 +118,73 @@
     }
 
     @media (max-width: 750px) {
+      body {
+        overflow-x: hidden;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 430px;
+        padding: 24px 12px 36px;
+      }
+
+      h1 {
+        font-size: 28px;
+        line-height: 1.08;
+        letter-spacing: 1px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .panel {
+        padding: 16px 12px;
+      }
+
       .row {
         grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      label {
+        font-size: 15px;
+      }
+
+      select,
+      input,
+      textarea {
+        min-height: 50px;
+        font-size: 16px;
+        padding: 12px;
+      }
+
+      textarea {
+        min-height: 90px;
+      }
+
+      .button {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 13px 14px;
+        font-size: 15px;
+      }
+
+      .bottom-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .history-card {
+        padding: 14px 12px;
+      }
+
+      .status {
+        display: block;
+        width: fit-content;
+        margin-top: 8px;
       }
     }
   </style>

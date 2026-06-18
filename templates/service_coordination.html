@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Service Coordination</title>
   <style>
     body {
@@ -76,8 +77,52 @@
     }
 
     @media (max-width: 850px) {
+      body {
+        overflow-x: hidden;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 430px;
+        padding: 24px 12px 36px;
+      }
+
+      h1 {
+        font-size: 28px;
+        line-height: 1.08;
+        letter-spacing: 1px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        line-height: 1.45;
+        margin-bottom: 22px;
+      }
+
       .grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .card {
+        min-height: auto;
+        padding: 18px 14px;
+      }
+
+      .button {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 13px 14px;
+        font-size: 15px;
+      }
+
+      #servicePid {
+        min-height: 52px !important;
+        font-size: 16px !important;
+        background: #050505 !important;
+        color: #fff !important;
+        border: 1px solid #d4af37 !important;
       }
     }
   </style>
@@ -120,7 +165,7 @@
 
   <div class="wrap">
     <h1>SERVICE COORDINATION</h1>
-    <div style="max-width:720px;margin:20px auto;padding:18px;border:1px solid #d4af37;border-radius:12px;background:#fff;">
+    <div style="max-width:720px;margin:20px auto;padding:18px;border:1px solid #d4af37;border-radius:12px;background:#111;color:#fff;">
       <label style="font-weight:bold;">Select Participant / PID First</label>
       <select id="servicePid" style="width:100%;padding:12px;margin-top:8px;border:1px solid #ccc;border-radius:8px;">
         <option value="">Choose participant...</option>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Audit Packet Builder</title>
   <style>
     body {
@@ -117,6 +118,73 @@
     .disabled {
       opacity: 0.55;
       cursor: not-allowed;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        overflow-x: hidden;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 430px;
+        padding: 24px 12px 36px;
+      }
+
+      h1 {
+        font-size: 26px;
+        line-height: 1.08;
+        letter-spacing: 1px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        line-height: 1.45;
+        margin-bottom: 22px;
+      }
+
+      .panel {
+        padding: 18px 12px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .item {
+        padding: 14px 12px;
+      }
+
+      select,
+      input[type="date"] {
+        min-height: 50px;
+        font-size: 16px;
+        padding: 12px;
+      }
+
+      label {
+        font-size: 15px;
+        line-height: 1.4;
+      }
+
+      .button {
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin: 10px 0;
+        padding: 13px 14px;
+        font-size: 15px;
+      }
+
+      .actions {
+        margin-top: 20px;
+      }
+
+      .notice {
+        padding: 14px 12px;
+        font-size: 14px;
+      }
     }
 
   </style>
