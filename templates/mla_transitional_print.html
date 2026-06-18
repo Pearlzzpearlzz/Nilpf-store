@@ -1,225 +1,222 @@
 <!doctype html>
 <html>
 <head>
-<style>
-body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
-
-.footer-watermark{
-    position:fixed;
-    bottom:8px;
-    left:0;
-    width:100%;
-    text-align:center;
-    font-size:11px;
-    color:#777;
-    opacity:0.65;
-    pointer-events:none;
-}
-
-</style>
 <meta charset="utf-8">
-<title>Transitional MLA Review</title>
+<title>Transitional Housing Program Master License Agreement Review</title>
+
 <style>
-body{font-family:Arial,sans-serif;background:#eee;margin:0;padding:30px;}
-.doc{background:white;max-width:900px;margin:auto;padding:55px;border:2px solid #111;line-height:1.45;}
+body{font-family:Arial,sans-serif;background:#eee;margin:0;padding:30px;line-height:1.55;}
+.doc{background:white;max-width:950px;margin:auto;padding:55px;border:2px solid #111;}
 h1,h2,h3{text-align:center;}
 .section{margin-top:26px;}
-.line{border-bottom:1px solid #111;min-height:24px;padding:6px;}
-button,a{font-size:18px;font-weight:bold;}
-
-.footer-watermark{
-    position:fixed;
-    bottom:8px;
-    left:0;
-    width:100%;
-    text-align:center;
-    font-size:11px;
-    color:#777;
-    opacity:0.65;
-    pointer-events:none;
-}
-
+.line{border:0;border-bottom:1px solid #111;width:100%;padding:7px;font-size:15px;}
+.print-line{border-bottom:1px solid #111;min-height:24px;padding:6px;}
+button{margin-top:30px;padding:12px 28px;font-size:18px;font-weight:bold;}
+.gold{background:#D4AF37;color:#000;border:none;padding:12px 22px;font-weight:bold;}
+.print-now-btn{position:fixed;top:12px;right:12px;z-index:9999;background:#d4af37;color:#000;border:1px solid #8a680f;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:bold;cursor:pointer;}
+.footer-watermark{position:fixed;bottom:8px;left:0;width:100%;text-align:center;font-size:11px;color:#777;opacity:0.65;pointer-events:none;}
+.nilpf-safe-nav{position:sticky;top:0;z-index:9999;display:flex;justify-content:center;padding:10px;background:#050505;border-bottom:2px solid #D4AF37;}
+.nilpf-safe-nav a{display:inline-block;padding:10px 14px;border-radius:8px;background:#D4AF37;color:#000 !important;font-weight:bold;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;}
+@media print{.nilpf-safe-nav,.print-now-btn,.print-actions{display:none !important;}}
 </style>
-
-<style>
-  .print-now-btn {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 9999;
-    background: #d4af37;
-    color: #000;
-    border: 1px solid #8a680f;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  }
-  @media print {
-    .print-now-btn {
-      display: none !important;
-    }
-  }
-</style>
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
-
-<style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
-}
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-}
-@media print{
-  .nilpf-safe-nav{display:none !important;}
-}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 
 </head>
 <body>
-
-<div class="nilpf-safe-nav">
-  <a href="/operations">Exit to Operations</a>
-</div>
-
+<div class="nilpf-safe-nav"><a href="/operations">Exit to Operations</a></div>
 <button class="print-now-btn" type="button" onclick="window.print()">Print This Form</button>
+<div class="mobile-container">
 <div class="doc">
 
 <h1>MASTER LICENSE AGREEMENT</h1>
 <h2>Transitional Housing Program</h2>
-<p style="text-align:center;"><strong>Reentry, VA & Program-Aligned / GPD-Aligned Edition</strong></p>
-<p style="text-align:center;">NILPF Framework 2026</p>
+<p style="text-align:center;"><strong>Reentry, VA, DOC/Reentry, Referral-Based, and Program-Aligned Housing</strong></p>
+<p style="text-align:center;">NILPF Framework (2026)</p>
 
+<div class="section">
 <h3>1. PARTIES</h3>
-<p><strong>Program Operator Nonprofit 501(c)(3):</strong></p>
-<div class="line">{{ d.get('operator_name','') }}</div>
-
-<p><strong>Participant:</strong></p>
-<div class="line">{{ participant.get('name', '') }}</div>
-
-<p><strong>Property Address:</strong></p>
-<div class="line">{{ d.get('property_address','') }}</div>
-
-<p><strong>Agreement Date:</strong></p>
-<div class="line">{{ d.get('agreement_date','') }}</div>
-
-<h3>2. PURPOSE</h3>
-<p>This Agreement establishes a structured transitional housing arrangement designed to support individuals reentering the community and progressing toward stable, independent living.</p>
-<p>The Program provides shared housing within a structured environment focused on accountability, stability, and successful reintegration.</p>
-
-<h3>3. NATURE OF OCCUPANCY</h3>
-<p>Participant is granted a revocable, non-exclusive license to occupy an assigned sleeping space within shared housing.</p>
-<p>This Agreement does not create a landlord-tenant relationship, exclusive possession, or permanent housing rights unless required by applicable law.</p>
-
-<h3>4. PROGRAM PARTICIPATION</h3>
-<p>Participant agrees to follow program expectations, communicate with the Program Operator, comply with documentation requirements, and maintain respectful behavior within the shared housing environment.</p>
-
-<h3>5. HOUSE RULES AND COMMUNITY STANDARDS</h3>
-<p>Participant agrees to follow all house rules, safety requirements, quiet hours, cleanliness expectations, guest rules, and shared space responsibilities.</p>
-
-<h3>6. FEES / PROGRAM CONTRIBUTIONS</h3>
-<div class="line">{{ d.get('fees','') }}</div>
-
-<h3>7. NO GUARANTEE OF SERVICES</h3>
-<p>This Agreement does not create medical, nursing, personal care, supervision, or assisted living obligations.</p>
-<p>Any supportive services must be separately documented and provided by an authorized agency or provider.</p>
-
-<h3>8. TERMINATION</h3>
-<p>The Program Operator may terminate this license for violation of program expectations, safety concerns, non-payment where applicable, failure to comply with documentation, or other written program reasons.</p>
-
-<h3>9. PARTICIPANT RIGHTS</h3>
-<p>Participant has the right to fair treatment, privacy within shared housing limits, access to grievance procedures when applicable, and written notice as required by program policy or law.</p>
-
-<h3>10. ACKNOWLEDGMENT</h3>
-<p>Participant acknowledges that this is a license agreement for transitional shared housing and not a traditional lease or tenancy unless applicable law states otherwise.</p>
-
-<h3>11. SIGNATURES</h3>
-
-<p><strong>Participant Name:</strong></p>
-<div class="line">{{ participant.get('name', '') }}</div>
-
-<p><strong>Participant Signature:</strong></p>
-<div class="line">{{ d.get('participant_signature','') }}</div>
-
-<p><strong>Date:</strong></p>
-<div class="line">{{ d.get('participant_signature_date','') }}</div>
-
-<p><strong>Operator Representative:</strong></p>
-<div class="line">{{ d.get('operator_rep','') }}</div>
-
-<p><strong>Operator Signature:</strong></p>
-<div class="line">{{ d.get('operator_signature','') }}</div>
-
-<p><strong>Date:</strong></p>
-<div class="line">{{ d.get('operator_signature_date','') }}</div>
-
-<hr>
-
-{% if locked %}
-{% if locked %}<h2>{% if locked %}FINAL LOCKED DOCUMENT{% endif %}</h2>{% endif %}
-{% else %}
-<a href="/mla/{{ id }}">Edit</a>
-<br><br>
-
-<hr>
-<div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
-    {% if not locked %}
-    <form method="POST" action="/mla-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
-        <button type="submit">Final Lock</button>
-    </form>
-    {% else %}
-    <p><strong>FINAL LOCKED DOCUMENT</strong></p>
-    <form method="POST" action="/mla-unlock/{{ id }}" style="display:inline;">
-        <button type="submit">Edit / Unlock</button>
-    </form>
-    {% endif %}
-
-    <p style="margin-top:20px;">
-        
-    </p>
+<p>This Master License Agreement (“Agreement”) is entered into between:</p>
 </div>
 
-{% endif %}
 
+<p><strong>Program Operator / Nonprofit 501(c)(3):</strong></p>
+<div class="print-line">{{ d.get('operator_name','') }}</div>
+
+<p><strong>Participant:</strong></p>
+<div class="print-line">{{ d.get('participant_name', participant.get('name', '')) }}</div>
+
+<p><strong>Property Address:</strong></p>
+<div class="print-line">{{ d.get('property_address','') }}</div>
+
+<p><strong>Agreement Date:</strong></p>
+<div class="print-line">{{ d.get('agreement_date','') }}</div>
+
+
+<div class="section">
+<h3>2. PURPOSE</h3>
+<p>This Agreement establishes a structured transitional housing arrangement designed to support individuals reentering the community, maintaining housing stability, and progressing toward independent living.</p>
+<p>The Program provides shared housing within a structured environment focused on accountability, stability, personal responsibility, and successful transition.</p>
+<p>This Agreement governs the participant’s housing license and occupancy status. Program compliance, agency coordination, funding responsibility, referral requirements, and service planning may be documented separately.</p>
+</div>
+
+<div class="section">
+<h3>3. NATURE OF OCCUPANCY</h3>
+<p>Participant is granted a revocable, non-exclusive license to occupy an assigned sleeping space within the residence.</p>
+<p>This Agreement does not create a landlord-tenant relationship unless required by applicable law, does not grant exclusive possession of any bedroom or unit, does not create ownership rights or permanent housing rights, and does not guarantee continued occupancy outside the terms of this Agreement and related program documents.</p>
+<p>Sleeping arrangements may be shared, may be reassigned at the discretion of the Operator, and are subject to program structure, safety needs, occupancy needs, and administrative review.</p>
+<p>Common areas are shared.</p>
+</div>
+
+<div class="section">
+<h3>4. PROGRAM PARTICIPATION</h3>
+<p>Participant agrees to engage in reasonable program expectations, which may include maintaining communication with program staff or designated contacts, participating in goal-setting and progress discussions, complying with documentation and check-in requirements, following house standards and shared living expectations, and engaging in activities that support stability, accountability, and independence.</p>
+<p>Failure to maintain reasonable participation may result in review of continued occupancy.</p>
+<p>Program participation does not constitute supervision, medical care, clinical care, personal care, case management by the Operator, or custodial oversight.</p>
+</div>
+
+<div class="section">
+<h3>5. INDEPENDENT LIVING STATUS</h3>
+<p>The Program provides housing only.</p>
+<p>Unless separately stated in a written agreement, the Operator does not provide medical care, clinical services, personal care, supervision, monitoring, custodial care, financial control, or payee services.</p>
+<p>Participant remains fully responsible for personal decisions, healthcare, finances, medication management, daily living activities, personal conduct, and outside appointments and obligations.</p>
+<p>Participants may independently arrange outside services. The Operator is not responsible for services provided by outside agencies, providers, case managers, sponsors, or referral partners.</p>
+<p>The residence is not a healthcare facility.</p>
+</div>
+
+<div class="section">
+<h3>6. ADMINISTRATIVE AUTHORITY</h3>
+<p>The Operator retains administrative control of the residence for purposes of safety, maintenance, program structure, shared housing operations, documentation, occupancy coordination, and enforcement of house standards.</p>
+<p>This may include reassignment of sleeping areas, enforcement of house rules, review of program participation, documentation of incidents or concerns, and coordination with authorized referral, funding, or support contacts when applicable.</p>
+<p>Administrative authority does not create a supervisory, clinical, custodial, or caregiving relationship.</p>
+</div>
+
+<div class="section">
+<h3>7. HOUSE STANDARDS</h3>
+<p>Participant agrees to comply with reasonable standards related to cleanliness, safety, respect for shared space, respectful conduct, quiet enjoyment of shared living areas, guest rules, property rules, fire safety, and privacy of other participants/members.</p>
+<p>Violations may result in corrective action, program review, reassignment, discharge review, or termination of the license.</p>
+</div>
+
+<div class="section">
+<h3>8. FINANCIAL CONTRIBUTION / FUNDING RESPONSIBILITY</h3>
+<p>Program costs, occupancy-related contributions, placement support, or other approved charges may be paid by the participant, a sponsoring agency, a referral source, a grant-funded program, a nonprofit sponsor, a public funding source, a VA-related source, a DOC/reentry-related source, or another approved responsible party.</p>
+<p>The participant is responsible only for the financial contribution or payment obligation that has been separately disclosed in writing and agreed to as part of the participant’s placement, funding arrangement, sponsorship record, payor record, billing record, or other written program documentation.</p>
+
+
+<p><strong>Participant Financial Contribution, if any:</strong></p>
+<div class="print-line">{{ d.get('fees','') }}</div>
+
+<p><strong>Due Date, if applicable:</strong></p>
+<div class="print-line">{{ d.get('due_date','') }}</div>
+
+<p><strong>Funding / Payor Notes, if any:</strong></p>
+<div class="print-line">{{ d.get('funding_notes','') }}</div>
+
+
+<p>If an agency, sponsor, grant source, public program, nonprofit program, or other third party is responsible for all or part of the payment, that responsibility must be documented separately in the applicable administrative, sponsorship, payor, billing, referral, or funding record.</p>
+<p>Funding support, agency sponsorship, per diem, reimbursement, grant support, or third-party payment does not create a tenancy, leasehold interest, ownership interest, or entitlement to remain in the program outside the terms of this Agreement and applicable program documents.</p>
+<p>Payment does not guarantee continued occupancy if the participant violates program expectations, house standards, safety requirements, or other written program requirements.</p>
+</div>
+
+<div class="section">
+<h3>9. TERM AND REVIEW</h3>
+<p>Participation is transitional and subject to periodic review.</p>
+<p>Length of stay may be based on program progress, housing stability, funding or sponsorship status, referral or agency requirements, participant conduct, house capacity, safety considerations, and availability of appropriate placement.</p>
+<p>The Operator may review continued occupancy periodically or when a significant program, safety, funding, documentation, or conduct issue arises.</p>
+</div>
+
+<div class="section">
+<h3>10. TERMINATION / REVOCATION OF LICENSE</h3>
+<p>This license may be revoked or terminated for reasons including, but not limited to noncompliance with program expectations, failure to reasonably participate, violation of house standards, safety concerns, behavior disrupting the shared environment, threats, violence, harassment, serious misconduct, failure to comply with required documentation, non-payment only where a documented payment obligation applies, loss or change of required funding/referral support/sponsorship/program eligibility when applicable, or other written program reasons consistent with applicable law.</p>
+<p>Participant agrees to vacate as required by applicable law and program procedure.</p>
+<p>Nothing in this Agreement waives any rights, notices, or procedures required by applicable federal, state, or local law.</p>
+</div>
+
+<div class="section">
+<h3>11. RISK AND RESPONSIBILITY</h3>
+<p>Participant assumes responsibility for personal property, personal conduct, personal decisions, outside relationships, outside services, daily living choices, and compliance with personal legal, court, agency, medical, or benefit obligations.</p>
+<p>The Operator is not responsible for loss or damage of personal belongings, actions of other participants/members, outcomes related to personal decisions, services provided by outside agencies or providers, or participant failure to attend outside appointments or comply with outside requirements.</p>
+</div>
+
+<div class="section">
+<h3>12. FAIR HOUSING AND NONDISCRIMINATION</h3>
+<p>The Program operates in compliance with applicable fair housing, disability, civil rights, and nondiscrimination laws, including where applicable the Fair Housing Act, Americans with Disabilities Act, Section 504 if applicable, and applicable state and local laws.</p>
+<p>Reasonable accommodation requests may be reviewed according to applicable law and program procedure.</p>
+</div>
+
+<div class="section">
+<h3>13. NO PARTNERSHIP / NO EMPLOYMENT RELATIONSHIP</h3>
+<p>This Agreement does not create a partnership, joint venture, employment relationship, landlord-tenant relationship unless required by applicable law, clinical provider relationship, custodial relationship, representative payee relationship, or case management relationship by the Operator unless separately agreed in writing.</p>
+</div>
+
+<div class="section">
+<h3>14. RELATIONSHIP TO OTHER DOCUMENTS</h3>
+<p>This Agreement may be used together with other program documents, including but not limited to House Rules, Program Compliance Addendum, Program Participation Agreement, Payor / Funding Responsibility Record, Referral Source Record, Agency Sponsorship Record, Release of Information if applicable, Emergency Contact forms, and safety and shared housing documents.</p>
+<p>If another document addresses program participation, referral obligations, funding, sponsorship, or outside agency coordination, that document supplements this Agreement but does not replace the housing license terms stated here unless expressly stated in writing.</p>
+</div>
+
+<div class="section">
+<h3>15. ENTIRE AGREEMENT</h3>
+<p>This Agreement represents the complete understanding between the parties regarding the participant’s transitional housing license, except for additional written program, funding, referral, house, or administrative documents that supplement this Agreement.</p>
+<p>If any provision is found unenforceable, the remainder shall remain in effect.</p>
+</div>
+
+
+<div class="section">
+<h3>16. SIGNATURES</h3>
+
+<p><strong>Program Operator / Authorized Representative Name:</strong></p>
+<div class="print-line">{{ d.get('operator_rep','') }}</div>
+
+<p><strong>Program Operator / Authorized Representative Signature:</strong></p>
+<div class="print-line">{{ d.get('operator_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="print-line">{{ d.get('operator_signature_date','') }}</div>
+
+<br>
+
+<p><strong>Participant Name:</strong></p>
+<div class="print-line">{{ d.get('participant_signature_name', participant.get('name', '')) }}</div>
+
+<p><strong>Participant Signature:</strong></p>
+<div class="print-line">{{ d.get('participant_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="print-line">{{ d.get('participant_signature_date','') }}</div>
+</div>
+
+
+<p style="text-align:center;margin-top:35px;">This document supersedes all prior versions of the Transitional Housing Program Master License Agreement for this participant placement.</p>
+<p style="text-align:center;"><strong>© 2026 Pearlzz LLC. All Rights Reserved. NILPF Framework.</strong></p>
+<p style="text-align:center;">Single-Site License Granted to Purchaser. Unauthorized Reproduction or Distribution Prohibited.</p>
+<p style="text-align:center;">Version 1.0 — Transitional Housing Program Master License Agreement — NILPF Framework 2026</p>
+
+<hr>
+{% if locked %}
+<h2>FINAL LOCKED DOCUMENT</h2>
+{% else %}
+<div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
+  <a href="/mla/{{ id }}">Edit</a>
+  <br><br>
+  <form method="POST" action="/mla-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
+    <button class="gold" type="submit">Final Lock</button>
+  </form>
+</div>
+{% endif %}
+</div>
+</div>
+<div class="footer-watermark">© Pearlzz LLC 2026 • Transitional Housing Program Documents • All Rights Reserved</div>
 <script>
 function disableFinalLock(formOrButton) {
   const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
   if (btn) {
-    if (btn.dataset.locking === "1") {
-      return false;
-    }
+    if (btn.dataset.locking === "1") return false;
     btn.dataset.locking = "1";
     btn.disabled = true;
     btn.innerText = "Locking...";
   }
   return true;
 }
-
-function disableFinalLockLink(link) {
-  if (link.dataset.locking === "1") {
-    return false;
-  }
-  link.dataset.locking = "1";
-  link.style.pointerEvents = "none";
-  link.innerText = "Locking...";
-  return true;
-}
 </script>
+</body>
+</html>

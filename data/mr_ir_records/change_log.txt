@@ -297,3 +297,29 @@ return redirect(url_for("independent_living_disclosure", id=id))
 
 Important:
 This correction does not rebuild routes, does not touch login guards, does not restore /screening, and does not change templates.
+
+Date: 2026-06-17
+Area: Transitional Housing participant document restoration / full-form preservation
+Issue:
+Active Transitional Housing participant templates had been shortened during prior repairs. The Program Participation Agreement, Program Compliance Addendum, and Transitional Housing MLA were too sparse for the intended TH / VA / DOC / Reentry / CoC / publicly funded structure.
+
+Fix:
+Restored full active template pairs:
+- templates/program_participation_agreement_form.html
+- templates/program_participation_agreement_print.html
+- templates/program_compliance_addendum_form.html
+- templates/program_compliance_addendum_print.html
+- templates/mla_transitional_form.html
+- templates/mla_transitional_print.html
+
+Confirmed:
+- TH MLA remains Program Operator / Nonprofit + Participant.
+- Property-side Master Lease remains separate from participant MLA.
+- Program Compliance Addendum includes Dual-Entity Program Structure, VA/DOC/Reentry/CoC coordination, financial clarification, and relationship to MLA.
+- Program Participation Agreement includes full participant rights, responsibilities, grievance, safety, confidentiality, discharge, and no-guarantee language.
+- TH chain verified: intake-assessment -> mla -> program-compliance-addendum -> program-participation-agreement -> house-rules.
+- app.py compiles successfully.
+
+Test:
+python3 -m py_compile app.py returned APP COMPILES OK.
+

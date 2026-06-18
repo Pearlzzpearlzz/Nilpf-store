@@ -1,138 +1,194 @@
 <!DOCTYPE html>
 <html>
 <head>
-<style>
-body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
-
-.footer-watermark{
-    position:fixed;
-    bottom:8px;
-    left:0;
-    width:100%;
-    text-align:center;
-    font-size:11px;
-    color:#777;
-    opacity:0.65;
-    pointer-events:none;
-}
-
-</style>
-    <title>Program Participation Agreement - Review</title>
+<meta charset="utf-8">
+<title>Program Participation Agreement - Review</title>
 
 <style>
-  .print-now-btn {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 9999;
-    background: #d4af37;
-    color: #000;
-    border: 1px solid #8a680f;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  }
-  @media print {
-    .print-now-btn {
-      display: none !important;
-    }
-  }
+body{font-family:Arial,sans-serif;background:#eee;margin:0;padding:30px;line-height:1.55;}
+.doc{background:white;max-width:900px;margin:auto;padding:55px;border:2px solid #111;}
+h1,h2,h3{text-align:center;}
+.section{margin-top:26px;}
+.line{border:0;border-bottom:1px solid #111;width:100%;padding:7px;font-size:15px;}
+.print-line{border-bottom:1px solid #111;min-height:24px;padding:6px;}
+button{margin-top:30px;padding:12px 28px;font-size:18px;font-weight:bold;}
+.print-now-btn{position:fixed;top:12px;right:12px;z-index:9999;background:#d4af37;color:#000;border:1px solid #8a680f;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:bold;cursor:pointer;}
+.footer-watermark{position:fixed;bottom:8px;left:0;width:100%;text-align:center;font-size:11px;color:#777;opacity:0.65;pointer-events:none;}
+.nilpf-safe-nav{position:sticky;top:0;z-index:9999;display:flex;justify-content:center;padding:10px;background:#050505;border-bottom:2px solid #D4AF37;}
+.nilpf-safe-nav a{display:inline-block;padding:10px 14px;border-radius:8px;background:#D4AF37;color:#000 !important;font-weight:bold;text-decoration:none;font-family:Arial,sans-serif;font-size:14px;}
+@media print{.nilpf-safe-nav,.print-now-btn,.print-actions{display:none !important;}}
 </style>
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
-
-<style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
-}
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-}
-@media print{
-  .nilpf-safe-nav{display:none !important;}
-}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 
 </head>
 <body>
-
-<div class="nilpf-safe-nav">
-  <a href="/operations">Exit to Operations</a>
-</div>
-
+<div class="nilpf-safe-nav"><a href="/operations">Exit to Operations</a></div>
 <button class="print-now-btn" type="button" onclick="window.print()">Print This Form</button>
+<div class="mobile-container">
+<div class="doc">
 
-<h2>PROGRAM PARTICIPATION AGREEMENT</h2>
+<h1>PROGRAM PARTICIPATION AGREEMENT</h1>
+<h2>Transitional Housing Program – NILPF Framework (2026)</h2>
+<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
 
-{% include "program_participation_agreement_form.html" %}
-
-<hr>
-
-{% if locked %}
-{% if locked %}<p><strong>FINAL LOCKED DOCUMENT</strong></p>{% endif %}
-{% else %}
-
-<br><br>
-
-<hr>
-<div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
-    {% if not locked %}
-    <form method="POST" action="/program-participation-agreement-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
-        <button type="submit">Final Lock</button>
-    </form>
-    {% else %}
-    <p><strong>FINAL LOCKED DOCUMENT</strong></p>
-    <form method="POST" action="/program-participation-agreement-unlock/{{ id }}" style="display:inline;">
-        <button type="submit">Edit / Unlock</button>
-    </form>
-    {% endif %}
-
-    <p style="margin-top:20px;">
-        
-    </p>
+<div class="section">
+<h3>PURPOSE</h3>
+<p>This Program Participation Agreement explains the expectations, responsibilities, and program conditions for a participant entering a Transitional Housing Program.</p>
+<p>This agreement is used when the participant is being housed as part of a structured transitional housing program, including reentry, DOC/Reentry-aligned, VA-aligned, referral-based, agency-supported, or program-supported housing.</p>
+<p>This agreement is program-facing. It does not replace the Master Lease, Master License Agreement, house rules, funding documents, referral documents, or required program coordination forms.</p>
 </div>
 
-{% endif %}
+<div class="section">
+<h3>PROGRAM STRUCTURE</h3>
+<p>The Transitional Housing Program may operate under a dual-entity structure.</p>
+<p>The property may be owned, leased, or controlled by a separate property entity, such as an LLC.</p>
+<p>The program may be operated or managed by a nonprofit, program operator, or coordinating organization.</p>
+<p>The Program Operator is responsible for program participation requirements, participant coordination, referral communication, documentation, program expectations, and compliance-related activities.</p>
+<p>The property entity is responsible only for the property-related role assigned to it by written agreement.</p>
+<p>Nothing in this agreement makes the property entity responsible for clinical treatment, supervision, case management, transportation, funding approval, or referral decisions unless separately agreed to in writing.</p>
+</div>
 
+<div class="section">
+<h3>PARTICIPANT STATUS</h3>
+<p>The participant understands that transitional housing is program-based housing.</p>
+<p>Participation may require cooperation with program expectations, referral requirements, documentation requests, scheduled meetings, inspections, program reviews, progress updates, and coordination with approved agencies or referral sources.</p>
+<p>The participant understands that this housing is not permanent housing and may be connected to a transition plan, referral plan, reentry plan, VA housing plan, recovery plan, service plan, or other approved pathway.</p>
+</div>
+
+<div class="section">
+<h3>REFERRAL AND PROGRAM COORDINATION</h3>
+<p>The participant may be referred by or connected to outside agencies, including but not limited to correctional reentry programs, probation or parole agencies, VA or veteran-support programs, Continuum of Care partners, shelters or outreach programs, case management agencies, behavioral health or recovery programs, social service agencies, and other approved referral sources.</p>
+<p>The participant understands that the Program Operator may communicate with approved referral sources, funding sources, or coordinating agencies when the participant has signed the required release or authorization forms.</p>
+<p>The participant understands that program placement, continuation, or support may depend on documentation, eligibility, funding approval, referral approval, or compliance with program expectations.</p>
+</div>
+
+<div class="section">
+<h3>PARTICIPANT RIGHTS</h3>
+<p>The participant has the right to be treated with dignity, fairness, respect, and without unlawful discrimination.</p>
+<p>The participant has the right to privacy in bathrooms, sleeping areas, and personal spaces.</p>
+<p>The participant has the right to receive program expectations in writing, ask questions about program rules, file a grievance without retaliation, and request clarification regarding program decisions, discharge decisions, or violations.</p>
+<p>The participant has the right to participate in the program without discrimination based on race, color, religion, sex, disability, national origin, age, veteran status, familial status, or any other protected category under applicable law.</p>
+</div>
+
+<div class="section">
+<h3>PARTICIPANT RESPONSIBILITIES</h3>
+<p>The participant agrees to follow program rules and house rules, respect other participants/members, staff, neighbors, and property, maintain a safe and peaceful living environment, avoid threats, violence, harassment, intimidation, or disruptive conduct, participate in required meetings or check-ins when applicable, cooperate with reasonable documentation requests, maintain cleanliness, report safety concerns, follow visitor/curfew/parking/medication/common-area rules when applicable, avoid illegal activity or prohibited items, and respect the confidentiality and privacy of other participants/members.</p>
+</div>
+
+<div class="section">
+<h3>PROGRAM EXPECTATIONS</h3>
+<p>The Transitional Housing Program may require the participant to work toward stability goals.</p>
+<p>These goals may include employment, benefits, identification documents, medical appointments, recovery supports, reentry compliance, veteran services, housing applications, budgeting, family reunification, education, or other transition-related goals.</p>
+<p>The participant understands that failure to participate in required program activities may affect continued participation.</p>
+</div>
+
+<div class="section">
+<h3>SAFETY AND SOBER LIVING EXPECTATIONS</h3>
+<p>If the program is structured as sober, recovery-oriented, reentry-supportive, or referral-based housing, the participant agrees to comply with the applicable safety and sobriety expectations.</p>
+<p>The participant understands that prohibited substance use, possession of illegal substances, violence, weapons, threats, theft, repeated rule violations, or conduct that endangers others may result in program review, corrective action, removal, or discharge.</p>
+<p>Any testing, searches, monitoring, or safety procedures must be explained in program policy and applied according to applicable law and written program rules.</p>
+</div>
+
+<div class="section">
+<h3>CONFIDENTIALITY</h3>
+<p>Participant information will be handled as confidential program information.</p>
+<p>The Program Operator may maintain participant records, referral records, program notes, signed forms, incident documentation, funding records, and discharge records.</p>
+<p>Information will not be released to outside parties unless permitted by law, required by funding or referral requirements, or authorized by the participant through a written release.</p>
+<p>The participant understands that certain programs may require additional confidentiality protections depending on the nature of the referral, services, or funding source.</p>
+</div>
+
+<div class="section">
+<h3>GRIEVANCE AND COMPLAINT PROCESS</h3>
+<p>The participant has the right to submit a grievance or complaint regarding program decisions, staff conduct, housing conditions, rule enforcement, or discharge concerns.</p>
+<p>The participant may submit the grievance in writing to the Program Operator.</p>
+<p>The Program Operator will review the grievance and provide a response within a reasonable time.</p>
+<p>Retaliation against a participant for filing a grievance is prohibited.</p>
+<p>If the participant was referred by an outside agency, the participant may also contact the referral source or coordinating agency when appropriate.</p>
+</div>
+
+<div class="section">
+<h3>PROGRAM REVIEW, VIOLATIONS, AND DISCHARGE</h3>
+<p>The Program Operator may review participant conduct, rule compliance, documentation status, referral requirements, funding requirements, safety concerns, or transition progress.</p>
+<p>Possible outcomes may include verbal warning, written warning, corrective action plan, program meeting, referral source notification when authorized or required, temporary restriction of privileges, discharge planning, or program termination.</p>
+<p>Immediate removal, emergency action, or urgent discharge review may occur, consistent with applicable law and written program procedure, if there is a serious threat to safety, violence, illegal activity, weapons, severe property damage, or other urgent risk.</p>
+<p>When possible, the Program Operator may assist with safe discharge planning, referral back to the referring agency, or connection to outside resources.</p>
+</div>
+
+<div class="section">
+<h3>PROPERTY AND PERSONAL BELONGINGS</h3>
+<p>The participant is responsible for personal belongings.</p>
+<p>The Program Operator and property entity are not responsible for lost, stolen, abandoned, or damaged personal property unless required by law or caused by proven misconduct.</p>
+<p>If a participant leaves the program or is discharged, belongings must be removed according to written program policy.</p>
+<p>Abandoned belongings may be handled according to applicable law and program procedure.</p>
+</div>
+
+<div class="section">
+<h3>NO GUARANTEE OF FUNDING OR PERMANENT HOUSING</h3>
+<p>The participant understands that transitional housing does not guarantee permanent housing, benefits approval, VA approval, grant approval, rental assistance, employment, or continued funding.</p>
+<p>The Program Operator may assist with coordination, documentation, referrals, or transition planning, but final decisions may be made by outside agencies, funders, landlords, government programs, or referral systems.</p>
+<p>Any participant contribution, agency payment, sponsorship, grant support, reimbursement, or funding responsibility must be documented separately in the applicable funding, sponsorship, billing, referral, or payor record.</p>
+</div>
+
+<div class="section">
+<h3>ACKNOWLEDGMENT</h3>
+<p>By signing below, the participant acknowledges that they have received or been given access to this Program Participation Agreement, understand that transitional housing is program-based housing, agree to follow program rules and housing expectations, understand that the Program Operator may coordinate with approved referral or funding sources when properly authorized, understand that failure to follow program requirements may affect continued participation, and had the opportunity to ask questions before signing.</p>
+</div>
+
+
+<div class="section">
+<h3>SIGNATURES</h3>
+
+<p><strong>Participant Name:</strong></p>
+<div class="print-line">{{ d.get('participant_name', participant.get('name', '')) }}</div>
+
+<p><strong>Participant Signature:</strong></p>
+<div class="print-line">{{ d.get('participant_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="print-line">{{ d.get('signature_date','') }}</div>
+
+<br>
+
+<p><strong>Program Representative Name:</strong></p>
+<div class="print-line">{{ d.get('program_rep_name','') }}</div>
+
+<p><strong>Program Representative Signature:</strong></p>
+<div class="print-line">{{ d.get('program_rep_signature','') }}</div>
+
+<p><strong>Date:</strong></p>
+<div class="print-line">{{ d.get('program_rep_date','') }}</div>
+</div>
+
+
+<p style="text-align:center;margin-top:35px;"><strong>Single-Site License Granted to Purchaser. Unauthorized Reproduction or Distribution Prohibited.</strong></p>
+<p style="text-align:center;">Version 1.0 — Transitional Housing Program Participation Agreement — NILPF Framework 2026</p>
+
+<hr>
+{% if locked %}
+<h2>FINAL LOCKED DOCUMENT</h2>
+{% else %}
+<div class="print-actions" style="margin-top:30px; padding:15px; border-top:2px solid #ccc;">
+  <a href="/program-participation-agreement/{{ id }}">Edit</a>
+  <br><br>
+  <form method="POST" action="/program-participation-agreement-final/{{ id }}" style="display:inline;" onsubmit="return disableFinalLock(this)">
+    <button type="submit">Final Lock</button>
+  </form>
+</div>
+{% endif %}
+</div>
+</div>
+<div class="footer-watermark">© Pearlzz LLC 2026 • Transitional Housing Program Documents • All Rights Reserved</div>
 <script>
 function disableFinalLock(formOrButton) {
   const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
   if (btn) {
-    if (btn.dataset.locking === "1") {
-      return false;
-    }
+    if (btn.dataset.locking === "1") return false;
     btn.dataset.locking = "1";
     btn.disabled = true;
     btn.innerText = "Locking...";
   }
   return true;
 }
-
-function disableFinalLockLink(link) {
-  if (link.dataset.locking === "1") {
-    return false;
-  }
-  link.dataset.locking = "1";
-  link.style.pointerEvents = "none";
-  link.innerText = "Locking...";
-  return true;
-}
 </script>
+</body>
+</html>
