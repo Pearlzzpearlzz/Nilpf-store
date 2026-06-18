@@ -96,8 +96,57 @@
     }
 
     @media (max-width: 700px) {
-      .hero { padding-top: 24px; }
-      .card { margin-top: -18px; padding: 28px 20px 22px; }
+      body {
+        overflow-x: hidden;
+        justify-content: flex-start;
+        padding: 0 10px 24px;
+      }
+
+      .hero {
+        padding-top: 18px;
+      }
+
+      .hero img {
+        width: 92px;
+        height: 92px;
+        border-radius: 20px;
+        padding: 8px;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 390px;
+        margin-top: -8px;
+        padding: 26px 18px 22px;
+        border-radius: 22px;
+      }
+
+      h1 {
+        font-size: 27px;
+        line-height: 1.08;
+      }
+
+      .sub {
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      input {
+        min-height: 50px;
+        font-size: 16px;
+      }
+
+      button {
+        min-height: 50px;
+        font-size: 16px;
+      }
+
+      .app-footer {
+        width: 100%;
+        max-width: 390px;
+        font-size: 10px;
+        line-height: 1.35;
+      }
     }
 
 /* Mobile-friendly login layout */

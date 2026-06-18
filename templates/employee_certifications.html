@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Employee Certifications & Alerts</title>
   <style>
     body {
@@ -252,6 +253,111 @@
       background: #080808;
       border: 1px solid #333;
       border-radius: 6px;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        overflow-x: hidden;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 430px;
+        padding: 22px 12px 36px;
+      }
+
+      h1 {
+        font-size: 28px;
+        line-height: 1.08;
+        letter-spacing: 1px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .alert-banner {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        padding: 14px 10px;
+        font-size: 14px;
+      }
+
+      .swirl-light {
+        width: 42px;
+        height: 42px;
+      }
+
+      .counts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .count-card {
+        padding: 14px 8px;
+        min-height: 78px;
+      }
+
+      .count-card strong {
+        font-size: 24px;
+      }
+
+      .panel {
+        padding: 16px 12px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      label {
+        font-size: 15px;
+        margin-top: 12px;
+      }
+
+      input,
+      select,
+      textarea {
+        min-height: 48px;
+        font-size: 16px;
+        padding: 12px;
+      }
+
+      textarea {
+        min-height: 84px;
+      }
+
+      .button,
+      button,
+      input[type="submit"] {
+        display: block;
+        width: 100%;
+        min-height: 48px;
+        padding: 13px 14px;
+        font-size: 15px;
+        text-align: center;
+      }
+
+      .records-panel {
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: visible;
+        padding: 10px;
+      }
+
+      table {
+        min-width: 720px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .counts {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
