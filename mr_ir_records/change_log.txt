@@ -221,3 +221,10 @@ Restore point goal:
 - Commit and tag this as a working ILH 17-form packet checkpoint before further changes.
 ============================================================
 
+
+2026-06-18 — Property Papers Parked Covenant Crash Blocked
+- Removed/confirmed removal of Program Housing Covenants from property_papers.html UI.
+- Tested property paper routes with Flask test_client while logged in.
+- Confirmed active property paper routes return 200.
+- Confirmed parked /property-paper/program-housing-covenants no longer crashes and returns 302 redirect.
+- Result: PROPERTY PAPER ROUTES DO NOT CRASH.

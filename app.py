@@ -1313,6 +1313,7 @@ def property_paper_templates(route):
 
 @app.route("/property-paper/<route>", methods=["GET", "POST"])
 def property_paper_form(route):
+    route_name = route
     if not is_property_paper_route(route_name):
         return redirect("/property-papers")
 
@@ -1321,6 +1322,13 @@ def property_paper_form(route):
         return redirect("/property-papers")
 
     form_template, print_template = templates
+
+    # Crash-proof guard: parked/future Property Paper routes may exist before templates are built.
+    # If the template pair is missing, return to Property Papers instead of throwing TemplateNotFound.
+    from pathlib import Path as _Path
+    if not _Path("templates", form_template).exists() or not _Path("templates", print_template).exists():
+        return redirect("/property-papers")
+
     bucket = property_paper_bucket(route)
     papers = load_property_papers()
 
