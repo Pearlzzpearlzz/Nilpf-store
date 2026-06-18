@@ -35,16 +35,146 @@ def add_idle_logout_script(response):
                 idle_script = """
 <script id="NILPF_IDLE_LOGOUT_TIMER">
 (function () {
-  var idleTimer;
+  var coverTimer;
+  var logoutTimer;
+  var coverShown = false;
 
-  function resetIdleTimer() {
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(function () {
-      window.location.href = "/logout";
-    }, 120000);
+  var COVER_AFTER_MS = 60 * 1000;   // 1 minute privacy cover
+  var LOGOUT_AFTER_MS = 120 * 1000; // 2 minute logout
+
+  function ensurePrivacyCover() {
+    var existing = document.getElementById("nilpf-member-dignity-cover");
+    if (existing) return existing;
+
+    var cover = document.createElement("div");
+    cover.id = "nilpf-member-dignity-cover";
+    cover.setAttribute("role", "dialog");
+    cover.setAttribute("aria-label", "Member Bill of Dignity Privacy Cover");
+    cover.innerHTML = `
+      <div class="nilpf-dignity-card">
+        <div class="nilpf-dignity-kicker">NILPF PRIVACY SCREEN</div>
+        <h1>Member Bill of Dignity & Independence</h1>
+        <p class="nilpf-dignity-purpose">
+          This screen protects participant/member information while the device is idle.
+        </p>
+
+        <div class="nilpf-dignity-rights">
+          <p><strong>Every participant/member has the right to:</strong></p>
+          <ul>
+            <li>Be treated with dignity, respect, and fairness.</li>
+            <li>Privacy in personal matters and personal space.</li>
+            <li>Freedom from humiliation, retaliation, coercion, or unnecessary exposure.</li>
+            <li>Clear written expectations and the opportunity to ask questions.</li>
+            <li>Raise concerns or request review without retaliation.</li>
+            <li>Equal treatment without unlawful discrimination.</li>
+            <li>Personal responsibility, independence, and ordinary civic participation.</li>
+          </ul>
+        </div>
+
+        <p class="nilpf-dignity-footer">
+          Touch the screen, move the mouse, or press any key to continue.
+          Full logout occurs after continued inactivity.
+        </p>
+      </div>
+    `;
+
+    var style = document.createElement("style");
+    style.id = "nilpf-member-dignity-cover-style";
+    style.textContent = `
+      #nilpf-member-dignity-cover {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at top, #1f1a10 0%, #050505 55%, #000 100%);
+        color: #fff;
+        font-family: Arial, sans-serif;
+        padding: 28px;
+      }
+      #nilpf-member-dignity-cover .nilpf-dignity-card {
+        max-width: 900px;
+        width: min(92vw, 900px);
+        background: rgba(0,0,0,0.88);
+        border: 3px solid #D4AF37;
+        border-radius: 22px;
+        padding: 34px;
+        box-shadow: 0 0 40px rgba(212,175,55,0.28);
+      }
+      #nilpf-member-dignity-cover .nilpf-dignity-kicker {
+        color: #D4AF37;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      #nilpf-member-dignity-cover h1 {
+        margin: 0 0 14px 0;
+        color: #D4AF37;
+        font-size: clamp(30px, 5vw, 54px);
+        line-height: 1.05;
+      }
+      #nilpf-member-dignity-cover p,
+      #nilpf-member-dignity-cover li {
+        font-size: clamp(18px, 2.4vw, 26px);
+        line-height: 1.35;
+      }
+      #nilpf-member-dignity-cover ul {
+        margin: 12px 0 0 24px;
+        padding: 0;
+      }
+      #nilpf-member-dignity-cover li {
+        margin: 8px 0;
+      }
+      #nilpf-member-dignity-cover .nilpf-dignity-purpose {
+        font-weight: 700;
+        color: #f8f1cf;
+      }
+      #nilpf-member-dignity-cover .nilpf-dignity-footer {
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(212,175,55,0.55);
+        color: #D4AF37;
+        font-weight: 800;
+      }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(cover);
+    return cover;
   }
 
-  ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(function (eventName) {
+  function showPrivacyCover() {
+    var cover = ensurePrivacyCover();
+    cover.style.display = "flex";
+    coverShown = true;
+  }
+
+  function hidePrivacyCover() {
+    var cover = document.getElementById("nilpf-member-dignity-cover");
+    if (cover) cover.style.display = "none";
+    coverShown = false;
+  }
+
+  function resetIdleTimer() {
+    clearTimeout(coverTimer);
+    clearTimeout(logoutTimer);
+
+    if (coverShown) {
+      hidePrivacyCover();
+    }
+
+    coverTimer = setTimeout(function () {
+      showPrivacyCover();
+    }, COVER_AFTER_MS);
+
+    logoutTimer = setTimeout(function () {
+      window.location.href = "/logout";
+    }, LOGOUT_AFTER_MS);
+  }
+
+  ["mousemove", "mousedown", "keydown", "touchstart", "scroll"].forEach(function (eventName) {
     document.addEventListener(eventName, resetIdleTimer, true);
   });
 

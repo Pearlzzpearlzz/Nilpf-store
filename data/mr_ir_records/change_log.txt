@@ -382,3 +382,22 @@ Remaining live browser/template cleanup items:
 Repair rule:
 Do not mass-edit all print templates. Patch only the listed templates/routes. Preserve Jinja blocks and test each route after changes.
 
+
+Date: 2026-06-18
+Area: Idle privacy screen / Member Bill of Dignity
+Issue:
+The 1-minute privacy screen did not display the Member Bill of Dignity.
+
+Fix:
+Updated the global idle script in app.py so that after 1 minute of inactivity the NILPF privacy screen displays the Member Bill of Dignity & Independence. The 2-minute full logout behavior remains preserved.
+
+Confirmed:
+- 1 minute idle shows the Member Bill of Dignity privacy screen.
+- Touch/mouse/key activity clears the privacy screen and restarts the timer.
+- 2 minute idle logout remains the intended behavior.
+- app.py compiles successfully.
+
+Test:
+python3 -m py_compile app.py returned APP COMPILES OK.
+Local idle test confirmed functioning.
+
