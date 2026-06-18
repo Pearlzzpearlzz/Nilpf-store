@@ -215,9 +215,92 @@
       }
     }
 
+    .mobile-ops-menu {
+      display: none;
+    }
+
     @media (max-width: 560px) {
-      .control-grid {
-        grid-template-columns: 1fr;
+      .control-grid,
+      .bottom-action-row {
+        display: none !important;
+      }
+
+      .page {
+        max-width: 100%;
+        padding-bottom: 22px;
+      }
+
+      h1 {
+        font-size: 30px;
+        margin-top: 10px;
+        margin-bottom: 12px;
+      }
+
+      .clock-wrap {
+        width: 92%;
+        margin-bottom: 18px;
+      }
+
+      .clock-card {
+        padding: 18px 12px 12px;
+      }
+
+      #liveTime {
+        font-size: 31px;
+        letter-spacing: 1px;
+      }
+
+      #liveDate {
+        font-size: 17px;
+      }
+
+      .clock-label {
+        font-size: 10px;
+      }
+
+      .mobile-ops-menu {
+        display: block;
+        width: 92%;
+        max-width: 390px;
+        margin: 18px auto 20px;
+      }
+
+      .mobile-ops-title {
+        margin: 8px 0 12px;
+        color: #111;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .mobile-ops-link {
+        display: block;
+        width: 100%;
+        margin: 10px auto;
+        padding: 15px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: #050505;
+        background: linear-gradient(180deg, #f4d55f, #d4af37);
+        border: 2px solid #b88d1b;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 18px;
+        font-weight: 900;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 5px 10px rgba(0,0,0,0.20);
+      }
+
+      .mobile-ops-link.secondary {
+        background: linear-gradient(180deg, #151515, #050505);
+        color: #d4af37;
+        border-color: #d4af37;
+      }
+
+      .app-footer {
+        width: 92%;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 10px;
       }
     }
   </style>
@@ -343,6 +426,18 @@
       <a class="button back" href="/mr-ir">Mr. IR</a>
       <a class="button back" href="/">Back to Dashboard</a>
     </div>
+
+    <section class="mobile-ops-menu" aria-label="Mobile Operations Menu">
+      <div class="mobile-ops-title">Quick Operations Menu</div>
+      <a class="mobile-ops-link" href="/property-papers">📁 Property Papers</a>
+      <a class="mobile-ops-link" href="/admin-forms">📋 Admin Forms</a>
+      <a class="mobile-ops-link" href="/rolodex">☎️ Rolodex</a>
+      <a class="mobile-ops-link" href="/single-form-print">🖨️ Single Form Upload / Print</a>
+      <a class="mobile-ops-link" href="/tsh-program-tools">TSH Tools</a>
+      <a class="mobile-ops-link" href="/packet-builder">Packet Builder</a>
+      <a class="mobile-ops-link" href="/mr-ir">Mr. IR</a>
+      <a class="mobile-ops-link secondary" href="/">Back to Dashboard</a>
+    </section>
 
     <footer class="app-footer">
   <div>© 2026 NILPF Housing OS. All rights reserved.</div>
