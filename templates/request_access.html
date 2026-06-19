@@ -134,12 +134,31 @@
         <p><strong>Licensed Site Address:</strong> {{ submitted_request.site_address }}, {{ submitted_request.city }}, {{ submitted_request.state }} {{ submitted_request.zip_code }}</p>
         <p class="small">Save this license number. NILPF Housing OS access is tied to the physical site/property address submitted on this request.</p>
       </div>
+      <div style="background:#111; border:1px solid #d4af37; border-radius:12px; padding:18px; margin-top:20px; color:#eee;">
+        <h3 style="color:#d4af37; margin-top:0;">Payment Next Step</h3>
+
+        <p>
+          <strong>If you purchased setup / first-month access through Payhip:</strong><br>
+          Do not repeat the setup payment. Your Payhip payment and licensed site details will be verified before activation.
+        </p>
+
+        <p>
+          <strong>If monthly continued access is required:</strong><br>
+          Use the monthly PayPal subscription option below or follow the payment instructions provided.
+        </p>
+
+        <p>
+          <strong>If you have not paid yet:</strong><br>
+          You may continue to PayPal payment below.
+        </p>
+      </div>
+
       <a class="btn" href="https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-2WF21045XJ714223BNIKUDYQ" target="_blank" rel="noopener">
-        Continue to PayPal Payment
+        Continue to PayPal Monthly Subscription
       </a>
 
       <p class="small">
-        After completing payment, return to this system. Access remains pending until payment verification is completed.
+        Access remains pending until payment and licensed site verification are completed.
       </p>
 
       <a class="btn" href="/login" style="background:#333; margin-top:10px;">I Already Paid / Go to Login</a>
