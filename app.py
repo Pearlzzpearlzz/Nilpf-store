@@ -3309,8 +3309,23 @@ def bill_of_dignity_final(id):
 # BAD UNIVERSAL FORM SYSTEM REMOVED — true-to-sight routes preserved
 
 
+
+# ============================================================
+# MR.IR OWNER-ONLY GUARD
+# Mr.IR is internal infrastructure. Standard operators/buyers
+# should never access diagnostics, repair scans, or internal tools.
+# ============================================================
+def mr_ir_owner_required():
+    if session.get("owner_approval_logged_in") or session.get("is_owner") or session.get("mr_ir_owner_ok"):
+        return None
+    return redirect("/login")
+
 @app.route("/render-pdf-diagnostic")
 def render_pdf_diagnostic():
+    blocked = mr_ir_owner_required()
+    if blocked:
+        return blocked
+
     import os
     from pathlib import Path
     from datetime import datetime, timedelta
@@ -4221,6 +4236,10 @@ def rolodex():
 
 @app.route("/mr-ir/scan")
 def mr_ir_scan():
+    blocked = mr_ir_owner_required()
+    if blocked:
+        return blocked
+
     scan_targets = [
         {"name": "Mr.IR Dashboard", "path": "/mr-ir", "purpose": "Internal repair dashboard"},
         {"name": "Operations", "path": "/operations", "purpose": "Main operations/control area"},
@@ -4236,6 +4255,8 @@ def mr_ir_scan():
         with client.session_transaction() as sess:
             sess["logged_in"] = True
             sess["owner_operator_email"] = "mr.ir@internal.local"
+            sess["owner_approval_logged_in"] = True
+            sess["mr_ir_owner_ok"] = True
 
         for item in scan_targets:
             try:
@@ -4285,6 +4306,10 @@ def mr_ir_scan():
 
 @app.route("/mr-ir/storage-check")
 def mr_ir_storage_check():
+    blocked = mr_ir_owner_required()
+    if blocked:
+        return blocked
+
     from pathlib import Path
 
     data_dir = Path("data")
@@ -4355,6 +4380,10 @@ def mr_ir_storage_check():
 
 @app.route("/mr-ir")
 def mr_ir_dashboard():
+    blocked = mr_ir_owner_required()
+    if blocked:
+        return blocked
+
     import os
 
     env_status = {
