@@ -157,25 +157,26 @@
           <option value="">Select</option>
           <option value="Full DOB reported" {% if dobq == 'Full DOB reported' %}selected{% endif %}>Full DOB reported</option>
           <option value="Approximate or partial DOB reported" {% if dobq == 'Approximate or partial DOB reported' %}selected{% endif %}>Approximate or partial DOB reported</option>
-          <option value="Client does not know" {% if dobq == 'Client does not know' %}selected{% endif %}>Client does not know</option>
-          <option value="Client prefers not to answer" {% if dobq == 'Client prefers not to answer' %}selected{% endif %}>Client prefers not to answer</option>
+          <option value="Participant/member does not know" {% if dobq == 'Participant/member does not know' %}selected{% endif %}>Participant/member does not know</option>
+          <option value="Participant/member prefers not to answer" {% if dobq == 'Participant/member prefers not to answer' %}selected{% endif %}>Participant/member prefers not to answer</option>
           <option value="Data not collected" {% if dobq == 'Data not collected' %}selected{% endif %}>Data not collected</option>
         </select>
       </div>
     </div>
 
     <label>Social Security Number or Last Four Digits</label>
-    <input type="text" name="ssn" value="{{ d.get('ssn','') }}" placeholder="Full SSN or last four digits only">
+    <input type="text" name="ssn" value="{{ d.get('ssn','') }}" placeholder="Last four digits only" inputmode="numeric" pattern="[0-9]{4}" maxlength="4">
+    <small style="display:block;color:#8a6d00;margin-top:6px;">Do not enter a full Social Security Number. Store last four digits only.</small>
     <div class="small">The system may accept a full SSN or partial SSN when appropriate. Review pages should display SSN in masked form.</div>
 
     <label>SSN Data Quality</label>
     {% set ssnq = d.get('ssn_data_quality','') %}
     <select name="ssn_data_quality">
       <option value="">Select</option>
-      <option value="Full SSN reported" {% if ssnq == 'Full SSN reported' %}selected{% endif %}>Full SSN reported</option>
-      <option value="Approximate or partial SSN reported" {% if ssnq == 'Approximate or partial SSN reported' %}selected{% endif %}>Approximate or partial SSN reported</option>
-      <option value="Client does not know" {% if ssnq == 'Client does not know' %}selected{% endif %}>Client does not know</option>
-      <option value="Client prefers not to answer" {% if ssnq == 'Client prefers not to answer' %}selected{% endif %}>Client prefers not to answer</option>
+      <option value="Last four digits reported" {% if ssnq == 'Last four digits reported' %}selected{% endif %}>Last four digits reported</option>
+      <option value="Partial SSN information reported" {% if ssnq == 'Partial SSN information reported' %}selected{% endif %}>Partial SSN information reported</option>
+      <option value="Participant/member does not know" {% if ssnq == 'Participant/member does not know' %}selected{% endif %}>Participant/member does not know</option>
+      <option value="Participant/member prefers not to answer" {% if ssnq == 'Participant/member prefers not to answer' %}selected{% endif %}>Participant/member prefers not to answer</option>
       <option value="Data not collected" {% if ssnq == 'Data not collected' %}selected{% endif %}>Data not collected</option>
     </select>
 
