@@ -3666,6 +3666,18 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
                 "completed": False
             }
             save_participants(participants)
+
+            # Voluntary Participation may already have an older blank packet PDF.
+            # Remove only that stale export so Download Packet regenerates it
+            # using the newly saved participant name, signature, and date.
+            if form_key == "voluntary_participation":
+                stale_pdf = Path(
+                    f"static/filled/participant_{id}/"
+                    "voluntary_participation_true_to_sight.pdf"
+                )
+                if stale_pdf.exists():
+                    stale_pdf.unlink()
+
             return redirect(url_for(endpoint_base + "_print", id=id))
 
         d = participant["forms"][form_key].get("data", {})
