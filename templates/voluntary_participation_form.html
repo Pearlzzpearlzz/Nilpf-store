@@ -78,11 +78,17 @@
             cursor: pointer;
         }
     
-.form-card, .container, form {
+.form-card, .container {
     max-width: 430px;
     width: 94%;
     margin-left: auto;
     margin-right: auto;
+}
+
+form {
+    width: 100%;
+    max-width: none;
+    margin: 0;
 }
 </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
