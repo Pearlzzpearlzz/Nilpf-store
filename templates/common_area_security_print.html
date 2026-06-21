@@ -4,7 +4,17 @@
 <title>13 – Common Area Security Disclosure - Review</title>
 
 <style>
-body { font-family: Arial, sans-serif; margin: 30px; line-height: 1.45; }
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.45;
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+@media print {
+  body { max-width:none; margin:0; padding:0; }
+}
 h1, h2 { text-align: center; }
 h3 { margin-top: 24px; border-bottom: 1px solid #000; padding-bottom: 4px; }
 input[type=text], input:not([type]) { width: 90%; padding: 6px; margin-top: 4px; }

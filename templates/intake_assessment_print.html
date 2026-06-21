@@ -7,7 +7,16 @@ body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
 <meta charset="utf-8">
 <title>Initial Intake Assessment - Review</title>
 <style>
-body { font-family: Arial, sans-serif; margin: 30px; }
+body {
+  font-family: Arial, sans-serif;
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+@media print {
+  body { max-width:none; margin:0; padding:0; }
+}
 .page { max-width:900px; margin:auto; }
 h1,h2,h3 { text-align:center; }
 .section { border:1px solid #111; padding:15px; margin-top:20px; }
