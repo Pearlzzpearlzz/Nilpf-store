@@ -800,6 +800,7 @@ def activate():
 
 @app.route("/request-access", methods=["GET", "POST"])
 def request_access():
+    return render_template("request_access_closed.html")
     submitted_request = None
 
     if request.method == "POST":
