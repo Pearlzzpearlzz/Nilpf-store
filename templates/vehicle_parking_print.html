@@ -31,7 +31,6 @@ body{font-family:Arial;max-width:850px;margin:auto;padding:30px;line-height:1.5}
 
 <div class="box">
 <p><b>Participant Signature:</b> {{ d.get('participant_signature') or participant.get('name','') }}</p>
-<p><b>Staff / Operator Name:</b> {{ d.get('staff_name','') }}</p>
 </div>
 
 {% if not locked %}
