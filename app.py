@@ -2697,7 +2697,7 @@ def packet_builder(id):
             <div class="info">
                 <div><strong>Participant:</strong> {participant["name"]}</div>
                 <div><strong>PID:</strong> {id}</div>
-                <div><strong>Program Type:</strong> {activated_system.get("program_type","ILH")}</div>
+                <div><strong>Program Type:</strong> {program_type}</div>
             </div>
 
             <div class="forms-box">
@@ -3424,7 +3424,17 @@ def download_packet(id):
     if not activated_system:
         return redirect(url_for("activate"))
 
-    program_type = activated_system.get("program_type", "ILH")
+    if id < 0 or id >= len(participants):
+        return "Participant not found for packet download", 404
+
+    participant = participants[id]
+    program_type = (
+        participant.get("program_type")
+        or participant.get("housing_type")
+        or activated_system.get("program_type")
+        or "ILH"
+    )
+
     docs = PACKET_MANIFEST.get(program_type, [])
     if program_type in DUAL_ENTITY_PROGRAMS:
         base_docs = PACKET_MANIFEST.get("Transitional", [])
@@ -3447,10 +3457,6 @@ def download_packet(id):
     from reportlab.pdfgen import canvas
     from reportlab.lib.units import inch
 
-    if id < 0 or id >= len(participants):
-        return "Participant not found for packet download", 404
-
-    participant = participants[id]
     forms = participant.get("forms", {})
 
     # Generate true-to-sight PDFs during Download Packet.
