@@ -32,6 +32,9 @@ body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   }
   @media print {
+.page.last-page {
+    page-break-after: auto !important;
+}
     .print-now-btn {
       display: none !important;
     }
@@ -148,7 +151,7 @@ body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
 </ul>
 </div>
 
-<div class="page">
+<div class="page last-page">
 <ul>
 <li>The absence of services, care, or supervision</li>
 <li>Their personal responsibility for independent living decisions</li>
@@ -164,10 +167,6 @@ body > form[action*="/{{ id }}"]:not([action*="final"]) { display:none; }
 <p style="margin-top:80px;">© 2026 Pearlzz LLC. All Rights Reserved Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
 </div>
 
-<div class="page">
-<h2>Page 5</h2>
-<p>This page is intentionally blank.</p>
-</div>
 
 <div class="actions">
 {% if not locked %}
