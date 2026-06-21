@@ -2716,12 +2716,32 @@ def packet_builder(id):
                     <button>Billing / Invoice Setup</button>
                 </a>
 
-                <a href="/download-packet/{id}">
-                    <button>Download Packet</button>
+                <a href="/download-packet/{id}" onclick="showPacketLoading()">
+                    <button id="downloadPacketButton">Download Packet</button>
                 </a>
             </div>
 
+            <div id="packetLoadingMessage" style="display:none; margin-top:20px; padding:16px; border:2px solid #d4af37; background:#111; color:#fff; font-weight:bold; text-align:center;">
+                Preparing the participant packet. Please keep this page open while the PDF is created.
+            </div>
+
             <p class="note">Entry process continues here.</p>
+
+            <script>
+                function showPacketLoading() {{
+                    const message = document.getElementById("packetLoadingMessage");
+                    const button = document.getElementById("downloadPacketButton");
+
+                    if (message) {{
+                        message.style.display = "block";
+                    }}
+
+                    if (button) {{
+                        button.textContent = "Preparing Packet...";
+                        button.disabled = true;
+                    }}
+                }}
+            </script>
         </div>
     </body>
     </html>
