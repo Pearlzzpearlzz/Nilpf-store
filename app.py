@@ -3331,7 +3331,7 @@ def bill_of_dignity_final(id):
     save_participants_file()
 
 
-    return redirect(f"/participant-complete/{id}")
+    return redirect(f"/ilh-mla/{id}")
 
 
 
