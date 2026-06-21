@@ -271,12 +271,17 @@
         </div>
         <div class="item">
           <strong>Record Types</strong>
-          <label><input type="checkbox" name="record_types" value="intake_entry"> Intake / Entry Records</label>
-          <label><input type="checkbox" name="record_types" value="service_coordination"> Service Coordination Records</label>
-          <label><input type="checkbox" name="record_types" value="exit_discharge"> Exit / Discharge Records</label>
-          <label><input type="checkbox" name="record_types" value="check_in_out"> Check-In / Check-Out Records</label>
-          <label><input type="checkbox" name="record_types" value="uploads_proof"> Uploads / Proof Records</label>
-          <label><input type="checkbox" name="record_types" value="audit_log"> Audit Log Activity</label>
+          <div style="display:flex;align-items:center;gap:10px;margin:12px 0 18px 0;padding:12px;border:1px solid #d4af37;border-radius:10px;background:#111;color:#d4af37;font-weight:800;">
+            <input type="checkbox" id="select_all_record_types" style="width:18px;height:18px;">
+            <span>Select All Record Types</span>
+          </div>
+
+          <label><input type="checkbox" class="record-type-box" name="record_types" value="intake_entry"> Intake / Entry Records</label>
+          <label><input type="checkbox" class="record-type-box" name="record_types" value="service_coordination"> Service Coordination Records</label>
+          <label><input type="checkbox" class="record-type-box" name="record_types" value="exit_discharge"> Exit / Discharge Records</label>
+          <label><input type="checkbox" class="record-type-box" name="record_types" value="check_in_out"> Check-In / Check-Out Records</label>
+          <label><input type="checkbox" class="record-type-box" name="record_types" value="uploads_proof"> Uploads / Proof Records</label>
+          <label><input type="checkbox" class="record-type-box" name="record_types" value="audit_log"> Audit Log Activity</label>
         </div>
       </div>
 
@@ -296,5 +301,27 @@
     <a class="button" href="/tsh-program-tools">Back to TSH Program Tools</a>
     <a class="button" href="/operations">Back to Operations</a>
   </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const selectAll = document.getElementById("select_all_record_types");
+  const boxes = Array.from(document.querySelectorAll(".record-type-box"));
+
+  if (!selectAll || boxes.length === 0) return;
+
+  selectAll.addEventListener("change", function () {
+    boxes.forEach(function (box) {
+      box.checked = selectAll.checked;
+    });
+  });
+
+  boxes.forEach(function (box) {
+    box.addEventListener("change", function () {
+      selectAll.checked = boxes.every(function (b) { return b.checked; });
+    });
+  });
+});
+</script>
+
 </body>
 </html>
