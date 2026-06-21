@@ -1524,7 +1524,7 @@ def employee_cert_status(expiration_date):
 
 
 
-def build_apb_hmis_readiness_summary():
+def build_apb_hmis_readiness_summary(selected_pid=None):
     import json
     from pathlib import Path
     from datetime import datetime, timedelta
@@ -1537,9 +1537,17 @@ def build_apb_hmis_readiness_summary():
     if not isinstance(participants, list):
         participants = []
 
+    participant_rows = list(enumerate(participants))
+
+    if selected_pid is not None:
+        if isinstance(selected_pid, int) and 0 <= selected_pid < len(participants):
+            participant_rows = [(selected_pid, participants[selected_pid])]
+        else:
+            participant_rows = []
+
     summary = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %I:%M %p"),
-        "total_participants": len(participants),
+        "total_participants": len(participant_rows),
         "program_counts": {},
         "completed_forms": 0,
         "locked_forms": 0,
@@ -1572,7 +1580,7 @@ def build_apb_hmis_readiness_summary():
             except Exception:
                 pass
 
-    for pid, person in enumerate(participants):
+    for pid, person in participant_rows:
         if not isinstance(person, dict):
             continue
 
@@ -1680,11 +1688,13 @@ def audit_packet_builder_summary():
     participant_scope = request.args.get("participant_scope", "")
     current_participants = load_participants()
     participant_scope_label = "All Participants" if participant_scope == "all" else participant_scope
+    selected_pid = None
 
     if participant_scope.startswith("pid_"):
         try:
             pid = int(participant_scope.replace("pid_", "", 1))
             if 0 <= pid < len(current_participants):
+                selected_pid = pid
                 person = current_participants[pid]
                 participant_name = person.get("name") or person.get("participant_name") or "Unnamed Participant"
                 participant_scope_label = f"PID {pid} - {participant_name}"
@@ -1695,7 +1705,7 @@ def audit_packet_builder_summary():
     requesting_entity = request.args.get("requesting_entity", "")
     record_types = request.args.getlist("record_types")
 
-    readiness = build_apb_hmis_readiness_summary()
+    readiness = build_apb_hmis_readiness_summary(selected_pid=selected_pid)
 
     return render_template(
         "audit_packet_builder_summary.html",
