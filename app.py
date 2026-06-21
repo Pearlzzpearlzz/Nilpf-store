@@ -566,6 +566,7 @@ PRN_FORMS = [
 PACKET_MANIFEST = {
     "ILH": [
         {"title": "Entry Screening & Self-Determination", "file": "/entry-screening/{id}"},
+        {"title": "Medical Attestation for Independent Housing", "file": "/medical-attestation/{id}"},
         {"title": "Independent Living Disclosure", "file": "/independent-living-disclosure/{id}"},
         {"title": "House Rules & Community Standards", "file": "/house-rules/{id}"},
         {"title": "Fire Safety & Self-Preservation", "file": "/fire-safety/{id}"},
@@ -605,6 +606,7 @@ PACKET_MANIFEST = {
 CORE_DOCS_BY_PROGRAM = {
     "ILH": [
         {"title": "Entry Screening & Self-Determination", "file": "/entry-screening/{id}"},
+        {"title": "Medical Attestation for Independent Housing", "file": "/medical-attestation/{id}"},
         {"title": "Independent Living Disclosure", "file": "/independent-living-disclosure/{id}"},
         {"title": "House Rules & Community Standards", "file": "/house-rules/{id}"},
         {"title": "Fire Safety & Self-Preservation", "file": "/fire-safety/{id}"},
@@ -2522,7 +2524,7 @@ def entry_screening_final(id):
     _entry_screening_save(current_participants)
 
     # ES final lock must continue to the next ILH form: ILD.
-    return redirect(url_for("independent_living_disclosure", id=id))
+    return redirect(url_for("medical_attestation", id=id))
 
 
 @app.route("/entry-screening-unlock/<int:id>", methods=["GET", "POST"])
@@ -3493,6 +3495,7 @@ def download_packet(id):
     # This makes Packet Builder create the real form PDFs instead of only making a summary list.
     FORM_PDF_EXPORTS = {
         "entry_screening": ("/entry-screening-print/{id}", "entry_screening_true_to_sight.pdf"),
+        "medical_attestation": ("/medical-attestation-print/{id}", "medical_attestation_true_to_sight.pdf"),
         "independent_living_disclosure": ("/independent-living-disclosure-print/{id}", "independent_living_disclosure_true_to_sight.pdf"),
         "no_services_supervision": ("/no-services-supervision-print/{id}", "no_services_supervision_true_to_sight.pdf"),
         "intake_assessment": ("/intake-assessment-print/{id}", "intake_assessment_true_to_sight.pdf"),
@@ -3660,6 +3663,7 @@ DUAL_ENTITY_PROGRAMS = ["Transitional", "VA_GPD_Aligned", "DOC_Reentry_Aligned",
 
 
 STANDARD_NEXT_FORMS = {
+    "medical-attestation": "independent-living-disclosure",
     "house-rules": "fire-safety",
     "fire-safety": "emergency-contact",
     "emergency-contact": "emergency-evacuation",
@@ -3791,6 +3795,7 @@ def continue_flow(id):
 
     ilh_flow = [
         ("entry_screening", "entry-screening"),
+        ("medical_attestation", "medical-attestation"),
         ("independent_living_disclosure", "independent-living-disclosure"),
         ("house_rules", "house-rules"),
         ("fire_safety", "fire-safety"),
@@ -3819,6 +3824,11 @@ def continue_flow(id):
 
 
 # STANDARD ROUTE REGISTRATION FOR REMAINING FORMS
+make_standard_routes(
+    "medical-attestation",
+    "medical_attestation",
+    "medical_attestation"
+)
 make_standard_routes("sensitive-identity-record", "sensitive_identity_record", "sensitive_identity_record")
 make_standard_routes("release-of-information", "release_of_information", "release_of_information")
 make_standard_routes("emergency-contact", "emergency_contact", "emergency_contact")

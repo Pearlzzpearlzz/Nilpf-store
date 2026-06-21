@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical Attestation for Independent Housing</title>
+<style>
+@page { size: Letter; margin: .45in; }
+body { font-family: Arial, sans-serif; background:#ddd; margin:0; padding:18px; color:#000; }
+.page { background:#fff; max-width:8in; margin:auto; padding:.35in; box-sizing:border-box; }
+h1 { text-align:center; font-size:19px; margin:0 0 5px; }
+h2 { font-size:13px; border-bottom:1px solid #000; padding-bottom:3px; margin:15px 0 8px; }
+p, .field, .choice, .notice { font-size:10.5px; line-height:1.35; }
+.notice, .choice { border:1px solid #000; padding:8px; margin:8px 0; }
+.field { margin:9px 0; }
+.line { display:inline-block; min-width:260px; border-bottom:1px solid #000; padding:0 4px 2px; }
+.short { display:inline-block; min-width:140px; border-bottom:1px solid #000; padding:0 4px 2px; }
+.box { display:inline-block; width:12px; height:12px; border:1px solid #000; text-align:center; line-height:11px; margin-right:5px; }
+.response { min-height:42px; border-bottom:1px solid #000; white-space:pre-wrap; font-size:10.5px; }
+.warning { font-size:10px; font-weight:bold; }
+.actions { text-align:center; margin:18px; }
+button, .button { background:#111; color:#fff; border:2px solid #b8962e; padding:11px 16px; text-decoration:none; font-weight:bold; margin:4px; }
+@media print {
+    body { background:#fff; padding:0; }
+    .page { max-width:none; padding:0; }
+    .actions { display:none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>MEDICAL ATTESTATION FOR INDEPENDENT HOUSING</h1>
+
+<div class="notice">
+<strong>Instructions to Applicant:</strong>
+Please have your licensed healthcare professional complete this form and return it to the housing operator.
+This form is used solely to verify eligibility for community-based independent residential housing.
+</div>
+
+<h2>PART 1: APPLICANT INFORMATION</h2>
+
+<div class="field">
+<strong>Applicant Name:</strong>
+<span class="line">{{ d.get('applicant_name', participant.get('name', '')) }}</span>
+</div>
+
+<div class="field">
+<strong>Date of Birth:</strong>
+<span class="short">{{ d.get('date_of_birth', '') }}</span>
+&nbsp;&nbsp;
+<strong>Phone:</strong>
+<span class="short">{{ d.get('applicant_phone', '') }}</span>
+</div>
+
+<h2>PART 2: HEALTHCARE PROFESSIONAL STATEMENT</h2>
+
+<div class="notice">
+<strong>Instructions to Practitioner:</strong>
+The applicant named above is applying for placement in an independent residential housing environment.
+This facility is a non-medical, unlicensed room-and-board community housing program.
+</div>
+
+<p><strong>The program does NOT provide:</strong> Medical oversight, nursing care, physical assistance with activities of daily living, medication administration, professional clinical supervision, or continuous behavioral monitoring.</p>
+
+<p><strong>The program DOES provide:</strong> A private or shared room, communal dining or meals, utilities, and a safe shared living environment.</p>
+
+<div class="choice">
+<span class="box">{% if d.get('eligibility_status') == 'eligible' %}X{% endif %}</span>
+<strong>Yes, Eligible.</strong>
+Based on my professional evaluation, the applicant is physically, mentally, and behaviorally capable of functioning independently in a shared, community-based residential setting without specialized nursing care, professional clinical supervision, medication administration, continuous behavioral monitoring, or daily physical assistance with activities of daily living.
+</div>
+
+<div class="choice">
+<span class="box">{% if d.get('eligibility_status') == 'ineligible' %}X{% endif %}</span>
+<strong>No / Ineligible.</strong>
+Based on my professional evaluation, the applicant currently requires a level of care or supervision beyond what this non-medical independent housing program provides.
+</div>
+
+<h2>OPTIONAL ACCESSIBILITY NEEDS OR PHYSICAL MODIFICATIONS</h2>
+
+<p>List any structural or physical modifications required for the applicant to safely use the housing.</p>
+
+<div class="response">{{ d.get('accessibility_needs', '') }}</div>
+
+<p class="warning">Do not include diagnoses, medical histories, clinical records, medication lists, or treatment information on this form.</p>
+
+<h2>PART 3: PRACTITIONER SIGNATURE AND CREDENTIALS</h2>
+
+<div class="field"><strong>Practitioner Name:</strong> <span class="line">{{ d.get('practitioner_name', '') }}</span></div>
+<div class="field"><strong>Title / Credentials:</strong> <span class="line">{{ d.get('practitioner_credentials', '') }}</span></div>
+<div class="field"><strong>State License Number:</strong> <span class="line">{{ d.get('state_license_number', '') }}</span></div>
+<div class="field"><strong>Clinic / Facility:</strong> <span class="line">{{ d.get('clinic_name', '') }}</span></div>
+<div class="field"><strong>Phone:</strong> <span class="short">{{ d.get('practitioner_phone', '') }}</span></div>
+
+<div class="field">
+<strong>Signature:</strong>
+<span class="line">{{ d.get('practitioner_signature', '') }}</span>
+&nbsp;
+<strong>Date:</strong>
+<span class="short">{{ d.get('signature_date', '') }}</span>
+</div>
+
+</div>
+
+<div class="actions">
+{% if not locked %}
+<a class="button" href="/medical-attestation/{{ id }}">Edit</a>
+<form method="POST" action="/medical-attestation-final/{{ id }}" style="display:inline;">
+<button type="submit">Finalize and Lock</button>
+</form>
+{% else %}
+<button type="button" onclick="window.print()">Print</button>
+<a class="button" href="/medical-attestation-unlock/{{ id }}">Edit / Unlock</a>
+{% endif %}
+</div>
+
+</body>
+</html>

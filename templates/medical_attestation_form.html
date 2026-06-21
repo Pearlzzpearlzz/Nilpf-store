@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical Attestation for Independent Housing</title>
+<style>
+body {
+    background:#f4f1e8;
+    color:#111;
+    font-family:Arial, sans-serif;
+    margin:0;
+    padding:18px;
+}
+.paper {
+    background:#fff;
+    max-width:850px;
+    margin:auto;
+    padding:28px;
+    border:2px solid #b8962e;
+    box-shadow:0 0 12px rgba(0,0,0,.18);
+}
+h1 {
+    text-align:center;
+    font-size:24px;
+    margin:0 0 8px;
+}
+.subtitle {
+    text-align:center;
+    font-weight:bold;
+    margin-bottom:22px;
+}
+h2 {
+    font-size:17px;
+    border-bottom:2px solid #b8962e;
+    padding-bottom:5px;
+    margin-top:26px;
+}
+.notice {
+    background:#f8f4df;
+    border-left:5px solid #b8962e;
+    padding:12px;
+    margin:14px 0;
+}
+label {
+    display:block;
+    font-weight:bold;
+    margin-top:15px;
+}
+input[type="text"],
+input[type="date"],
+input[type="tel"],
+textarea {
+    width:100%;
+    box-sizing:border-box;
+    padding:11px;
+    margin-top:5px;
+    border:1px solid #777;
+    border-radius:4px;
+    font-size:16px;
+}
+textarea {
+    min-height:100px;
+}
+.choice {
+    border:1px solid #aaa;
+    padding:14px;
+    margin:12px 0;
+    background:#fafafa;
+}
+.choice input {
+    transform:scale(1.25);
+    margin-right:8px;
+}
+.actions {
+    margin-top:28px;
+    text-align:center;
+}
+button, .button {
+    display:inline-block;
+    background:#111;
+    color:#fff;
+    border:2px solid #b8962e;
+    border-radius:6px;
+    padding:13px 22px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    text-decoration:none;
+}
+.small-note {
+    font-weight:bold;
+    margin-top:16px;
+}
+@media(max-width:600px) {
+    body { padding:8px; }
+    .paper { padding:16px; }
+    h1 { font-size:20px; }
+}
+</style>
+</head>
+<body>
+<div class="paper">
+
+<h1>MEDICAL ATTESTATION FOR INDEPENDENT HOUSING</h1>
+<div class="subtitle">NILPF Housing Documentation</div>
+
+<div class="notice">
+<strong>Instructions to Applicant:</strong>
+Please have your licensed healthcare professional complete this form and return it to the housing operator.
+This form is used solely to verify eligibility for community-based independent residential housing.
+</div>
+
+<form method="POST" action="/medical-attestation/{{ id }}">
+
+<h2>PART 1: APPLICANT INFORMATION</h2>
+
+<label>Applicant Name</label>
+<input type="text"
+       name="applicant_name"
+       value="{{ d.get('applicant_name', participant.get('name', '')) }}">
+
+<label>Date of Birth</label>
+<input type="date"
+       name="date_of_birth"
+       value="{{ d.get('date_of_birth', '') }}">
+
+<label>Phone</label>
+<input type="tel"
+       name="applicant_phone"
+       value="{{ d.get('applicant_phone', participant.get('phone', '')) }}">
+
+<h2>PART 2: HEALTHCARE PROFESSIONAL STATEMENT</h2>
+
+<div class="notice">
+<strong>Instructions to Practitioner:</strong>
+The applicant named above is applying for placement in an independent residential housing environment.
+This facility is a non-medical, unlicensed room-and-board community housing program.
+</div>
+
+<p>
+<strong>The program does NOT provide:</strong>
+Medical oversight, nursing care, physical assistance with activities of daily living, including bathing,
+dressing, toileting, transferring, or eating, medication administration, professional clinical supervision,
+or continuous behavioral monitoring.
+</p>
+
+<p>
+<strong>The program DOES provide:</strong>
+A private or shared room, communal dining or meals, utilities, and a safe, shared living environment.
+</p>
+
+<p><strong>Please select the one statement that applies based on your professional evaluation:</strong></p>
+
+<div class="choice">
+<label>
+<input type="radio"
+       name="eligibility_status"
+       value="eligible"
+       {% if d.get('eligibility_status') == 'eligible' %}checked{% endif %}>
+<strong>Yes, Eligible.</strong>
+Based on my professional evaluation, the applicant is physically, mentally, and behaviorally capable
+of functioning independently in a shared, community-based residential setting without specialized
+nursing care, professional clinical supervision, medication administration, continuous behavioral
+monitoring, or daily physical assistance with activities of daily living.
+</label>
+</div>
+
+<div class="choice">
+<label>
+<input type="radio"
+       name="eligibility_status"
+       value="ineligible"
+       {% if d.get('eligibility_status') == 'ineligible' %}checked{% endif %}>
+<strong>No / Ineligible.</strong>
+Based on my professional evaluation, the applicant currently requires a level of care or supervision
+beyond what this non-medical independent housing program provides.
+</label>
+</div>
+
+<h2>OPTIONAL ACCESSIBILITY NEEDS OR PHYSICAL MODIFICATIONS</h2>
+
+<p>
+Are there any specific structural or physical modifications required for this applicant to safely use
+the housing, such as a ground-floor room, wheelchair-ramp access, or grab bars in the restroom?
+</p>
+
+<textarea name="accessibility_needs">{{ d.get('accessibility_needs', '') }}</textarea>
+
+<p class="small-note">
+Do not include specific diagnoses, medical histories, clinical records, medication lists, or treatment
+information on this form.
+</p>
+
+<h2>PART 3: PRACTITIONER SIGNATURE AND CREDENTIALS</h2>
+
+<label>Practitioner Name, Printed</label>
+<input type="text"
+       name="practitioner_name"
+       value="{{ d.get('practitioner_name', '') }}">
+
+<label>Title / Credentials — MD, DO, NP, PA, etc.</label>
+<input type="text"
+       name="practitioner_credentials"
+       value="{{ d.get('practitioner_credentials', '') }}">
+
+<label>State License Number</label>
+<input type="text"
+       name="state_license_number"
+       value="{{ d.get('state_license_number', '') }}">
+
+<label>Clinic / Facility Name</label>
+<input type="text"
+       name="clinic_name"
+       value="{{ d.get('clinic_name', '') }}">
+
+<label>Phone Number</label>
+<input type="tel"
+       name="practitioner_phone"
+       value="{{ d.get('practitioner_phone', '') }}">
+
+<label>Practitioner Signature</label>
+<input type="text"
+       name="practitioner_signature"
+       value="{{ d.get('practitioner_signature', '') }}"
+       placeholder="Practitioner signs or types full legal name">
+
+<label>Date</label>
+<input type="date"
+       name="signature_date"
+       value="{{ d.get('signature_date', '') }}">
+
+<div class="actions">
+<button type="submit">Save and Review</button>
+</div>
+
+</form>
+</div>
+</body>
+</html>
