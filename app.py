@@ -1357,7 +1357,7 @@ def property_paper_form(route):
 
 @app.route("/property-paper-edit/<route>/<int:record_id>", methods=["GET", "POST"])
 def property_paper_edit(route, record_id):
-    if not is_property_paper_route(route_name):
+    if not is_property_paper_route(route):
         return redirect("/property-papers")
 
     templates = property_paper_templates(route)
@@ -1397,7 +1397,7 @@ def property_paper_edit(route, record_id):
 
 @app.route("/property-paper-print/<route>/<int:record_id>")
 def property_paper_print(route, record_id):
-    if not is_property_paper_route(route_name):
+    if not is_property_paper_route(route):
         return redirect("/property-papers")
 
     templates = property_paper_templates(route)
@@ -1418,7 +1418,7 @@ def property_paper_print(route, record_id):
 
 @app.route("/property-paper-final/<route>/<int:record_id>", methods=["POST"])
 def property_paper_final(route, record_id):
-    if not is_property_paper_route(route_name):
+    if not is_property_paper_route(route):
         return redirect("/property-papers")
 
     bucket = property_paper_bucket(route)
@@ -1437,7 +1437,7 @@ def property_paper_final(route, record_id):
 
 @app.route("/property-paper-unlock/<route>/<int:record_id>", methods=["GET", "POST"])
 def property_paper_unlock(route, record_id):
-    if not is_property_paper_route(route_name):
+    if not is_property_paper_route(route):
         return redirect("/property-papers")
 
     bucket = property_paper_bucket(route)
