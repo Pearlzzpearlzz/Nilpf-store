@@ -300,6 +300,7 @@ button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
 <p>This Agreement, together with any attached addenda, constitutes the entire agreement between the parties regarding Program participation and occupancy permission.</p>
 </div>
 
+<form method="POST" action="/ilh-mla/{{ id }}">
 <div class="section">
 <h3>16. Acknowledgment & Signatures</h3>
 
@@ -325,13 +326,6 @@ button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
 </div>
 
 
-
-
-
-
-
-
-<form method="POST" action="/ilh-mla/{{ id }}">
 {% if not locked and not review_mode|default(false) %}<button type="submit">Save</button>{% endif %}
 </form>
 </div>
