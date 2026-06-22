@@ -4643,7 +4643,81 @@ def mr_ir_dashboard():
         "PAYPAL_PLAN_ID": "✅ Loaded" if os.environ.get("PAYPAL_PLAN_ID") else "❌ MISSING",
     }
 
-    return render_template("mr_ir_dashboard.html", env_status=env_status)
+    import json
+    import shutil
+    from datetime import datetime as dt
+    from pathlib import Path
+
+    storage_health = {
+        "active_engine": "UNKNOWN",
+        "database_connection": "NOT CHECKED",
+        "postgres_count": "n/a",
+        "disk_status": "NOT MOUNTED",
+        "disk_capacity": "n/a",
+        "disk_used": "n/a",
+        "json_mirror_count": "n/a",
+        "mirror_match": "NOT CHECKED",
+        "mirror_updated": "n/a",
+    }
+
+    try:
+        storage_health["active_engine"] = storage.active_engine().upper()
+    except Exception:
+        pass
+
+    postgres_records = None
+
+    try:
+        if getattr(storage, "pg_engine", None):
+            postgres_records = storage.pg_engine.get_participants()
+            storage_health["database_connection"] = "PASS"
+            storage_health["postgres_count"] = len(postgres_records)
+        elif storage_health["active_engine"] == "POSTGRES":
+            storage_health["database_connection"] = "FAIL"
+        else:
+            storage_health["database_connection"] = "LOCAL JSON MODE"
+    except Exception as exc:
+        storage_health["database_connection"] = f"FAIL: {type(exc).__name__}"
+
+    disk_path = Path("/app/data")
+    mirror_path = disk_path / "participants.json"
+
+    try:
+        if disk_path.exists() and os.path.ismount(str(disk_path)):
+            storage_health["disk_status"] = "MOUNTED"
+
+            usage = shutil.disk_usage(disk_path)
+            storage_health["disk_capacity"] = f"{usage.total / (1024 ** 3):.1f} GB"
+            storage_health["disk_used"] = f"{(usage.used / usage.total) * 100:.1f}%"
+        elif disk_path.exists():
+            storage_health["disk_status"] = "LOCAL DIRECTORY"
+    except Exception as exc:
+        storage_health["disk_status"] = f"CHECK FAILED: {type(exc).__name__}"
+
+    try:
+        if mirror_path.exists():
+            mirror_records = json.loads(mirror_path.read_text())
+            storage_health["json_mirror_count"] = (
+                len(mirror_records) if isinstance(mirror_records, list) else "INVALID"
+            )
+            storage_health["mirror_updated"] = dt.fromtimestamp(
+                mirror_path.stat().st_mtime
+            ).strftime("%B %d, %Y %I:%M %p")
+
+            if postgres_records is not None:
+                storage_health["mirror_match"] = (
+                    "PASS" if mirror_records == postgres_records else "FAIL"
+                )
+        else:
+            storage_health["mirror_match"] = "MIRROR NOT FOUND"
+    except Exception as exc:
+        storage_health["mirror_match"] = f"FAIL: {type(exc).__name__}"
+
+    return render_template(
+        "mr_ir_dashboard.html",
+        env_status=env_status,
+        storage_health=storage_health,
+    )
 
 
 @app.route("/owner-license-approval", methods=["GET"])

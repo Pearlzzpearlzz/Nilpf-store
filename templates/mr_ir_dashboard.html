@@ -117,6 +117,27 @@
       </div>
 
       <div class="card">
+        <h2>Storage Health</h2>
+        <p>Read-only verification of PostgreSQL and the persistent JSON backup mirror.</p>
+
+        {% if storage_health %}
+          <p><strong>Active Engine:</strong> {{ storage_health.active_engine }}</p>
+          <p><strong>Database Connection:</strong> {{ storage_health.database_connection }}</p>
+          <p><strong>PostgreSQL Participants:</strong> {{ storage_health.postgres_count }}</p>
+          <p><strong>Persistent Disk:</strong> {{ storage_health.disk_status }}</p>
+          <p><strong>Disk Capacity:</strong> {{ storage_health.disk_capacity }}</p>
+          <p><strong>Disk Used:</strong> {{ storage_health.disk_used }}</p>
+          <p><strong>JSON Mirror Count:</strong> {{ storage_health.json_mirror_count }}</p>
+          <p><strong>Mirror Match:</strong> {{ storage_health.mirror_match }}</p>
+          <p><strong>Mirror Last Updated:</strong> {{ storage_health.mirror_updated }}</p>
+        {% else %}
+          <p>Storage health information is unavailable.</p>
+        {% endif %}
+
+        <a class="btn" href="/mr-ir/storage-check">Open Detailed Storage Check</a>
+      </div>
+
+      <div class="card">
         <h2>Environment Key Status</h2>
         <p>Mr.IR checks whether important app keys are loaded without showing the secret values.</p>
         {% if env_status %}
