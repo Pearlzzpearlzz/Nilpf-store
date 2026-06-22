@@ -3718,18 +3718,6 @@ PARTICIPANT_SKIP_FLOW = {
         "program_participation_agreement",
         "house-rules",
     ),
-
-    # Participant-facing conditional / standalone forms
-    "release-of-information": ("release_of_information", None),
-    "incident-report": ("incident_report", None),
-    "transfer": ("transfer", None),
-    "pet-animal": ("pet_animal", None),
-    "personal-belongings": ("personal_belongings", None),
-    "ach-authorization": ("ach_authorization", None),
-    "va-coordination-acknowledgment": (
-        "va_coordination_acknowledgment",
-        None,
-    ),
 }
 
 
@@ -3742,7 +3730,7 @@ def skip_participant_form(route_name, id):
 
     flow_item = PARTICIPANT_SKIP_FLOW.get(route_name)
     if not flow_item:
-        return redirect(url_for("logout"))
+        return redirect(f"/packet-builder/{id}")
 
     form_key, next_route = flow_item
     participant = participants[id]
@@ -3769,7 +3757,7 @@ def skip_participant_form(route_name, id):
     if next_route:
         return redirect(f"/{next_route}/{id}")
 
-    return redirect(url_for("logout"))
+    return redirect(f"/packet-builder/{id}")
 
 
 @app.after_request
@@ -3783,20 +3771,10 @@ def add_skip_for_now_control(response):
 
     parts = request.path.strip("/").split("/")
 
-    route_name = None
-    pid_text = None
-
-    if len(parts) == 2:
-        route_name, pid_text = parts
-    elif (
-        len(parts) == 3
-        and parts[0] == "form"
-        and parts[2] == "ach_authorization"
-    ):
-        route_name = "ach-authorization"
-        pid_text = parts[1]
-    else:
+    if len(parts) != 2:
         return response
+
+    route_name, pid_text = parts
 
     if route_name not in PARTICIPANT_SKIP_FLOW or not pid_text.isdigit():
         return response
@@ -3809,27 +3787,10 @@ def add_skip_for_now_control(response):
     skip_control = f"""
 <style>
 @media print {{
-  .nilpf-skip-for-now,
-  .nilpf-participant-exit {{
+  .nilpf-skip-for-now {{
     display: none !important;
   }}
 }}
-.nilpf-participant-exit {{
-  position: fixed;
-  left: 18px;
-  bottom: 18px;
-  z-index: 99999;
-  display: inline-block;
-  background: #111;
-  border: 2px solid #d4af37;
-  border-radius: 10px;
-  padding: 11px 16px;
-  color: #d4af37 !important;
-  font-weight: bold;
-  text-decoration: none;
-  box-shadow: 0 4px 18px rgba(0,0,0,.45);
-}}
-
 .nilpf-skip-for-now {{
   position: fixed;
   right: 18px;
@@ -3852,12 +3813,6 @@ def add_skip_for_now_control(response):
   cursor: pointer;
 }}
 </style>
-
-<a class="nilpf-participant-exit"
-   href="/logout"
-   onclick="return confirm('Exit the forms and log out now?');">
-  Exit &amp; Log Out
-</a>
 
 <form class="nilpf-skip-for-now"
       method="POST"
