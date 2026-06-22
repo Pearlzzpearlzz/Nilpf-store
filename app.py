@@ -3685,6 +3685,152 @@ STANDARD_NEXT_FORMS = {
     "bill-of-dignity": "ilh-mla",
 }
 
+# PARTICIPANT FORM SKIP / EMERGENCY PLACEMENT FLOW
+PARTICIPANT_SKIP_FLOW = {
+    # ILH
+    "entry-screening": ("entry_screening", "medical-attestation"),
+    "medical-attestation": ("medical_attestation", "independent-living-disclosure"),
+    "independent-living-disclosure": ("independent_living_disclosure", "house-rules"),
+    "house-rules": ("house_rules", "fire-safety"),
+    "fire-safety": ("fire_safety", "emergency-contact"),
+    "emergency-contact": ("emergency_contact", "emergency-evacuation"),
+    "emergency-evacuation": ("emergency_evacuation", "guest-addendum"),
+    "guest-addendum": ("guest_addendum", "no-services-supervision"),
+    "no-services-supervision": ("no_services_supervision", "common-area-security"),
+    "common-area-security": ("common_area_security", "property-belongings"),
+    "property-belongings": ("property_belongings", "privacy-acknowledgment"),
+    "privacy-acknowledgment": ("privacy_acknowledgment", "privacy-noncommercial"),
+    "privacy-noncommercial": ("privacy_noncommercial", "vehicle-parking"),
+    "vehicle-parking": ("vehicle_parking", "security-camera"),
+    "security-camera": ("security_camera", "voluntary-participation"),
+    "voluntary-participation": ("voluntary_participation", "bill-of-dignity"),
+    "bill-of-dignity": ("bill_of_dignity", "ilh-mla"),
+    "ilh-mla": ("ilh_mla", None),
+
+    # Transitional / aligned programs
+    "intake-assessment": ("intake_assessment", "mla"),
+    "mla": ("mla", "program-compliance-addendum"),
+    "program-compliance-addendum": (
+        "program_compliance_addendum",
+        "program-participation-agreement",
+    ),
+    "program-participation-agreement": (
+        "program_participation_agreement",
+        "house-rules",
+    ),
+}
+
+
+@app.route("/skip-participant-form/<route_name>/<int:id>", methods=["POST"])
+def skip_participant_form(route_name, id):
+    participants = load_participants()
+
+    if id < 0 or id >= len(participants):
+        return redirect(url_for("add_participant"))
+
+    flow_item = PARTICIPANT_SKIP_FLOW.get(route_name)
+    if not flow_item:
+        return redirect(f"/packet-builder/{id}")
+
+    form_key, next_route = flow_item
+    participant = participants[id]
+    participant.setdefault("forms", {})
+
+    state = participant["forms"].setdefault(
+        form_key,
+        {"data": {}, "locked": False, "completed": False},
+    )
+
+    from datetime import datetime as _dt
+
+    state["completed"] = False
+    state["locked"] = False
+    state["skipped"] = True
+    state["skip_reason"] = request.form.get(
+        "skip_reason",
+        "Deferred completion / emergency placement",
+    )
+    state["skipped_at"] = _dt.now().isoformat(timespec="seconds")
+
+    save_participants(participants)
+
+    if next_route:
+        return redirect(f"/{next_route}/{id}")
+
+    return redirect(f"/packet-builder/{id}")
+
+
+@app.after_request
+def add_skip_for_now_control(response):
+    if (
+        request.method != "GET"
+        or response.status_code != 200
+        or response.mimetype != "text/html"
+    ):
+        return response
+
+    parts = request.path.strip("/").split("/")
+
+    if len(parts) != 2:
+        return response
+
+    route_name, pid_text = parts
+
+    if route_name not in PARTICIPANT_SKIP_FLOW or not pid_text.isdigit():
+        return response
+
+    html = response.get_data(as_text=True)
+
+    if "</body>" not in html or "nilpf-skip-for-now" in html:
+        return response
+
+    skip_control = f"""
+<style>
+@media print {{
+  .nilpf-skip-for-now {{
+    display: none !important;
+  }}
+}}
+.nilpf-skip-for-now {{
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 99999;
+  background: #111;
+  border: 2px solid #d4af37;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.45);
+}}
+.nilpf-skip-for-now button {{
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: #d4af37;
+  color: #000;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+}}
+</style>
+
+<form class="nilpf-skip-for-now"
+      method="POST"
+      action="/skip-participant-form/{route_name}/{pid_text}"
+      onsubmit="return confirm('Skip this form for now and continue? It will remain incomplete and can be completed later.');">
+  <input type="hidden"
+         name="skip_reason"
+         value="Deferred completion / emergency placement">
+  <button type="submit">Skip for Now</button>
+</form>
+"""
+
+    html = html.replace("</body>", skip_control + "\n</body>", 1)
+    response.set_data(html)
+    response.headers["Content-Length"] = str(len(response.get_data()))
+    return response
+
+
 # STANDARD SAVE / REVIEW / FINAL LOCK ROUTE BUILDER
 def make_standard_routes(route_name, form_key, template_name, print_template_name=None):
     if print_template_name is None:
@@ -3704,7 +3850,8 @@ def make_standard_routes(route_name, form_key, template_name, print_template_nam
             participant["forms"][form_key] = {
                 "data": dict(request.form),
                 "locked": False,
-                "completed": False
+                "completed": False,
+                "skipped": False
             }
             save_participants(participants)
 
@@ -3817,7 +3964,8 @@ def continue_flow(id):
 
     if program_type == "ILH":
         for form_key, route_name in ilh_flow:
-            if not forms.get(form_key, {}).get("completed"):
+            state = forms.get(form_key, {})
+            if not state.get("completed") and not state.get("skipped"):
                 return redirect(f"/{route_name}/{id}")
         return redirect(f"/participant-complete/{id}")
 
@@ -3944,6 +4092,9 @@ def make_th_routes(route, key, form_template, print_template):
                     participants[id]["name"] = intake_name.title()
 
             state["completed"] = True
+            state["skipped"] = False
+            state.pop("skip_reason", None)
+            state.pop("skipped_at", None)
             th_save_participants(participants)
             return redirect(f"/{route}-print/{id}")
         return render_template(form_template, id=id, participant=participants[id], d=state.get("data", {}), locked=state.get("locked", False))
