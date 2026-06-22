@@ -3771,17 +3771,56 @@ def add_skip_for_now_control(response):
 
     parts = request.path.strip("/").split("/")
 
-    if len(parts) != 2:
-        return response
+    route_name = None
+    pid_text = None
+    review_page = False
 
-    route_name, pid_text = parts
+    if len(parts) == 2:
+        raw_route, pid_text = parts
+
+        if raw_route == "ach-print":
+            route_name = "ach-authorization"
+            review_page = True
+        elif raw_route.endswith("-print"):
+            route_name = raw_route[:-6]
+            review_page = True
+        else:
+            route_name = raw_route
+
+    elif (
+        len(parts) == 3
+        and parts[0] == "form"
+        and parts[2] == "ach_authorization"
+    ):
+        route_name = "ach-authorization"
+        pid_text = parts[1]
+    else:
+        return response
 
     if route_name not in PARTICIPANT_SKIP_FLOW or not pid_text.isdigit():
         return response
 
     html = response.get_data(as_text=True)
 
+    # Participant-facing forms must not expose Operations navigation.
+    import re as _re
+
+    html = _re.sub(
+        r'<a\b[^>]*href=["\']/operations["\'][^>]*>.*?</a>',
+        "",
+        html,
+        flags=_re.IGNORECASE | _re.DOTALL,
+    )
+
+    # Review/print pages get no Operations links and no Skip button.
+    if review_page:
+        response.set_data(html)
+        response.headers["Content-Length"] = str(len(response.get_data()))
+        return response
+
     if "</body>" not in html or "nilpf-skip-for-now" in html:
+        response.set_data(html)
+        response.headers["Content-Length"] = str(len(response.get_data()))
         return response
 
     skip_control = f"""
