@@ -2256,11 +2256,8 @@ ENTRY_SCREENING_TEXT_KEYS = [
 
 
 def _entry_screening_save(current_participants):
-    try:
-        save_participants(current_participants)
-    except TypeError:
-        globals()["participants"] = current_participants
-        save_participants()
+    """Save Entry Screening participant changes through the active storage coordinator."""
+    return save_participants(current_participants)
 
 
 def _entry_screening_folder(id):
