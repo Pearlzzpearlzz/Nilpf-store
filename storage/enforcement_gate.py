@@ -42,6 +42,25 @@ TH_ONLY_ROUTES = {
     "program-participation-agreement",
 }
 
+ADMIN_RECORD_ROUTES = {
+    "property-paper",
+    "property-paper-edit",
+    "property-paper-print",
+    "property-paper-final",
+    "property-paper-unlock",
+    "property-papers",
+    "ilh-master-lease",
+    "master-lease-transitional",
+    "board-resolution",
+    "mou-partner-agreement",
+    "waiver-financial-justification",
+    "triple-net-lease",
+}
+
+TEST_ONLY_ROUTES = {
+    "ach-test",
+}
+
 SHARED_PID_ROUTES = {
     "house-rules",
     "vehicle-parking",
@@ -122,6 +141,12 @@ def classify_route_family(path):
 
         return "SHARED"
 
+    if route_name in ADMIN_RECORD_ROUTES:
+        return "ADMIN_RECORD"
+
+    if route_name in TEST_ONLY_ROUTES:
+        return "TEST_ONLY"
+
     if route_name in ILH_ONLY_ROUTES:
         return "ILH"
 
@@ -155,29 +180,32 @@ def audit_enforcement_request(request, session, participants):
     if not session.get("logged_in"):
         return None
 
+    route_family = classify_route_family(path)
+
     view_args = request.view_args or {}
     raw_pid = view_args.get("id", view_args.get("pid"))
 
     pid = None
     participant_program = None
 
-    if raw_pid is not None:
-        try:
-            pid = int(raw_pid)
-        except (TypeError, ValueError):
-            pid = None
+    # Property Paper and test-route IDs are not participant PIDs.
+    if route_family not in {"ADMIN_RECORD", "TEST_ONLY"}:
+        if raw_pid is not None:
+            try:
+                pid = int(raw_pid)
+            except (TypeError, ValueError):
+                pid = None
 
-    if pid is not None and isinstance(participants, list):
-        if 0 <= pid < len(participants):
-            participant = participants[pid] or {}
-            participant_program = (
-                participant.get("program_type")
-                or participant.get("housing_type")
-                or "ILH"
-            )
+        if pid is not None and isinstance(participants, list):
+            if 0 <= pid < len(participants):
+                participant = participants[pid] or {}
+                participant_program = (
+                    participant.get("program_type")
+                    or participant.get("housing_type")
+                    or "ILH"
+                )
 
     expected_family = expected_program_family(participant_program)
-    route_family = classify_route_family(path)
     outcome = "allowed_audit_only"
 
     if (
