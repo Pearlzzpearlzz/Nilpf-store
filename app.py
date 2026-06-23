@@ -2,7 +2,7 @@ from reportlab.pdfgen import canvas
 import fitz
 from pathlib import Path
 from storage.coordinator import storage_coordinator as storage
-from storage.enforcement_gate import audit_enforcement_request
+from storage.enforcement_gate import audit_enforcement_request, classify_route_family
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 import json
@@ -520,7 +520,11 @@ def require_login():
         logger.exception("Participant refresh failed inside login guard: %s", exc)
 
     view_args = request.view_args or {}
-    if "id" in view_args:
+    route_family = classify_route_family(request.path)
+
+    # Only participant routes should interpret an <id> value as a PID.
+    # Property Paper and test-route IDs belong to their own record systems.
+    if "id" in view_args and route_family not in {"ADMIN_RECORD", "TEST_ONLY"}:
         pid = view_args.get("id")
         try:
             pid = int(pid)
