@@ -74,6 +74,59 @@ class SecurityEngine:
             return None
         return self.cipher.decrypt(value.encode()).decode()
 
+    def is_encrypted(self, value) -> bool:
+        return isinstance(value, str) and value.startswith("gAAAA")
+
+    def encrypt_dict(self, payload: dict, fields=None) -> dict:
+        """
+        Encrypt selected dictionary values while preserving the record shape.
+        Existing Fernet ciphertext is not encrypted twice.
+        """
+        if not isinstance(payload, dict):
+            return payload
+
+        selected = set(fields or payload.keys())
+        encrypted = dict(payload)
+
+        for key in selected:
+            if key not in encrypted:
+                continue
+
+            value = encrypted.get(key)
+
+            if value in (None, ""):
+                continue
+
+            if self.is_encrypted(value):
+                continue
+
+            encrypted[key] = self.encrypt_field(value)
+
+        return encrypted
+
+    def decrypt_dict(self, payload: dict, fields=None) -> dict:
+        """
+        Decrypt selected Fernet values. Plaintext legacy values remain usable.
+        """
+        if not isinstance(payload, dict):
+            return payload
+
+        selected = set(fields or payload.keys())
+        decrypted = dict(payload)
+
+        for key in selected:
+            value = decrypted.get(key)
+
+            if not self.is_encrypted(value):
+                continue
+
+            try:
+                decrypted[key] = self.decrypt_field(value)
+            except Exception:
+                decrypted[key] = ""
+
+        return decrypted
+
     # -------------------------
     # HASHING (audit integrity)
     # -------------------------

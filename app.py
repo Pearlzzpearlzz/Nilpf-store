@@ -4072,7 +4072,143 @@ make_standard_routes(
     "medical_attestation",
     "medical_attestation"
 )
-make_standard_routes("sensitive-identity-record", "sensitive_identity_record", "sensitive_identity_record")
+
+# ===== SENSITIVITY VAULT — RESTRICTED ENCRYPTED RECORD =====
+
+SENSITIVITY_VAULT_ENCRYPTED_FIELDS = {
+    "date_of_birth",
+    "dob_data_quality",
+    "ssn",
+    "ssn_data_quality",
+    "hopwa_eligibility_status",
+    "psh_disability_status",
+    "chronic_homelessness_status",
+    "verification_source",
+    "staff_verification_notes",
+    "operator_notes",
+}
+
+
+def _decrypt_sensitivity_vault_data(data):
+    return storage.zones_engine.security.decrypt_dict(
+        data or {},
+        fields=SENSITIVITY_VAULT_ENCRYPTED_FIELDS,
+    )
+
+
+def _encrypt_sensitivity_vault_data(data):
+    return storage.zones_engine.security.encrypt_dict(
+        data or {},
+        fields=SENSITIVITY_VAULT_ENCRYPTED_FIELDS,
+    )
+
+
+@app.route("/sensitive-identity-record/<int:id>", methods=["GET", "POST"])
+def sensitive_identity_record(id):
+    participants = load_participants()
+
+    if id < 0 or id >= len(participants):
+        return redirect(url_for("add_participant"))
+
+    participant = participants[id]
+    state = participant.setdefault("forms", {}).setdefault(
+        "sensitive_identity_record",
+        {"data": {}, "locked": False, "completed": False},
+    )
+
+    if state.get("locked"):
+        return redirect(f"/sensitive-identity-record-print/{id}")
+
+    if request.method == "POST":
+        submitted = request.form.to_dict()
+
+        # These identifiers remain readable for record association.
+        submitted["participant_name"] = submitted.get(
+            "participant_name",
+            participant.get("name", ""),
+        )
+        submitted["participant_pid"] = str(id)
+
+        state["data"] = _encrypt_sensitivity_vault_data(submitted)
+        state["locked"] = False
+        state["completed"] = False
+        state["skipped"] = False
+
+        save_participants(participants)
+        return redirect(f"/sensitive-identity-record-print/{id}")
+
+    decrypted = _decrypt_sensitivity_vault_data(state.get("data", {}))
+
+    return render_template(
+        "sensitive_identity_record_form.html",
+        participant=participant,
+        id=id,
+        d=decrypted,
+    )
+
+
+@app.route("/sensitive-identity-record-print/<int:id>")
+def sensitive_identity_record_print(id):
+    participants = load_participants()
+
+    if id < 0 or id >= len(participants):
+        return redirect(url_for("add_participant"))
+
+    participant = participants[id]
+    state = participant.setdefault("forms", {}).setdefault(
+        "sensitive_identity_record",
+        {"data": {}, "locked": False, "completed": False},
+    )
+
+    decrypted = _decrypt_sensitivity_vault_data(state.get("data", {}))
+
+    return render_template(
+        "sensitive_identity_record_print.html",
+        participant=participant,
+        id=id,
+        d=decrypted,
+        locked=state.get("locked", False),
+    )
+
+
+@app.route("/sensitive-identity-record-final/<int:id>", methods=["POST"])
+def sensitive_identity_record_final(id):
+    participants = load_participants()
+
+    if id < 0 or id >= len(participants):
+        return redirect(url_for("add_participant"))
+
+    state = participants[id].setdefault("forms", {}).setdefault(
+        "sensitive_identity_record",
+        {"data": {}, "locked": False, "completed": False},
+    )
+
+    state["locked"] = True
+    state["completed"] = True
+
+    save_participants(participants)
+    return redirect("/admin-forms")
+
+
+@app.route("/sensitive-identity-record-unlock/<int:id>", methods=["GET", "POST"])
+def sensitive_identity_record_unlock(id):
+    participants = load_participants()
+
+    if id < 0 or id >= len(participants):
+        return redirect(url_for("add_participant"))
+
+    state = participants[id].setdefault("forms", {}).setdefault(
+        "sensitive_identity_record",
+        {"data": {}, "locked": False, "completed": False},
+    )
+
+    state["locked"] = False
+    state["completed"] = False
+
+    save_participants(participants)
+    return redirect(f"/sensitive-identity-record/{id}")
+
+
 make_standard_routes("release-of-information", "release_of_information", "release_of_information")
 make_standard_routes("emergency-contact", "emergency_contact", "emergency_contact")
 make_standard_routes("emergency-evacuation", "emergency_evacuation", "emergency_evacuation")
