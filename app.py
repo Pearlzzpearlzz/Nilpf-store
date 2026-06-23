@@ -555,19 +555,51 @@ def require_login():
 @app.before_request
 def system_enforcement_gate_audit():
     """
-    Phase 1 ILH/TH enforcement gate.
+    ILH/TH program-route enforcement gate.
 
-    Audit-only: records route metadata and program-route mismatches.
-    It does not block or alter the current production workflow.
+    Audit mode records route metadata and mismatches.
+    Block mode prevents cross-program route access.
     """
     try:
-        audit_enforcement_request(
+        record = audit_enforcement_request(
             request=request,
             session=session,
             participants=participants,
         )
+
+        enforcement_mode = os.environ.get(
+            "NILPF_ENFORCEMENT_MODE",
+            "audit",
+        ).strip().lower()
+
+        if (
+            enforcement_mode == "block"
+            and record
+            and record.get("outcome")
+            == "program_route_mismatch_audit_only"
+        ):
+            pid = record.get("pid")
+
+            app.logger.warning(
+                "Blocked program-route mismatch: "
+                "program=%s route=%s pid=%s",
+                record.get("participant_program"),
+                record.get("path"),
+                pid,
+            )
+
+            flash(
+                "That form does not belong to this "
+                "participant's program flow."
+            )
+
+            if pid is not None:
+                return redirect(f"/packet-builder/{pid}")
+
+            return redirect(url_for("add_participant"))
+
     except Exception as exc:
-        logger.exception(
+        app.logger.exception(
             "System enforcement audit gate failed: %s",
             exc,
         )
