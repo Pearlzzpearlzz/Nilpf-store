@@ -28,8 +28,19 @@ class SecurityZonesEngine:
         },
     }
 
-    def process(self, zone: str, payload: dict):
+    def process(self, zone: str, payload):
         rules = self.ZONES.get(zone, self.ZONES["operational"])
+
+        # Participant storage is a list of record dictionaries.
+        # Preserve the list structure required by Postgres and JSON storage.
+        if isinstance(payload, list):
+            return [
+                self.process(zone, item) if isinstance(item, dict) else item
+                for item in payload
+            ]
+
+        if not isinstance(payload, dict):
+            return payload
 
         result = dict(payload)
 
