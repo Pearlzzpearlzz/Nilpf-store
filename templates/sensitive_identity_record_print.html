@@ -201,14 +201,18 @@
 
 
     <label>Operator Notes</label>
-    <textarea name="operator_notes">{{ d.get('operator_notes','') }}</textarea>
+    <textarea name="operator_notes" readonly>{{ d.get('operator_notes','') }}</textarea>
 
     <div class="notice">
       <strong>Security Reminder:</strong> This record contains sensitive identifiers. Keep it separate from general packet sharing unless it is specifically required. Do not print, download, or distribute this information unless there is a lawful program reason.
     </div>
 
     <div class="buttons">
-      <button type="submit">Final Lock</button>
+      {% if locked %}
+        <a class="btn" href="/sensitive-identity-record-unlock/{{ id }}">Edit / Unlock</a>
+      {% else %}
+        <button type="submit">Final Lock</button>
+      {% endif %}
       <a class="btn" href="/admin-forms">Back to Admin Forms</a>
     </div>
   </form>
