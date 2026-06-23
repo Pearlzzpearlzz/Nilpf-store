@@ -2152,7 +2152,6 @@ def single_form_print_center():
         {"title": "Vehicle Parking", "key": "vehicle_parking", "print_route": "/vehicle-parking-print/{id}"},
         {"title": "Security Camera Disclosure", "key": "security_camera", "print_route": "/security-camera-print/{id}"},
         {"title": "Voluntary Participation", "key": "voluntary_participation", "print_route": "/voluntary-participation-print/{id}"},
-        {"title": "ACH Authorization", "key": "ach_authorization", "print_route": "/ach-print/{id}"},
         {"title": "No Services / No Supervision", "key": "no_services_supervision", "print_route": "/no-services-supervision-print/{id}"},
         {"title": "Independent Living Disclosure", "key": "independent_living_disclosure", "print_route": "/independent-living-disclosure-print/{id}"},
         {"title": "Vehicle Parking Information", "key": "vehicle_parking", "print_route": "/vehicle-parking-print/{id}"},
@@ -4192,7 +4191,14 @@ def make_th_routes(route, key, form_template, print_template):
             state.pop("skipped_at", None)
             th_save_participants(participants)
             return redirect(f"/{route}-print/{id}")
-        return render_template(form_template, id=id, participant=participants[id], d=state.get("data", {}), locked=state.get("locked", False))
+        return render_template(
+            form_template,
+            id=id,
+            participant=participants[id],
+            activation=load_activation(),
+            d=state.get("data", {}),
+            locked=state.get("locked", False),
+        )
 
     @app.route(f"/{route}-print/<int:id>", endpoint=f"{route}_print")
     def th_print(id, route=route, key=key, print_template=print_template):
@@ -4200,7 +4206,14 @@ def make_th_routes(route, key, form_template, print_template):
         if id < 0 or id >= len(participants):
             return redirect(url_for("add_participant"))
         state = th_form_state(id, key, participants)
-        return render_template(print_template, id=id, participant=participants[id], d=state.get("data", {}), locked=state.get("locked", False))
+        return render_template(
+            print_template,
+            id=id,
+            participant=participants[id],
+            activation=load_activation(),
+            d=state.get("data", {}),
+            locked=state.get("locked", False),
+        )
 
     @app.route(f"/{route}-final/<int:id>", methods=["POST"], endpoint=f"{route}_final")
     def th_final(id, route=route, key=key):

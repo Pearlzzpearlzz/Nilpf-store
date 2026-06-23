@@ -108,10 +108,22 @@ button{
 <form method="POST" action="/va-coordination-acknowledgment/{{ id }}">
 
 <div class="section">
-<h3>PARTICIPANT INFORMATION</h3>
+<h3>PROPERTY / PROGRAM INFORMATION</h3>
+
+<p>Property Name:
+<input type="text" name="property_name" value="{{ d.get('property_name', activation.get('property_name', '')) }}">
+</p>
+
+<p>Program Type:
+<input type="text" name="program_type" value="{{ d.get('program_type', participant.get('program_type', participant.get('housing_type', ''))) }}">
+</p>
 
 <p>Participant Name:
 <input type="text" name="participant_name" value="{{ d.get('participant_name', participant.get('name', '')) }}">
+</p>
+
+<p>Participant ID:
+<input class="short-input" type="text" name="participant_id" value="{{ d.get('participant_id', id) }}" readonly>
 </p>
 
 <p>Date of Birth:
