@@ -2,6 +2,7 @@ from reportlab.pdfgen import canvas
 import fitz
 from pathlib import Path
 from storage.coordinator import storage_coordinator as storage
+from storage.enforcement_gate import audit_enforcement_request
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 import json
@@ -549,6 +550,28 @@ def require_login():
             if not str(participant.get("name", "")).strip():
                 flash("Enter participant name before completing admin paperwork.")
                 return redirect(url_for("add_participant"))
+
+
+@app.before_request
+def system_enforcement_gate_audit():
+    """
+    Phase 1 ILH/TH enforcement gate.
+
+    Audit-only: records route metadata and program-route mismatches.
+    It does not block or alter the current production workflow.
+    """
+    try:
+        audit_enforcement_request(
+            request=request,
+            session=session,
+            participants=participants,
+        )
+    except Exception as exc:
+        logger.exception(
+            "System enforcement audit gate failed: %s",
+            exc,
+        )
+
 
 DATA_FILE = "data/activation.json"
 
