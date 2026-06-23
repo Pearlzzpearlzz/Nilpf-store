@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Entry Screening</title>
+<style>
+body { font-family: Arial; background:#fff; padding:20px; }
+.section { margin-top:30px; }
+.q { margin:10px 0; padding:10px; border:1px solid #ccc; border-radius:8px; }
+</style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
+
+<style>
+.nilpf-safe-nav{
+  position:sticky;
+  top:0;
+  z-index:9999;
+  display:flex;
+  justify-content:center;
+  padding:10px;
+  background:#050505;
+  border-bottom:2px solid #D4AF37;
+}
+.nilpf-safe-nav a{
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:8px;
+  background:#D4AF37;
+  color:#000 !important;
+  font-weight:bold;
+  text-decoration:none;
+  font-family:Arial,sans-serif;
+  font-size:14px;
+}
+@media print{
+  .nilpf-safe-nav{display:none !important;}
+}
+</style>
+
+</head>
+<body>
+
+<div class="nilpf-safe-nav">
+  <a href="/operations">Exit to Operations</a>
+</div>
+
+
+<h1>ENTRY SCREENING & SELF-DETERMINATION ACKNOWLEDGMENT</h1>
+<p>{{ participant["name"] }}</p>
+
+{% if id is defined and id is not none and id != '' %}
+<form method="POST" action="/entry-screening/{{ id }}" id="entry-screening-form">
+{% else %}
+<form method="POST" action="/screening" id="entry-screening-form">
+{% endif %}
+    <input type="hidden" name="id" value="{{ id }}">
+
+<label><strong>Applicant / Participant Name:</strong></label><br>
+<input type="text" name="applicant_name" value="{{ participant.get('name', '') if participant else '' }}" required {% if participant and participant.get('name') %}readonly{% endif %}>
+<br><br>
+
+<h2>SECTION 1 — CORE ELIGIBILITY</h2>
+
+<div class="q">1. Understands independent housing <br>
+<input type="radio" name="q1" value="yes" required>Yes
+<input type="radio" name="q1" value="no">No</div>
+
+<div class="q">2. Can perform daily living independently<br>
+<input type="radio" name="q2" value="yes" required>Yes
+<input type="radio" name="q2" value="no">No</div>
+
+<div class="q">3. Understands no care provided<br>
+<input type="radio" name="q3" value="yes" required>Yes
+<input type="radio" name="q3" value="no">No</div>
+
+<div class="q">4. Can seek help independently<br>
+<input type="radio" name="q4" value="yes" required>Yes
+<input type="radio" name="q4" value="no">No</div>
+
+<div class="q">5. Accepts responsibility<br>
+<input type="radio" name="q5" value="yes" required>Yes
+<input type="radio" name="q5" value="no">No</div>
+
+<h2>SECTION 2 — FUNCTIONAL SELF-MANAGEMENT</h2>
+
+<div class="q">6. Manages hygiene<br><input type="radio" name="q6" value="yes" required>Yes <input type="radio" name="q6" value="no">No</div>
+<div class="q">7. Manages meals<br><input type="radio" name="q7" value="yes" required>Yes <input type="radio" name="q7" value="no">No</div>
+<div class="q">8. Manages laundry<br><input type="radio" name="q8" value="yes" required>Yes <input type="radio" name="q8" value="no">No</div>
+<div class="q">9. Maintains schedule<br><input type="radio" name="q9" value="yes" required>Yes <input type="radio" name="q9" value="no">No</div>
+
+<div class="q">10. Manages medications<br><input type="radio" name="q10" value="yes" required>Yes <input type="radio" name="q10" value="no">No</div>
+<div class="q">11. Schedules appointments<br><input type="radio" name="q11" value="yes" required>Yes <input type="radio" name="q11" value="no">No</div>
+<div class="q">12. Recognizes emergencies<br><input type="radio" name="q12" value="yes" required>Yes <input type="radio" name="q12" value="no">No</div>
+<div class="q">13. Can call emergency services<br><input type="radio" name="q13" value="yes" required>Yes <input type="radio" name="q13" value="no">No</div>
+
+<div class="q">14. Understands risks<br><input type="radio" name="q14" value="yes" required>Yes <input type="radio" name="q14" value="no">No</div>
+<div class="q">15. Makes informed decisions<br><input type="radio" name="q15" value="yes" required>Yes <input type="radio" name="q15" value="no">No</div>
+<div class="q">16. Can seek outside services<br><input type="radio" name="q16" value="yes" required>Yes <input type="radio" name="q16" value="no">No</div>
+
+<h2>SECTION 3 — HOUSING COMPATIBILITY</h2>
+
+<div class="q">17. Agrees to follow shared housing expectations and program structure<br><input type="radio" name="q17" value="yes" required>Yes <input type="radio" name="q17" value="no">No</div>
+<div class="q">18. Can live in shared housing<br><input type="radio" name="q18" value="yes" required>Yes <input type="radio" name="q18" value="no">No</div>
+<div class="q">19. Able to function safely in a roommate-style shared living environment<br><input type="radio" name="q19" value="yes" required>Yes <input type="radio" name="q19" value="no">No</div>
+<div class="q">20. Handles conflicts independently<br><input type="radio" name="q20" value="yes" required>Yes <input type="radio" name="q20" value="no">No</div>
+
+<h2>SECTION 4 — VISITOR AFFIRMATION</h2>
+
+<div class="q">21. Controls relationships<br><input type="radio" name="q21" value="yes" required>Yes <input type="radio" name="q21" value="no">No</div>
+<div class="q">22. Visitors are not program services<br><input type="radio" name="q22" value="yes" required>Yes <input type="radio" name="q22" value="no">No</div>
+<div class="q">23. Program does not manage visitors<br><input type="radio" name="q23" value="yes" required>Yes <input type="radio" name="q23" value="no">No</div>
+<div class="q">24. Responsible for guests<br><input type="radio" name="q24" value="yes" required>Yes <input type="radio" name="q24" value="no">No</div>
+
+<h2>SECTION 5 — PROGRAM BOUNDARIES</h2>
+
+<div class="q">25. No personal care<br><input type="radio" name="q25" value="yes" required>Yes <input type="radio" name="q25" value="no">No</div>
+<div class="q">26. No medical services<br><input type="radio" name="q26" value="yes" required>Yes <input type="radio" name="q26" value="no">No</div>
+<div class="q">27. No monitoring<br><input type="radio" name="q27" value="yes" required>Yes <input type="radio" name="q27" value="no">No</div>
+<div class="q">28. No intervention<br><input type="radio" name="q28" value="yes" required>Yes <input type="radio" name="q28" value="no">No</div>
+<div class="q">29. No relationship control<br><input type="radio" name="q29" value="yes" required>Yes <input type="radio" name="q29" value="no">No</div>
+<div class="q">30. Not responsible for outcomes<br><input type="radio" name="q30" value="yes" required>Yes <input type="radio" name="q30" value="no">No</div>
+
+<h2>Signature</h2>
+<input type="text" name="signature" placeholder="Signature" required>
+
+<br><br>
+<button type="submit">Submit Screening</button>
+
+</form>
+</body>
+</html>

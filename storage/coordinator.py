@@ -1,3 +1,5 @@
+from storage.mrir import MRIR
+from .security_zones import SecurityZonesEngine
 # storage/coordinator.py
 # Phase 6A: Runtime Storage Coordinator for NILPF Housing OS
 #
@@ -19,6 +21,17 @@ logger = logging.getLogger("NILPF_Storage")
 
 
 class StorageCoordinator:
+
+    def save(self, action, data):
+        if action == "participants":
+            return self.save_participants(data)
+        elif action == "activation":
+            return self.save_activation(data)
+        elif action == "license_requests":
+            return self.save_license_requests(data)
+        else:
+            raise ValueError("Unknown action")
+
     """
     Coordinates storage reads/writes between the current JSON adapter
     and a future PostgreSQL engine.
@@ -32,6 +45,8 @@ class StorageCoordinator:
     def __init__(self, mode_override=None, data_dir="data"):
         self.mode = (mode_override or os.environ.get("STORAGE_MODE", "json")).lower()
         self.json_backup = JSONStorageAdapter(data_dir=data_dir)
+        self.zones_engine = SecurityZonesEngine()
+        self.mrir = MRIR()
         self.pg_engine = None
 
         if self.mode not in ("json", "postgres"):
@@ -103,6 +118,8 @@ class StorageCoordinator:
         return self.json_backup.get_participants()
 
     def save_participants(self, data):
+        # SECURITY ENFORCEMENT LAYER (auto)
+        data = self.zones_engine.process('controlled', data)
         """
         Participants save Postgres-first.
         JSON is backup mirror when Postgres succeeds, and emergency fallback if Postgres fails.
@@ -165,5 +182,39 @@ class StorageCoordinator:
     def save_rolodex(self, data):
         return self.json_backup.save_rolodex(data)
 
+    # -----------------------------
+    # MR.IR AUDIT HOOK (SAFE LAYER)
+    # -----------------------------
+    def _mrir_log(self, zone, data, status='stored'):
+        try:
+            if hasattr(self, 'mrir') and self.mrir is not None:
+                self.mrir.record({
+                    'zone': zone,
+                    'data': data,
+                    'status': status
+                })
+        except Exception:
+            pass
+
+    # -----------------------------
+    # SECURITY ENFORCED WRAPPERS
+    # -----------------------------
+    def secure_save_participants(self, data):
+        processed = self.zones_engine.process('controlled', data)
+        result = self.save_participants(processed)
+        self._mrir_log('controlled', processed)
+        return result
+        result = self.save_participants(processed)
+        self._mrir_log('controlled', processed)
+        return result
+
+    def secure_save_activation(self, data):
+        processed = self.zones_engine.process('operational', data)
+        return self.save_activation(processed)
+
 
 storage_coordinator = StorageCoordinator()
+
+    # -----------------------------
+
+    # -----------------------------

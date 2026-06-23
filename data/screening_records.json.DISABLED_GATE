@@ -1,0 +1,42 @@
+[
+  {
+    "screening_id": 0,
+    "applicant_name": "Route Test Person",
+    "status": "passed",
+    "answers": {
+      "q1": "yes",
+      "q2": "yes",
+      "q3": "yes",
+      "q4": "yes",
+      "q5": "yes",
+      "q6": "yes",
+      "q7": "yes",
+      "q8": "yes",
+      "q9": "yes",
+      "q10": "yes",
+      "q11": "yes",
+      "q12": "yes",
+      "q13": "yes",
+      "q14": "yes",
+      "q15": "yes",
+      "q16": "yes",
+      "q17": "yes",
+      "q18": "yes",
+      "q19": "yes",
+      "q20": "yes",
+      "q21": "yes",
+      "q22": "yes",
+      "q23": "yes",
+      "q24": "yes",
+      "q25": "yes",
+      "q26": "yes",
+      "q27": "yes",
+      "q28": "yes",
+      "q29": "yes",
+      "q30": "yes"
+    },
+    "signature": "Route Test Person",
+    "created_at": "2026-06-11 19:25:13",
+    "created_pid": 4
+  }
+]
