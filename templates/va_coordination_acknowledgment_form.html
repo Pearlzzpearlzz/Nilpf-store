@@ -102,7 +102,7 @@ button{
 <div class="mobile-container">
 
 <h1>VA COORDINATION ACKNOWLEDGMENT</h1>
-<h2>Transitional Housing Program – NILPF Framework (2026)</h2>
+<h2>NILPF Housing Framework (2026)</h2>
 <h2>© 2026 Pearlzz LLC. All Rights Reserved.</h2>
 
 <form method="POST" action="/va-coordination-acknowledgment/{{ id }}">
@@ -132,15 +132,16 @@ button{
 
 <p>
 This document confirms the participant’s understanding of how housing and external
-program coordination may occur within a transitional housing environment.
+program coordination may occur within a housing environment.
 </p>
 
 <p>This housing setting may coordinate, when applicable, with:</p>
 
 <ul>
 <li>U.S. Department of Veterans Affairs</li>
+<li>HUD-VASH or other VA-affiliated housing coordination</li>
 <li>Grant and Per Diem Program</li>
-<li>Reentry or community-based programs</li>
+<li>Other outside-program or community-based coordination</li>
 </ul>
 
 <p>
@@ -289,17 +290,17 @@ treatment, or supervised living relationship.
 
 <p>By signing below, the participant confirms:</p>
 
-<p class="checkbox-line">☐ Understanding of the separate roles of the Housing Provider and any external program or service provider.</p>
+<p class="checkbox-line"><input type="checkbox" name="ack_roles" value="yes" {% if d.get('ack_roles') %}checked{% endif %}> Understanding of the separate roles of the Housing Provider and any external program or service provider.</p>
 
-<p class="checkbox-line">☐ Awareness that the Housing Provider does not deliver, supervise, manage, or control case management, clinical services, supportive services, or program activities.</p>
+<p class="checkbox-line"><input type="checkbox" name="ack_no_services" value="yes" {% if d.get('ack_no_services') %}checked{% endif %}> Awareness that the Housing Provider does not deliver, supervise, manage, or control case management, clinical services, supportive services, or program activities.</p>
 
-<p class="checkbox-line">☐ Acknowledgment that external services may occur within or in connection with the housing environment.</p>
+<p class="checkbox-line"><input type="checkbox" name="ack_services_inside" value="yes" {% if d.get('ack_services_inside') %}checked{% endif %}> Acknowledgment that external services may occur within or in connection with the housing environment.</p>
 
-<p class="checkbox-line">☐ Understanding that all services are provided independently by external entities and are not the responsibility of the Housing Provider.</p>
+<p class="checkbox-line"><input type="checkbox" name="ack_external_services" value="yes" {% if d.get('ack_external_services') %}checked{% endif %}> Understanding that all services are provided independently by external entities and are not the responsibility of the Housing Provider.</p>
 
-<p class="checkbox-line">☐ Acknowledgment that participation in external programs is voluntary and managed solely by the program provider or external agency.</p>
+<p class="checkbox-line"><input type="checkbox" name="ack_voluntary" value="yes" {% if d.get('ack_voluntary') %}checked{% endif %}> Acknowledgment that participation in external programs is voluntary and managed solely by the program provider or external agency.</p>
 
-<p class="checkbox-line">☐ Acknowledgment that optional coordination between the Housing Provider and external programs may occur only when authorized or permitted.</p>
+<p class="checkbox-line"><input type="checkbox" name="ack_optional_coordination" value="yes" {% if d.get('ack_optional_coordination') %}checked{% endif %}> Acknowledgment that optional coordination between the Housing Provider and external programs may occur only when authorized or permitted.</p>
 </div>
 
 <div class="section">

@@ -4214,12 +4214,15 @@ def make_th_routes(route, key, form_template, print_template):
 
         # Final Lock now saves state only. Packet PDFs are generated during Download Packet.
 
+        if route == "va-coordination-acknowledgment":
+            return redirect("/admin-forms")
+
         next_form = TH_NEXT_FORMS.get(route)
 
         if next_form:
             return redirect(f"/{next_form}/{id}")
 
-        if is_property_paper_route(route_name):
+        if is_property_paper_route(route):
             save_locked_property_paper(route, state.get("data", {}))
             return redirect("/property-papers")
 
