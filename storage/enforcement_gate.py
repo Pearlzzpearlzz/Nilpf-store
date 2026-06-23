@@ -16,28 +16,80 @@ TH_PROGRAMS = {
     "Reentry",
 }
 
-ILH_ONLY_PREFIXES = (
-    "/entry-screening/",
-    "/entry-screening-print/",
-    "/entry-screening-final/",
-    "/entry-screening-unlock/",
-    "/medical-attestation/",
-    "/independent-living-disclosure/",
-    "/no-services-supervision/",
-    "/vehicle-parking/",
-    "/bill-of-dignity/",
-    "/ilh-",
-)
+ILH_ONLY_ROUTES = {
+    "entry-screening",
+    "medical-attestation",
+    "independent-living-disclosure",
+    "fire-safety",
+    "emergency-contact",
+    "emergency-evacuation",
+    "guest-addendum",
+    "no-services-supervision",
+    "common-area-security",
+    "property-belongings",
+    "privacy-acknowledgment",
+    "privacy-noncommercial",
+    "security-camera",
+    "voluntary-participation",
+    "bill-of-dignity",
+    "ilh-mla",
+}
 
-TH_ONLY_PREFIXES = (
-    "/intake-assessment/",
-    "/mla/",
-    "/mla-print/",
-    "/mla-final/",
-    "/mla-unlock/",
-    "/program-compliance-addendum/",
-    "/program-participation-agreement/",
-)
+TH_ONLY_ROUTES = {
+    "intake-assessment",
+    "mla",
+    "program-compliance-addendum",
+    "program-participation-agreement",
+}
+
+SHARED_PID_ROUTES = {
+    "house-rules",
+    "vehicle-parking",
+    "incident-report",
+    "transfer",
+    "pet-animal",
+    "packet-builder",
+    "download-packet",
+    "participant-complete",
+    "continue-flow",
+    "skip-participant-form",
+    "sensitive-identity-record",
+    "release-of-information",
+    "personal-belongings",
+    "individual-service-plan",
+    "service-activity-record",
+    "participant-program-adherence-review",
+    "exit-discharge-summary",
+    "payor-funding-record",
+    "billing-invoice-setup",
+    "referral-source-record",
+    "agency-sponsorship-record",
+}
+
+
+def normalize_route_name(path):
+    parts = [part for part in (path or "").strip("/").split("/") if part]
+
+    if not parts:
+        return ""
+
+    route_name = parts[0]
+
+    if route_name == "form" and len(parts) >= 3:
+        if parts[2] == "ach_authorization":
+            return "ach-authorization"
+
+    if route_name == "skip-participant-form" and len(parts) >= 2:
+        return "skip-participant-form"
+
+    for suffix in ("-print", "-final", "-unlock"):
+        if route_name.endswith(suffix):
+            route_name = route_name[:-len(suffix)]
+            break
+
+    return route_name
+
+
 
 def expected_program_family(program_type):
     if program_type == "ILH":
@@ -48,10 +100,34 @@ def expected_program_family(program_type):
 
 
 def classify_route_family(path):
-    if any(path.startswith(prefix) for prefix in ILH_ONLY_PREFIXES):
+    parts = [
+        part
+        for part in (path or "").strip("/").split("/")
+        if part
+    ]
+
+    route_name = normalize_route_name(path)
+
+    if route_name == "skip-participant-form":
+        if len(parts) < 2:
+            return "SHARED"
+
+        target_route = parts[1]
+
+        if target_route in ILH_ONLY_ROUTES:
+            return "ILH"
+
+        if target_route in TH_ONLY_ROUTES:
+            return "TH"
+
+        return "SHARED"
+
+    if route_name in ILH_ONLY_ROUTES:
         return "ILH"
-    if any(path.startswith(prefix) for prefix in TH_ONLY_PREFIXES):
+
+    if route_name in TH_ONLY_ROUTES:
         return "TH"
+
     return "SHARED"
 
 
