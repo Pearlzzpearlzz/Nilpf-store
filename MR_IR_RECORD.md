@@ -102,3 +102,15 @@
   - Do not run another full Entry Screening stress test tonight.
 - Status: ProxyFix repair documented; live Render verification pending.
 
+
+## 2026-06-25 — ILH Form Cleanup
+
+Repaired Property Belongings true-to-sight review and date handling. Removed the obsolete duplicate Privacy Acknowledgment from all active flow, packet, export, and route wiring. Retained the approved Privacy Noncommercial form, added date auto-fill, verified progression to Vehicle Parking, and deleted the obsolete privacy templates after successful testing.
+
+Status: Working on Render.
+
+## 2026-06-25 — ILH Form Cleanup
+
+Property Belongings was repaired with automatic date entry and a full true-to-sight review page. The obsolete duplicate Privacy Acknowledgment was detached from all active flow, packet, export, and continuation wiring. The approved Privacy Noncommercial acknowledgment was retained, its date now auto-fills, and progression to Vehicle Parking was verified on Render.
+
+Security history also confirms that restricted Sensitivity Vault fields were encrypted in commit `fb1a5aa`, with admin entry and unlock controls added in commits `1d00d18` and `497b8e4`.

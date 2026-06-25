@@ -228,3 +228,74 @@ Restore point goal:
 - Confirmed active property paper routes return 200.
 - Confirmed parked /property-paper/program-housing-covenants no longer crashes and returns 302 redirect.
 - Result: PROPERTY PAPER ROUTES DO NOT CRASH.
+
+2026-06-25 — ILH / Shared Form Repair Session
+
+Completed:
+- Fixed Property & Personal Belongings date auto-fill.
+- Rebuilt Property & Personal Belongings print/review as true-to-sight.
+- Removed obsolete Pet Animal continuation from Property Belongings print page.
+- Detached duplicate Privacy Acknowledgment from ILH, TH/shared registries, packet lists, exports, skip flow, and continue flow.
+- Preserved approved Privacy Noncommercial form.
+- Added Privacy Noncommercial date auto-fill.
+- Verified Privacy Noncommercial advances to Vehicle Parking.
+- Removed obsolete Privacy Acknowledgment route registration.
+- Deleted obsolete privacy_acknowledgment form and print templates.
+
+Verified:
+- Property Belongings form works on Render.
+- Property Belongings full text remains after Save.
+- Property Belongings Final Lock advances correctly.
+- Privacy Noncommercial date auto-fills and remains on review.
+- Duplicate privacy form no longer appears.
+- Python compile checks passed.
+- Jinja template checks passed.
+
+Commits:
+- 4f59489 Fix property belongings date and true-to-sight review
+- Detach duplicate privacy acknowledgment from live flow
+- Auto-fill privacy noncommercial signature date
+- Remove obsolete duplicate privacy acknowledgment route
+
+Remaining:
+- Security Camera duplicate Date field and print cleanup.
+- Voluntary Participation date/button cleanup.
+- Emergency Contact and Guest Addendum date auto-fill.
+- Entry Screening old wording.
+- Confirm final commit hashes for the privacy cleanup commits.
+
+2026-06-25 — ILH / Shared Form Repair Session
+
+Completed:
+- Fixed Property & Personal Belongings date auto-fill.
+- Rebuilt Property & Personal Belongings review/print page as true-to-sight.
+- Removed obsolete Pet Animal continuation from Property Belongings.
+- Detached the duplicate Privacy Acknowledgment from active packet, shared-form, export, skip, and continue-flow wiring.
+- Preserved the approved Privacy Noncommercial acknowledgment.
+- Added Privacy Noncommercial signature-date auto-fill.
+- Verified Privacy Noncommercial advances directly to Vehicle Parking.
+- Removed the obsolete Privacy Acknowledgment route registration and templates.
+
+Verified:
+- Property Belongings works on Render.
+- Full Property Belongings text remains visible after Save.
+- Privacy Noncommercial date auto-fills and remains on review.
+- Duplicate Privacy Acknowledgment no longer appears in the live flow.
+- Python compilation and Jinja template checks passed.
+
+Commits:
+- 4f59489 Fix property belongings date and true-to-sight review
+- 995fa69 Detach duplicate privacy acknowledgment from live flow
+- ebd27e4 Auto-fill privacy noncommercial signature date
+
+Existing security commits confirmed:
+- fb1a5aa Encrypt restricted Sensitivity Vault fields
+- 1d00d18 Open Sensitivity Vault entry form from admin records
+- 497b8e4 Add Sensitivity Vault unlock control
+
+Remaining:
+- Commit obsolete Privacy Acknowledgment route/template removal.
+- Security Camera duplicate Date field and review cleanup.
+- Voluntary Participation date/button cleanup.
+- Emergency Contact and Guest Addendum date auto-fill.
+- Entry Screening outdated wording.

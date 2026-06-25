@@ -3723,7 +3723,6 @@ STANDARD_NEXT_FORMS = {
     "common-area-security": "property-belongings",
     # # "personal-belongings": "property-belongings",  # Admin Forms only  # moved to Admin Forms
     "property-belongings": "privacy-noncommercial",
-    # # "pet-animal": "privacy-acknowledgment",  # Admin Forms only  # moved to Admin Forms
     "privacy-noncommercial": "vehicle-parking",
     "vehicle-parking": "security-camera",
     # # "transfer": "security-camera",  # Admin Forms only  # moved to Admin Forms
@@ -4208,7 +4207,6 @@ make_standard_routes("transfer", "transfer", "transfer")
 make_standard_routes("fire-safety", "fire_safety", "fire_safety")
 make_standard_routes("house-rules", "house_rules", "house_rules")
 make_standard_routes("pet-animal", "pet_animal", "pet_animal")
-make_standard_routes("privacy-acknowledgment", "privacy_acknowledgment", "privacy_acknowledgment")
 make_standard_routes("privacy-noncommercial", "privacy_noncommercial", "privacy_noncommercial")
 make_standard_routes("common-area-security", "common_area_security", "common_area_security")
 make_standard_routes("property-belongings", "property_belongings", "property_belongings")
