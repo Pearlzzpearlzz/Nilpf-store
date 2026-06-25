@@ -640,8 +640,8 @@ PACKET_MANIFEST = {
         {"title": "Vehicle Parking Rules", "file": "/vehicle-parking/{id}"},
         {"title": "Security Camera Disclosure", "file": "/security-camera/{id}"},
         {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"},
-        {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"},
         {"title": "Master License Agreement / MLA", "file": "/ilh-mla/{id}"},
+        {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"},
     ],
     "Transitional": [
         {"title": "Master Lease Agreement", "completed_file": "02_MASTER LEASE AGREEMENT.pdf"},
@@ -680,15 +680,14 @@ CORE_DOCS_BY_PROGRAM = {
         {"title": "Vehicle Parking Rules", "file": "/vehicle-parking/{id}"},
         {"title": "Security Camera Disclosure", "file": "/security-camera/{id}"},
         {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"},
-        {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"},
         {"title": "Master License Agreement / MLA", "file": "/ilh-mla/{id}"},
+        {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"},
     ],
     "Transitional": [
         {"title": "Initial Intake Assessment", "file": "/intake-assessment/{id}"},
         {"title": "Master License Agreement", "file": "/mla/{id}"},
         {"title": "Program Compliance Addendum", "file": "/program-compliance-addendum/{id}"},
         {"title": "Program Participation Agreement", "file": "/program-participation-agreement/{id}"},
-        {"title": "Release of Information / Authorization to Communicate", "file": "/release-of-information/{id}"},
     ],
     "VA_GPD_Aligned": [
         {"title": "VA Coordination Acknowledgment", "file": "va_gpd/05_VA COORDINATION ACKNOWLEDGMENT.pdf"}
@@ -711,7 +710,8 @@ SHARED_HOUSING_FORMS = [
     {"title": "Privacy Noncommercial", "file": "/privacy-noncommercial/{id}"},
     {"title": "Vehicle Parking", "file": "/vehicle-parking/{id}"},
     {"title": "Security Camera Disclosure", "file": "/security-camera/{id}"},
-    {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"}
+    {"title": "Voluntary Participation", "file": "/voluntary-participation/{id}"},
+    {"title": "Bill of Dignity & Independence", "file": "/bill-of-dignity/{id}"}
 ]
 
 
@@ -3386,8 +3386,7 @@ def bill_of_dignity_final(id):
     p["forms"]["bill_of_dignity"]["completed"] = True
     save_participants_file()
 
-
-    return redirect(f"/ilh-mla/{id}")
+    return redirect(f"/participant-complete/{id}")
 
 
 
@@ -3737,7 +3736,6 @@ STANDARD_NEXT_FORMS = {
     "security-camera": "voluntary-participation",
     "voluntary-participation": "bill-of-dignity",
     # # "incident-report": "bill-of-dignity",  # Admin Forms only  # moved to Admin Forms
-    "bill-of-dignity": "ilh-mla",
 }
 
 # PARTICIPANT FORM SKIP / EMERGENCY PLACEMENT FLOW
@@ -3759,7 +3757,7 @@ PARTICIPANT_SKIP_FLOW = {
     "vehicle-parking": ("vehicle_parking", "security-camera"),
     "security-camera": ("security_camera", "voluntary-participation"),
     "voluntary-participation": ("voluntary_participation", "bill-of-dignity"),
-    "bill-of-dignity": ("bill_of_dignity", "ilh-mla"),
+    "bill-of-dignity": ("bill_of_dignity", None),
     "ilh-mla": ("ilh_mla", None),
 
     # Transitional / aligned programs
@@ -4052,8 +4050,8 @@ def continue_flow(id):
         ("vehicle_parking", "vehicle-parking"),
         ("security_camera", "security-camera"),
         ("voluntary_participation", "voluntary-participation"),
-        ("bill_of_dignity", "bill-of-dignity"),
         ("ilh_mla", "ilh-mla"),
+        ("bill_of_dignity", "bill-of-dignity"),
     ]
 
     if program_type == "ILH":

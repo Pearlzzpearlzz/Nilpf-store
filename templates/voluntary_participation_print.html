@@ -11,7 +11,8 @@
             padding: 30px;
         }
         .locked {
-            width: 8.5in;
+            width: 100%;
+            max-width: 8.5in;
             margin: 0 auto 20px auto;
             background: #d4af37;
             color: #111;
@@ -22,7 +23,8 @@
         }
         .page {
             background: white;
-            width: 8.5in;
+            width: 100%;
+            max-width: 8.5in;
             min-height: 11in;
             margin: 0 auto 30px auto;
             padding: 0.75in;
@@ -67,7 +69,8 @@
             min-width: 180px;
         }
         .buttons {
-            width: 8.5in;
+            width: 100%;
+            max-width: 8.5in;
             margin: 20px auto;
             text-align: center;
         }
@@ -87,7 +90,43 @@
             .buttons, .locked { display: none; }
             .page { box-shadow: none; margin: 0; page-break-after: always; }
         }
-    </style>
+
+        @media screen and (max-width: 700px) {
+            body {
+                padding: 8px;
+                overflow-x: hidden;
+            }
+
+            .page {
+                width: 100%;
+                max-width: 100%;
+                min-height: auto;
+                padding: 20px 16px;
+                margin: 0 auto 18px;
+            }
+
+            .buttons,
+            .locked {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            input {
+                width: 100%;
+                max-width: 100%;
+                display: block;
+                margin-top: 6px;
+            }
+
+            .line {
+                display: block;
+                width: 100%;
+                min-width: 0;
+                margin-top: 6px;
+            }
+        }
+
+</style>
 
 <style>
   .print-now-btn {

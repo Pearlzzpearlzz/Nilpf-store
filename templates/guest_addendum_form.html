@@ -1,75 +1,115 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Guest Addendum</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: auto; padding: 30px; line-height: 1.5; }
-    h1, h2 { text-align: center; }
-    .box { border: 1px solid #000; padding: 16px; margin: 16px 0; }
-    label { display: block; margin: 10px 0; }
-    input[type="text"], input[type="date"] { width: 100%; padding: 8px; box-sizing: border-box; }
-    .button { padding: 12px 18px; background: #000; color: #fff; border: 0; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09 – Guest Addendum</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f1ea;
+  margin: 0;
+  padding: 20px;
+  line-height: 1.55;
+}
+
+.page {
+  background: #fff;
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 35px;
+  border: 1px solid #bbb;
+}
+
+h1, h2, .copyright {
+  text-align: center;
+}
+
+h3 {
+  margin-top: 28px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 4px;
+}
+
+label {
+  display: block;
+  margin-top: 18px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 25px;
+  padding: 12px 18px;
+  background: #111;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.footer {
+  margin-top: 30px;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  body { padding: 8px; }
+  .page { padding: 18px; }
+}
+</style>
 </head>
+
 <body>
+<div class="page">
 
-<h1>09 – Guest Addendum</h1>
-<h2>Shared Housing Program</h2>
+{% include "guest_addendum_content.html" %}
 
-<p><strong>Purpose:</strong> This Guest Addendum outlines expectations and responsibilities related to guests within shared housing.</p>
+<form method="POST" action="/guest-addendum/{{ id }}">
 
-<form method="POST">
+<label>Participant Name</label>
+<input
+  type="text"
+  name="participant_name"
+  value="{{ d.get('participant_name') or participant.get('name', '') }}"
+  required
+>
 
-<div class="box">
-  <h3>Participant Information</h3>
+<label>Participant Signature</label>
+<input
+  type="text"
+  name="participant_signature"
+  value="{{ d.get('participant_signature') or participant.get('name', '') }}"
+  required
+>
 
-  <label>Participant Name
-    <input type="text" name="participant_name" value="{{ d.get('participant_name') or participant.get('name', '') }}" required>
-  </label>
+<label>Date</label>
+<input
+  type="date"
+  name="signature_date"
+  value="{{ d.get('signature_date', '') }}"
+>
 
-  <label>Date
-    <input type="date" name="date" value="{{ d.get('date', '') }}">
-  </label>
+<div class="footer">
+<p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
+<p>Version 2.1 — Revised February 2026</p>
 </div>
 
-<div class="box">
-  <h3>Participant Responsibility for Guests</h3>
-
-  <label><input type="checkbox" name="guest_behavior" {% if d.get('guest_behavior') %}checked{% endif %}> Guest behavior and conduct</label>
-  <label><input type="checkbox" name="house_rules" {% if d.get('house_rules') %}checked{% endif %}> Compliance with house rules and community standards</label>
-  <label><input type="checkbox" name="guest_damage" {% if d.get('guest_damage') %}checked{% endif %}> Any damage caused by the guest</label>
-  <label><input type="checkbox" name="rights_of_others" {% if d.get('rights_of_others') %}checked{% endif %}> Guests must not interfere with the rights of others</label>
-</div>
-
-<div class="box">
-  <h3>Guest Limitations</h3>
-
-  <label><input type="checkbox" name="no_living_without_approval" {% if d.get('no_living_without_approval') %}checked{% endif %}> Guests may not live in the residence without written approval</label>
-  <label><input type="checkbox" name="no_mail" {% if d.get('no_mail') %}checked{% endif %}> Guests may not receive mail at the property</label>
-  <label><input type="checkbox" name="no_keys" {% if d.get('no_keys') %}checked{% endif %}> Guests may not receive keys, access codes, or entry devices</label>
-  <label><input type="checkbox" name="no_disruption" {% if d.get('no_disruption') %}checked{% endif %}> Guests may not create disruption, unsafe conditions, or conflict</label>
-</div>
-
-<div class="box">
-  <h3>Overnight Guests</h3>
-
-  <p>Overnight guests are not automatically permitted. Any overnight guest must be approved according to property/operator rules.</p>
-
-  <label><input type="checkbox" name="overnight_acknowledgment" {% if d.get('overnight_acknowledgment') %}checked{% endif %}> I understand overnight guests require approval and are not automatically permitted.</label>
-</div>
-
-<div class="box">
-  <h3>Acknowledgment</h3>
-
-  <label>Participant Signature
-    <input type="text" name="participant_signature" value="{{ d.get('participant_signature') or participant.get('name', '') }}" required>
-  </label>
-</div>
-
-<button class="button" type="submit">Save and Review</button>
+<button type="submit">Save and Review</button>
 
 </form>
-
+</div>
 </body>
 </html>

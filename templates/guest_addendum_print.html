@@ -1,212 +1,168 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Guest Addendum - Review</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f1ea;
-            padding: 30px;
-        }
-        .page {
-            background: white;
-            max-width: 850px;
-            margin: auto;
-            padding: 45px;
-            border: 1px solid #bbb;
-        }
-        h1, h2, h3 {
-            text-align: center;
-        }
-        h3 {
-            text-align: left;
-            border-bottom: 1px solid #222;
-            padding-bottom: 4px;
-            margin-top: 28px;
-        }
-        p, li {
-            font-size: 16px;
-            line-height: 1.55;
-        }
-        .locked {
-            background: #111;
-            color: white;
-            padding: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        .field {
-            border-bottom: 1px solid #000;
-            padding: 6px;
-            min-height: 20px;
-        }
-        a.button {
-            display: inline-block;
-            margin-top: 25px;
-            background: #111;
-            color: white;
-            padding: 12px 18px;
-            text-decoration: none;
-            border-radius: 6px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09 – Guest Addendum – Review</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 
 <style>
-  .print-now-btn {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 9999;
-    background: #d4af37;
-    color: #000;
-    border: 1px solid #8a680f;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f1ea;
+  margin: 0;
+  padding: 20px;
+  line-height: 1.55;
+}
+
+.page {
+  background: #fff;
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 35px;
+  border: 1px solid #bbb;
+}
+
+h1, h2, .copyright {
+  text-align: center;
+}
+
+h3 {
+  margin-top: 28px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 4px;
+}
+
+.field {
+  border-bottom: 1px solid #000;
+  min-height: 30px;
+  padding: 5px 0;
+}
+
+.locked {
+  background: #111;
+  color: #fff;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.actions {
+  margin-top: 30px;
+  padding-top: 18px;
+  border-top: 2px solid #ccc;
+}
+
+.button,
+button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 12px 18px;
+  background: #111;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.print-now-btn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  background: #d4af37;
+  color: #000;
+}
+
+.footer {
+  margin-top: 30px;
+  font-size: 14px;
+}
+
+@media print {
+  .print-now-btn,
+  .actions {
+    display: none !important;
   }
-  @media print {
-    .print-now-btn {
-      display: none !important;
-    }
+
+  body {
+    background: #fff;
+    padding: 0;
   }
-</style>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
+  .page {
+    border: 0;
+    padding: 0;
+  }
+}
 
-<style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
-}
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-}
-@media print{
-  .nilpf-safe-nav{display:none !important;}
+@media (max-width: 600px) {
+  body { padding: 8px; }
+  .page { padding: 18px; }
 }
 </style>
-
 </head>
+
 <body>
 
-<div class="nilpf-safe-nav">
-  <a href="/operations">Exit to Operations</a>
-</div>
+<button class="print-now-btn" type="button" onclick="window.print()">
+Print This Form
+</button>
 
-<button class="print-now-btn" type="button" onclick="window.print()">Print This Form</button>
 <div class="page">
 
 {% if locked %}
-<div class="locked">LOCKED FINAL DOCUMENT</div>
+<div class="locked">FINAL LOCKED DOCUMENT</div>
 {% endif %}
 
-<h1>09 – Guest Addendum</h1>
-<h2>Shared Housing Program</h2>
-<p style="text-align:center;">© 2026 Pearlzz LLC. All Rights Reserved.</p>
-
-<h3>PURPOSE</h3>
-<p>This Guest Addendum outlines expectations and responsibilities related to guests within shared housing program.</p>
-<p>This document applies to shared housing only and does not create supervision, services, or program oversight.</p>
-
-<h3>GUEST DEFINITION</h3>
-<p>A guest is any individual invited onto the premises by a participant who is not an approved participant of the housing.</p>
-
-<h3>PARTICIPANT RESPONSIBILITY FOR GUESTS</h3>
-<p>☐ Guest behavior and conduct {% if d.get('guest_behavior') %}✓{% endif %}</p>
-<p>☐ Compliance with house rules and community standards {% if d.get('house_rules') %}✓{% endif %}</p>
-<p>☐ Any damage caused by the guest {% if d.get('guest_damage') %}✓{% endif %}</p>
-<p>☐ Ensuring guests do not interfere with the rights of others {% if d.get('rights_of_others') %}✓{% endif %}</p>
-
-<h3>GUEST LIMITATIONS</h3>
-<p>☐ Guests may not live in the residence without written approval {% if d.get('no_live_in') %}✓{% endif %}</p>
-<p>☐ Guests may not receive mail at the property {% if d.get('no_receive_mail') %}✓{% endif %}</p>
-<p>☐ Guests may not receive keys, access codes, or entry devices {% if d.get('no_keys') %}✓{% endif %}</p>
-<p>☐ Guests may not create disruption, unsafe conditions, or conflict {% if d.get('no_disruption') %}✓{% endif %}</p>
-
-<h3>OVERNIGHT GUESTS</h3>
-<p>Overnight guests are not automatically permitted. Any overnight guest must be approved according to house rules and property expectations.</p>
-<p><strong>Notes:</strong></p>
-<div class="field">{{ d.get('overnight_guest_notes','') }}</div>
-
-<h3>NO TENANCY OR OCCUPANCY RIGHTS</h3>
-<p>Guests do not obtain tenancy, residency, program participation, or occupancy rights by visiting the property.</p>
-
-<h3>PROPERTY OWNER / HOUSING PROVIDER RIGHTS</h3>
-<p>The housing provider may restrict or prohibit guests who violate house rules, create disruption, damage property, threaten safety, or interfere with the rights of other participants.</p>
-
-<h3>PARTICIPANT ACKNOWLEDGEMENT</h3>
+{% include "guest_addendum_content.html" %}
 
 <p><strong>Participant Name:</strong></p>
-<div class="field">{{ d.get('participant_name','') }}</div>
+<div class="field">{{ d.get('participant_name', '') }}</div>
 
 <p><strong>Participant Signature:</strong></p>
-<div class="field">{{ d.get('participant_signature','') }}</div>
+<div class="field">{{ d.get('participant_signature', '') }}</div>
 
 <p><strong>Date:</strong></p>
-<div class="field">{{ d.get('signature_date','') }}</div>
-<p><strong>Date:</strong></p>
+<div class="field">{{ d.get('signature_date', '') }}</div>
 
+<div class="footer">
+<p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
+<p>Version 2.1 — Revised February 2026</p>
+</div>
 
+<div class="actions">
 {% if locked %}
-<div class="locked">FINAL LOCKED DOCUMENT</div>
 <p><a class="button" href="/packet-builder/{{ id }}">Return to Packet Builder</a></p>
 {% else %}
 <p><a class="button" href="/guest-addendum-unlock/{{ id }}">Edit</a></p>
-<form method="POST" action="/guest-addendum-final/{{ id }}" onsubmit="return disableFinalLock(this)">
-    <button type="submit">Final Lock</button>
+
+<form method="POST"
+      action="/guest-addendum-final/{{ id }}"
+      onsubmit="return disableFinalLock(this)">
+  <button type="submit">Final Lock</button>
 </form>
 {% endif %}
+</div>
 
 </div>
 
 <script>
-{% if locked %}
-document.querySelectorAll("input, textarea, select").forEach(el => {
-    el.setAttribute("readonly","readonly");
-    el.setAttribute("disabled","disabled");
-});
-{% endif %}
-</script>
+function disableFinalLock(form) {
+  const btn = form.querySelector('button[type="submit"]');
 
-<script>
-function disableFinalLock(formOrButton) {
-  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
-  if (btn) {
-    if (btn.dataset.locking === "1") {
-      return false;
-    }
-    btn.dataset.locking = "1";
-    btn.disabled = true;
-    btn.innerText = "Locking...";
-  }
-  return true;
-}
+  if (!btn) return true;
+  if (btn.dataset.locking === "1") return false;
 
-function disableFinalLockLink(link) {
-  if (link.dataset.locking === "1") {
-    return false;
-  }
-  link.dataset.locking = "1";
-  link.style.pointerEvents = "none";
-  link.innerText = "Locking...";
+  btn.dataset.locking = "1";
+  btn.disabled = true;
+  btn.innerText = "Locking...";
   return true;
 }
 </script>
