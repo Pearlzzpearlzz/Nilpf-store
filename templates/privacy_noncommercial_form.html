@@ -75,7 +75,7 @@
 <input type="text" name="participant_signature" value="{{ d.get('participant_signature') or participant.get('name', '') }}">
 
 <p><strong>Date:</strong></p>
-<input class="small" type="text" name="signature_date" value="{{ d.get('signature_date', '') }}">
+<input class="small" type="date" id="signature_date" name="signature_date" value="{{ d.get('signature_date', '') }}">
 
 <div class="footer">
 <p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
@@ -87,5 +87,21 @@
 <button type="submit">Save / Review</button>
 </form>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const dateField = document.getElementById("signature_date");
+
+  if (dateField && !dateField.value) {
+    const now = new Date();
+    const localDate = new Date(
+      now.getTime() - now.getTimezoneOffset() * 60000
+    ).toISOString().split("T")[0];
+
+    dateField.value = localDate;
+  }
+});
+</script>
+
 </body>
 </html>
