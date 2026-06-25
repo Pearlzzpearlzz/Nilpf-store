@@ -2,120 +2,159 @@
 <html>
 <head>
 <title>Property & Personal Belongings - Review</title>
-<style>
-  .print-now-btn {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 9999;
-    background: #d4af37;
-    color: #000;
-    border: 1px solid #8a680f;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  }
-  @media print {
-    .print-now-btn {
-      display: none !important;
-    }
-  }
-</style>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_responsive.css') }}">
 
 <style>
-.nilpf-safe-nav{
-  position:sticky;
-  top:0;
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background:#050505;
-  border-bottom:2px solid #D4AF37;
+.print-now-btn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  background: #d4af37;
+  color: #000;
+  border: 1px solid #8a680f;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
-.nilpf-safe-nav a{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:8px;
-  background:#D4AF37;
-  color:#000 !important;
-  font-weight:bold;
-  text-decoration:none;
-  font-family:Arial,sans-serif;
-  font-size:14px;
+
+.nilpf-safe-nav {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  background: #050505;
+  border-bottom: 2px solid #D4AF37;
 }
-@media print{
-  .nilpf-safe-nav{display:none !important;}
+
+.nilpf-safe-nav a {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #D4AF37;
+  color: #000 !important;
+  font-weight: bold;
+  text-decoration: none;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+@media print {
+  .print-now-btn,
+  .nilpf-safe-nav,
+  .review-actions {
+    display: none !important;
+  }
 }
 </style>
-
 </head>
+
 <body>
 
 <div class="nilpf-safe-nav">
   <a href="/operations">Exit to Operations</a>
 </div>
 
-<button class="print-now-btn" type="button" onclick="window.print()">Print This Form</button>
-<h2>PROPERTY & PERSONAL BELONGINGS ACKNOWLEDGMENT</h2>
+<button class="print-now-btn" type="button" onclick="window.print()">
+  Print This Form
+</button>
+
+<div class="mobile-container">
+
+<h2>PROPERTY &amp; PERSONAL BELONGINGS ACKNOWLEDGMENT</h2>
 <p>© 2026 Pearlzz LLC. All Rights Reserved.</p>
-<p><strong>Participant Name:</strong> {{ d.participant_name }}</p>
-<p><strong>Participant Signature:</strong> {{ d.participant_signature }}</p>
-<p><strong>Date:</strong> {{ d.signature_date }}</p>
+
+<p>
+This housing environment does not provide storage services,
+property supervision, or asset protection.
+</p>
+
+<p>
+Participants are solely responsible for all personal belongings
+brought onto or stored within the premises.
+</p>
+
+<p><strong>The Operator is not responsible for:</strong></p>
+
+<ul>
+  <li>Theft</li>
+  <li>Loss</li>
+  <li>Damage</li>
+  <li>Misplacement</li>
+  <li>Items left unattended in common areas</li>
+  <li>Personal property disputes between participants</li>
+</ul>
+
+<p>
+Participants are encouraged to maintain renter’s insurance or
+personal property insurance if they desire additional protection.
+</p>
+
+<p>
+By signing below, the Participant acknowledges full responsibility
+for their personal belongings and releases the Operator from liability
+relating to personal property loss or damage, except where required by law.
+</p>
+
 <hr>
 
-<div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
+<p>
+  <strong>Participant Name:</strong><br>
+  {{ d.get('participant_name', participant.get('name', '')) }}
+</p>
+
+<p>
+  <strong>Participant Signature:</strong><br>
+  {{ d.get('participant_signature', participant.get('name', '')) }}
+</p>
+
+<p>
+  <strong>Date:</strong><br>
+  {{ d.get('signature_date', '') }}
+</p>
+
+<div class="review-actions"
+     style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
 
 {% if locked %}
+
 <p><strong>FINAL LOCKED DOCUMENT</strong></p>
-<p><a href="/pet-animal/{{ id }}">Continue to Next Form</a></p>
 
 {% else %}
+
 <p><a href="/property-belongings-unlock/{{ id }}">Edit</a></p>
 
-<form method="POST" action="/property-belongings-final/{{ id }}" onsubmit="return disableFinalLock(this)">
-    <button type="submit">Final Lock</button>
+<form method="POST"
+      action="/property-belongings-final/{{ id }}"
+      onsubmit="return disableFinalLock(this)">
+  <button type="submit">Final Lock</button>
 </form>
+
 {% endif %}
 
 </div>
+</div>
 
 <script>
-{% if locked %}
-document.querySelectorAll("input, textarea, select").forEach(el => {
-    el.setAttribute("readonly","readonly");
-    el.setAttribute("disabled","disabled");
-});
-{% endif %}
-</script>
+function disableFinalLock(form) {
+  const btn = form.querySelector('button[type="submit"]');
 
-
-<script>
-function disableFinalLock(formOrButton) {
-  const btn = formOrButton.querySelector ? formOrButton.querySelector('button[type="submit"]') : formOrButton;
   if (btn) {
     if (btn.dataset.locking === "1") {
       return false;
     }
+
     btn.dataset.locking = "1";
     btn.disabled = true;
     btn.innerText = "Locking...";
   }
-  return true;
-}
 
-function disableFinalLockLink(link) {
-  if (link.dataset.locking === "1") {
-    return false;
-  }
-  link.dataset.locking = "1";
-  link.style.pointerEvents = "none";
-  link.innerText = "Locking...";
   return true;
 }
 </script>

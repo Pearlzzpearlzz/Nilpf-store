@@ -72,7 +72,7 @@
 <input type="text" name="participant_signature" value="{{ d.get('participant_signature') or participant.get('name', '') }}"></p>
 
 <p><strong>Date:</strong><br>
-<input type="text" name="signature_date" value="{{ d.get('signature_date', '') }}"></p>
+<input type="date" id="signature_date" name="signature_date" value="{{ d.get('signature_date', '') }}"></p>
 <br>
 
 <button type="submit">Save</button>
@@ -80,5 +80,19 @@
 </form>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const dateField = document.getElementById("signature_date");
+  if (dateField && !dateField.value) {
+    const now = new Date();
+    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .split("T")[0];
+    dateField.value = localDate;
+  }
+});
+</script>
+
 </body>
 </html>
