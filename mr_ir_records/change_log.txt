@@ -299,3 +299,15 @@ Remaining:
 - Voluntary Participation date/button cleanup.
 - Emergency Contact and Guest Addendum date auto-fill.
 - Entry Screening outdated wording.
+
+2026-06-25 — Sensitivity Vault Encryption Documentation
+
+Confirmed:
+- `FERNET_KEY` is the required Render environment variable.
+- The secret key value is not stored in Git or Mr. IR.
+- Sensitivity Vault encryption is active through `storage/security_engine.py`.
+- Selected restricted fields are encrypted before save and decrypted only for authorized Vault views.
+- Participant name and PID remain readable for record association.
+- Commit `fb1a5aa` added restricted field encryption.
+- Commit `1d00d18` added Admin Records entry.
+- Commit `497b8e4` added the Vault unlock control.

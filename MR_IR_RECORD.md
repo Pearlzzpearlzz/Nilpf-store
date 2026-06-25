@@ -114,3 +114,44 @@ Status: Working on Render.
 Property Belongings was repaired with automatic date entry and a full true-to-sight review page. The obsolete duplicate Privacy Acknowledgment was detached from all active flow, packet, export, and continuation wiring. The approved Privacy Noncommercial acknowledgment was retained, its date now auto-fills, and progression to Vehicle Parking was verified on Render.
 
 Security history also confirms that restricted Sensitivity Vault fields were encrypted in commit `fb1a5aa`, with admin entry and unlock controls added in commits `1d00d18` and `497b8e4`.
+
+## 2026-06-25 — Sensitivity Vault Fernet Encryption Record
+
+Security implementation confirmed from commit `fb1a5aa`.
+
+Environment:
+- Encryption key variable: `FERNET_KEY`
+- The key is stored in the Render environment.
+- The secret value is not stored in Git, source code, logs, or Mr. IR.
+- The Security Engine raises an error if `FERNET_KEY` is missing.
+
+Encrypted Sensitivity Vault fields:
+- date_of_birth
+- dob_data_quality
+- ssn
+- ssn_data_quality
+- hopwa_eligibility_status
+- psh_disability_status
+- chronic_homelessness_status
+- verification_source
+- staff_verification_notes
+- operator_notes
+
+Readable association fields:
+- participant_name
+- participant_pid
+
+Behavior:
+- Selected Vault fields are encrypted before participant data is saved.
+- Existing Fernet ciphertext is not encrypted twice.
+- Legacy plaintext values remain readable during migration.
+- Encrypted values are decrypted only for the authorized Vault form and review views.
+- Decryption failures return an empty value rather than exposing invalid data.
+- Final Lock marks the Vault record completed and returns to Admin Forms.
+- Unlock control was added in commit `497b8e4`.
+- Admin-record access was added in commit `1d00d18`.
+
+Security engine:
+- File: `storage/security_engine.py`
+- Encryption method: Fernet symmetric encryption
+- Audit integrity hashing: SHA-256
