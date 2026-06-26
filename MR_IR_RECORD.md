@@ -177,3 +177,13 @@ Validation completed:
 - Git diff check passed.
 
 Live Render verification remains pending.
+
+## 2026-06-25 — Skip for Now Button Width Repair
+
+The injected Skip for Now control now overrides the shared mobile full-width button rule. It remains a compact fixed button in the bottom-right corner without changing Save / Review or other application buttons.
+
+Validation completed:
+- `app.py` compilation passed.
+- Git diff check passed.
+
+Live Render verification remains pending.

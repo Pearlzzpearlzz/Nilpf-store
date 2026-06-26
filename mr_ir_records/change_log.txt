@@ -350,3 +350,18 @@ Verified:
 
 Pending:
 - Live Render verification of date auto-fill, visible Save / Review, review page, and Final Lock progression.
+
+2026-06-25 — Skip for Now Button Width Repair
+
+Completed:
+- Added a targeted CSS override for the injected Skip for Now button.
+- Prevented the shared mobile stylesheet from stretching the Skip button across the full screen.
+- Preserved the fixed bottom-right position and existing confirmation behavior.
+- No other form buttons were changed.
+
+Verified:
+- Python compilation passed.
+- Git diff check passed.
+
+Pending:
+- Live Render verification that Skip for Now remains compact on phone and desktop.

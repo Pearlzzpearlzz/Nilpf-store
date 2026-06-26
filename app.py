@@ -3887,9 +3887,13 @@ def add_skip_for_now_control(response):
   box-shadow: 0 4px 18px rgba(0,0,0,.45);
 }}
 .nilpf-skip-for-now button {{
+  display: inline-block !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
   border: 0;
   border-radius: 8px;
-  padding: 11px 16px;
+  padding: 11px 16px !important;
   background: #d4af37;
   color: #000;
   font-weight: bold;
