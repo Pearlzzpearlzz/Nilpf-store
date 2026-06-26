@@ -331,3 +331,22 @@ Verified:
 
 Pending:
 - Live Render verification of date auto-fill, Save/Review, and Final Lock progression to Voluntary Participation.
+
+2026-06-25 — Voluntary Participation Form Cleanup
+
+Completed:
+- Moved Save / Review inside the main white form page so the sticky Skip for Now bar no longer covers it.
+- Changed signature date to a date field.
+- Added automatic local-date entry when the field is blank.
+- Added participant name and signature fallback from the participant record.
+- Removed the obsolete “End of Acknowledgement” page.
+- Removed the outdated locked-page Incident Report continuation link.
+
+Verified:
+- Voluntary Participation form template loads successfully.
+- Voluntary Participation print template loads successfully.
+- Python compilation passed.
+- Git diff check passed.
+
+Pending:
+- Live Render verification of date auto-fill, visible Save / Review, review page, and Final Lock progression.

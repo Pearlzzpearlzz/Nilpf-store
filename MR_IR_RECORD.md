@@ -166,3 +166,14 @@ Validation completed:
 - Git diff check passed.
 
 Live Render verification remains pending.
+
+## 2026-06-25 — Voluntary Participation Form Cleanup
+
+The Voluntary Participation Acknowledgement was repaired by moving Save / Review into the visible form page, adding automatic local-date entry, and preserving participant name and signature fallbacks. The obsolete “End of Acknowledgement” page and old Incident Report continuation link were removed.
+
+Validation completed:
+- Jinja form and print templates passed.
+- `app.py` compilation passed.
+- Git diff check passed.
+
+Live Render verification remains pending.

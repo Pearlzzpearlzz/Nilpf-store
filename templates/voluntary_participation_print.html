@@ -241,12 +241,12 @@
 
     <div class="field-row">
         Participant Name:
-        <span class="line">{{ d.get('participant_name','') }}</span>
+        <span class="line">{{ d.get('participant_name', participant.get('name', '')) }}</span>
     </div>
 
     <div class="field-row">
         Signature:
-        <span class="line">{{ d.get('participant_signature','') }}</span>
+        <span class="line">{{ d.get('participant_signature', participant.get('name', '')) }}</span>
     </div>
 
     <div class="field-row">
@@ -255,20 +255,12 @@
     </div>
 </div>
 
-<div class="page">
-    <p>End of Acknowledgement</p>
-</div>
-
-
-
-
 <hr>
 
 <div class="review-actions" style="margin-top:25px; padding-top:15px; border-top:2px solid #ccc;">
 
 {% if locked %}
 <p><strong>FINAL LOCKED DOCUMENT</strong></p>
-<p><a href="/incident-report/{{ id }}">Continue to Next Form</a></p>
 
 {% else %}
 <p><a href="/voluntary-participation-unlock/{{ id }}">Edit</a></p>
