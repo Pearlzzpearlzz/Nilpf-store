@@ -311,3 +311,23 @@ Confirmed:
 - Commit `fb1a5aa` added restricted field encryption.
 - Commit `1d00d18` added Admin Records entry.
 - Commit `497b8e4` added the Vault unlock control.
+
+2026-06-25 — Security Camera Form Cleanup
+
+Completed:
+- Removed duplicate operator Date field from Security Camera form.
+- Changed participant signature date to a date field.
+- Added automatic local-date entry when the field is blank.
+- Added participant name and signature fallback from the participant record.
+- Removed duplicate Date output from the review page.
+- Removed obsolete “End of Form” text.
+- Removed the old locked-page “Continue to Next Form” link so active flow remains controlled by app.py.
+
+Verified:
+- Security Camera form template loads successfully.
+- Security Camera print template loads successfully.
+- Python compilation passed.
+- Git diff check passed.
+
+Pending:
+- Live Render verification of date auto-fill, Save/Review, and Final Lock progression to Voluntary Participation.

@@ -155,3 +155,14 @@ Security engine:
 - File: `storage/security_engine.py`
 - Encryption method: Fernet symmetric encryption
 - Audit integrity hashing: SHA-256
+
+## 2026-06-25 — Security Camera Form Cleanup
+
+The Common Area Security Camera Disclosure was repaired by removing the obsolete second Date field, adding automatic local-date entry, and preserving participant name and signature fallbacks. The review page now displays one Date only, no longer shows “End of Form,” and no longer contains an outdated hardcoded continuation link.
+
+Validation completed:
+- Jinja form and print templates passed.
+- `app.py` compilation passed.
+- Git diff check passed.
+
+Live Render verification remains pending.

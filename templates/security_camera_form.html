@@ -67,17 +67,13 @@
 <form method="POST" action="/security-camera/{{ id }}">
 
 <p>Participant Name:</p>
-<input type="text" name="participant_name" value="{{ d.get('participant_name', '') }}"><br><br>
+<input type="text" name="participant_name" value="{{ d.get('participant_name') or participant.get('name', '') }}"><br><br>
 
 <p>Participant Signature:</p>
-<input type="text" name="participant_signature" value="{{ d.get('participant_signature','') }}"><br><br>
+<input type="text" name="participant_signature" value="{{ d.get('participant_signature') or participant.get('name', '') }}"><br><br>
 
 <p>Date:</p>
-<input type="text" name="signature_date" value="{{ d.get('signature_date', '') }}"><br><br>
-<br><br>
-
-<p>Date:</p>
-<input type="text" name="operator_date" value="{{ d.operator_date }}"><br><br>
+<input type="date" id="signature_date" name="signature_date" value="{{ d.get('signature_date', '') }}"><br><br>
 
 <button type="submit">Save</button>
 </form>
@@ -88,5 +84,21 @@
 <p><strong>Version 2.1 — Revised February 2026</strong></p>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const dateField = document.getElementById("signature_date");
+
+  if (dateField && !dateField.value) {
+    const now = new Date();
+    const localDate = new Date(
+      now.getTime() - now.getTimezoneOffset() * 60000
+    ).toISOString().split("T")[0];
+
+    dateField.value = localDate;
+  }
+});
+</script>
+
 </body>
 </html>

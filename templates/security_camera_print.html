@@ -98,12 +98,9 @@ a { display:inline-block; margin:8px 0; }
 
 <h3>ACKNOWLEDGEMENT</h3>
 
-<p><strong>Participant Name:</strong> <span class="line">{{ d.participant_name }}</span></p>
-<p><strong>Participant Signature:</strong> <span class="line">{{ d.participant_signature }}</span></p>
-<p><strong>Date:</strong> <span class="small-line">{{ d.signature_date }}</span></p>
-<p><strong>Date:</strong> <span class="small-line">{{ d.operator_date }}</span></p>
-
-<p><strong>End of Form</strong></p>
+<p><strong>Participant Name:</strong> <span class="line">{{ d.get('participant_name', participant.get('name', '')) }}</span></p>
+<p><strong>Participant Signature:</strong> <span class="line">{{ d.get('participant_signature', participant.get('name', '')) }}</span></p>
+<p><strong>Date:</strong> <span class="small-line">{{ d.get('signature_date', '') }}</span></p>
 
 <div class="footer">
 <p>Single-Site License Granted to Purchaser. Unauthorized Reproduction, Distribution, or Derivative Use Prohibited.</p>
@@ -113,7 +110,6 @@ a { display:inline-block; margin:8px 0; }
 <div class="review-actions">
 {% if locked %}
 <p class="locked-banner">FINAL LOCKED DOCUMENT</p>
-<p><a href="/voluntary-participation/{{ id }}">Continue to Next Form</a></p>
 {% else %}
 <p><a href="/security-camera-unlock/{{ id }}">Edit</a></p>
 <form method="POST" action="/security-camera-final/{{ id }}" onsubmit="return disableFinalLock(this)">
