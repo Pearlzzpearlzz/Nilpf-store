@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TH~OS Bed Management</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='bed_management.css') }}">
+</head>
+<body>
+<header><div><strong>NILPF / TH OPERATIONS</strong><small>Housing Operations System</small></div><h1>Bed Count &amp; Occupancy</h1><nav><a href="/home">Home</a><a href="/participants">Participants</a><a href="{{ url_for('bed_management.assignment_history') }}">Assignment History</a></nav></header>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+  <section class="toolbar">
+    <form method="post" action="{{ url_for('bed_management.add_facility') }}"><label>Facility / Property</label><div><input name="name" placeholder="Property name" required><button>Add Property</button></div></form>
+    {% if facilities %}<form method="get"><label>Current Facility</label><div><select name="facility_id" onchange="this.form.submit()">{% for f in facilities %}<option value="{{ f.id }}" {% if f.id==facility_id %}selected{% endif %}>{{ f.name }}</option>{% endfor %}</select><noscript><button>Open</button></noscript></div></form>{% endif %}
+    {% if facility_id %}<form method="post" action="{{ url_for('bed_management.add_area') }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><label>Area or Room</label><div><input name="name" placeholder="e.g., Men's Dorm" required><button>Add Area</button></div></form>{% endif %}
+  </section>
+
+  {% if facility_id %}
+  <section class="stats">
+    <article><span>Capacity</span><strong>{{ stats.capacity }}</strong></article>
+    <article><span>Occupied</span><strong>{{ stats.occupied }}</strong></article>
+    <article class="available"><span>Available</span><strong>{{ stats.available }}</strong></article>
+    <article class="oos"><span>Out of Service</span><strong>{{ stats.out_of_service }}</strong></article>
+    <article class="occupancy"><span>Occupancy</span><strong>{{ stats.occupancy }}%</strong><small>Occupied ÷ total capacity</small></article>
+  </section>
+
+  <div class="layout">
+    <aside>
+      <h2>Areas / Rooms</h2>
+      <a class="area {% if not area_id %}active{% endif %}" href="{{ url_for('bed_management.dashboard', facility_id=facility_id) }}">All Areas <span>{{ stats.capacity }}</span></a>
+      {% for area in areas %}<a class="area {% if area.id==area_id %}active{% endif %}" href="{{ url_for('bed_management.dashboard', facility_id=facility_id, area_id=area.id) }}">{{ area.name }} <span>{{ area.capacity }}</span></a>{% endfor %}
+      {% if areas %}<form class="generator" method="post" action="{{ url_for('bed_management.generate_spaces') }}">
+        <h3>Automatically Generate Spaces</h3><input type="hidden" name="facility_id" value="{{ facility_id }}">
+        <label>Area / Room<select name="area_id" required>{% for area in areas %}<option value="{{ area.id }}" {% if area.id==area_id %}selected{% endif %}>{{ area.name }}</option>{% endfor %}</select></label>
+        <label>Type<select name="space_type">{% for kind in space_types %}<option>{{ kind }}</option>{% endfor %}</select></label>
+        <div class="two"><label>Label prefix<input name="prefix" value="Bed"></label><label>Start #<input type="number" name="start" min="1" value="1"></label></div>
+        <label>Number of spaces<input type="number" name="count" min="1" max="400" value="4" required></label>
+        <button>Generate Spaces</button>
+      </form>{% endif %}
+    </aside>
+
+    <section class="inventory">
+      <form class="filters" method="get"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input type="hidden" name="area_id" value="{{ area_id or '' }}">
+        <input name="q" value="{{ q }}" placeholder="Search spaces, areas, PID, or participant">
+        <select name="status"><option value="">All Statuses</option>{% for item in statuses %}<option {% if status==item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
+        <select name="space_type"><option value="">All Types</option>{% for item in space_types %}<option {% if space_type==item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
+        <button>Filter</button>
+      </form>
+      <div class="table-wrap"><table><thead><tr><th>Area / Room</th><th>Space</th><th>Type</th><th>Status</th><th>Assigned Participant</th><th>Actions</th></tr></thead><tbody>
+      {% for space in spaces %}<tr><td>{{ space.area_name }}</td><td><strong>{{ space.label }}</strong></td><td>{{ space.space_type }}</td><td><span class="status {{ space.status|lower|replace(' ','-') }}">{{ space.status }}</span></td><td>{% if space.participant_id %}<strong>PID {{ space.participant_id }}</strong>{% if space.participant_name %} — {{ space.participant_name }}{% endif %}{% else %}—{% endif %}</td><td>
+        {% if space.status=='Available' %}<form method="post" action="{{ url_for('bed_management.assign_space', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input type="hidden" name="area_id" value="{{ area_id or '' }}"><select name="participant_id" required><option value="">Assign PID…</option>{% for p in participants %}<option value="{{ p.pid }}">PID {{ p.pid }} — {{ p.name }}</option>{% endfor %}</select><button>Assign</button></form><form method="post" action="{{ url_for('bed_management.change_status', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input type="hidden" name="new_status" value="Out of Service"><button class="muted">Out of Service</button></form>
+        {% elif space.status=='Occupied' %}<form method="post" action="{{ url_for('bed_management.unassign_space', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input name="reason" placeholder="Reason (optional)"><button>Unassign</button></form>
+        {% else %}<form method="post" action="{{ url_for('bed_management.change_status', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input type="hidden" name="new_status" value="Available"><button>Return to Service</button></form>{% endif %}
+      </td></tr>{% else %}<tr><td colspan="6" class="empty">No sleeping spaces match these filters.</td></tr>{% endfor %}
+      </tbody></table></div>
+      <footer><span>Showing {{ ((page-1)*per_page+1) if total else 0 }}–{{ [page*per_page,total]|min }} of {{ total }} spaces</span><div>{% if page>1 %}<a href="{{ url_for('bed_management.dashboard', facility_id=facility_id, area_id=area_id, q=q, status=status, space_type=space_type, page=page-1, per_page=per_page) }}">Previous</a>{% endif %}<strong>Page {{ page }} of {{ pages }}</strong>{% if page<pages %}<a href="{{ url_for('bed_management.dashboard', facility_id=facility_id, area_id=area_id, q=q, status=status, space_type=space_type, page=page+1, per_page=per_page) }}">Next</a>{% endif %}<form method="get"><input type="hidden" name="facility_id" value="{{ facility_id }}"><select name="per_page" onchange="this.form.submit()">{% for n in (20,50,100) %}<option value="{{ n }}" {% if per_page==n %}selected{% endif %}>{{ n }} / page</option>{% endfor %}</select></form></div></footer>
+    </section>
+  </div>
+  {% else %}<section class="empty-state"><h2>Add your first facility/property</h2><p>Then create an area or room and automatically generate its sleeping spaces.</p></section>{% endif %}
+</main></body></html>

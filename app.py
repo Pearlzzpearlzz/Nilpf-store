@@ -1835,6 +1835,7 @@ def app_home():
         <div class="topbar">
           <a href="/documents?tab=dashboard">Dashboard</a>
           <a href="/participants">Participants</a>
+          <a href="/bed-management">Bed Management</a>
           <a href="/notes">Notes</a>
           <a href="/logout">Logout</a>
         </div>
@@ -1856,6 +1857,12 @@ def app_home():
               <h2>Operational Framework</h2>
               <p>Return to the main framework and document workspace.</p>
               <a class="btn" href="/documents?tab=dashboard">Open Framework</a>
+            </div>
+
+            <div class="card">
+              <h2>Bed Count &amp; Occupancy</h2>
+              <p>Manage facilities, areas, sleeping spaces, availability, and participant assignments.</p>
+              <a class="btn" href="/bed-management">Open Bed Management</a>
             </div>
 
             <div class="card">
@@ -4984,6 +4991,10 @@ def form_builder_save():
     out = layout_dir / f"{clean_name}.json"
     out.write_text(json.dumps(clean_fields, indent=2))
     return {"ok": True, "message": f"Layout saved to {out.name}."}
+
+
+from bed_management import register_bed_management
+register_bed_management(app)
 
 
 if __name__ == "__main__":
