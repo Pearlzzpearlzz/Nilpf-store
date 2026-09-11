@@ -106,6 +106,17 @@ def _redirect_dashboard(**overrides):
 def _ensure_schema():
     init_bed_management_db()
 
+    # ============================================================
+    # TH~OS BED MANAGEMENT RBAC GATE
+    # Restricts scalable Bed Management to roles with bed_manage.
+    # Keeps standalone Bed Management tests independent of app.py.
+    # ============================================================
+    permission_checker = current_app.config.get("BED_PERMISSION_CHECKER")
+
+    if callable(permission_checker) and not permission_checker("bed_manage"):
+        flash("You do not have permission to manage bed count or occupancy.")
+        return redirect(url_for("operations"))
+
 
 @bed_management.get("/bed-management")
 def dashboard():

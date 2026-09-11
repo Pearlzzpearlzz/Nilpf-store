@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Access</title>
+<style>
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:#050505;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+.wrap {
+  width:94%;
+  max-width:1100px;
+  margin:30px auto;
+}
+h1 { color:#d4af37; margin-bottom:6px; }
+.sub { color:#bbb; margin-bottom:24px; }
+.panel {
+  border:1px solid #8f7425;
+  border-radius:16px;
+  background:#0b0b0b;
+  padding:20px;
+  margin-bottom:24px;
+}
+label {
+  display:block;
+  margin-top:12px;
+  margin-bottom:5px;
+  font-weight:bold;
+}
+input, select {
+  width:100%;
+  padding:11px;
+  border-radius:8px;
+  border:1px solid #6d5a20;
+  background:#151515;
+  color:#fff;
+}
+button, .btn {
+  display:inline-block;
+  margin-top:16px;
+  padding:11px 18px;
+  border-radius:8px;
+  border:1px solid #d4af37;
+  background:#d4af37;
+  color:#000;
+  font-weight:bold;
+  text-decoration:none;
+  cursor:pointer;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+th, td {
+  padding:11px 8px;
+  border-bottom:1px solid #333;
+  text-align:left;
+}
+th { color:#d4af37; }
+.status-active { color:#8ee58e; font-weight:bold; }
+.status-inactive { color:#ff9d9d; font-weight:bold; }
+.flash {
+  padding:10px 12px;
+  margin-bottom:14px;
+  border:1px solid #d4af37;
+  border-radius:8px;
+}
+@media (max-width:700px) {
+  table, thead, tbody, th, td, tr { display:block; }
+  thead { display:none; }
+  tr {
+    border:1px solid #333;
+    border-radius:10px;
+    margin-bottom:12px;
+    padding:8px;
+  }
+  td { border:none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Staff Access & Roles</h1>
+<div class="sub">
+Create property staff accounts and assign access by job function.
+</div>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="flash">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="panel">
+<h2>Add Staff Account</h2>
+
+<form method="POST">
+  <label>Staff Name</label>
+  <input type="text" name="name" required>
+
+  <label>Email Address</label>
+  <input type="email" name="email" required>
+
+  <label>Temporary Password</label>
+  <input type="password" name="password" required>
+
+  <label>Access Role</label>
+  <select name="role" required>
+    <option value="">Select role</option>
+    {% for role_key, role_data in roles.items() %}
+      <option value="{{ role_key }}">{{ role_data.label }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit">Create Staff Account</button>
+</form>
+</div>
+
+<div class="panel">
+<h2>Authorized Staff</h2>
+
+{% if users %}
+<table>
+<thead>
+<tr>
+  <th>Name</th>
+  <th>Email</th>
+  <th>Role</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody>
+{% for user in users %}
+<tr>
+  <td>{{ user.name }}</td>
+  <td>{{ user.email }}</td>
+  <td>
+    {% if user.role in roles %}
+      {{ roles[user.role].label }}
+    {% else %}
+      {{ user.role }}
+    {% endif %}
+  </td>
+  <td>
+    {% if user.active %}
+      <span class="status-active">Active</span>
+    {% else %}
+      <span class="status-inactive">Inactive</span>
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p>No staff accounts have been created for this property.</p>
+{% endif %}
+</div>
+
+<a class="btn" href="{{ url_for('operations') }}">Back to Operations</a>
+
+</div>
+</body>
+</html>

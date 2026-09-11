@@ -9,8 +9,123 @@ import json
 import os
 from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+# ============================================================
+# TH~OS RBAC ROLE & PERMISSION SYSTEM
+# Recovered from tested WSL build - 2026-09-10
+# Controls staff roles, permissions, and protected operations.
+# ============================================================
+
+RBAC_ROLES = {
+    "owner_admin": {
+        "label": "Owner / Executive Admin",
+        "permissions": [
+            "single_form_manage",
+            "packet_builder_manage",
+            "checkin_manage",
+            "certifications_manage",
+            "participant_view",
+            "participant_edit",
+            "service_records",
+            "bed_manage",
+            "nightly_check",
+            "waitlist_manage",
+            "maintenance_manage",
+            "funding_view",
+            "audit_view",
+            "audit_run",
+            "property_papers_manage",
+            "export",
+            "staff_manage",
+            "sensitivity_vault",
+        ],
+    },
+    "program_admin": {
+        "label": "Program Administrator",
+        "permissions": [
+            "single_form_manage",
+            "packet_builder_manage",
+            "checkin_manage",
+            "certifications_manage",
+            "participant_view",
+            "participant_edit",
+            "service_records",
+            "bed_manage",
+            "nightly_check",
+            "waitlist_manage",
+            "maintenance_manage",
+            "funding_view",
+            "audit_view",
+            "audit_run",
+            "property_papers_manage",
+            "export",
+        ],
+    },
+    "case_management": {
+        "label": "Case Management",
+        "permissions": [
+            "single_form_manage",
+            "packet_builder_manage",
+            "participant_view",
+            "participant_edit",
+            "service_records",
+            "waitlist_manage",
+        ],
+    },
+    "housing_placement": {
+        "label": "Housing / Placement",
+        "permissions": [
+            "participant_view",
+            "bed_manage",
+            "waitlist_manage",
+        ],
+    },
+    "operations_residential": {
+        "label": "Operations / Residential",
+        "permissions": [
+            "checkin_manage",
+            "participant_view",
+            "bed_manage",
+            "nightly_check",
+        ],
+    },
+    "facilities_maintenance": {
+        "label": "Facilities / Maintenance",
+        "permissions": [
+            "maintenance_manage",
+        ],
+    },
+    "finance_funding": {
+        "label": "Finance / Funding",
+        "permissions": [
+            "funding_view",
+            "audit_view",
+            "audit_run",
+            "export",
+        ],
+    },
+    "auditor_reviewer": {
+        "label": "Auditor / Reviewer",
+        "permissions": [
+            "audit_view",
+        ],
+    },
+}
+
+
+def current_user_role():
+    return session.get("user_role", "")
+
+
+def current_permissions():
+    role = current_user_role()
+    return set(RBAC_ROLES.get(role, {}).get("permissions", []))
+
+
+def has_permission(permission_name):
+    return permission_name in current_permissions()
 
 # Render runs Flask behind a reverse proxy; trust forwarded HTTPS/session headers.
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_for=1)
@@ -757,6 +872,23 @@ def load_activation():
 def save_activation(data):
     return storage.save_activation(data)
 
+
+# ============================================================
+# TH~OS RBAC STAFF ACCOUNT STORAGE
+# Stores authorized staff accounts inside activation data.
+# ============================================================
+
+def get_rbac_users():
+    activation = load_activation() or {}
+    users = activation.get("rbac_users", [])
+    return users if isinstance(users, list) else []
+
+
+def save_rbac_users(users):
+    activation = load_activation() or {}
+    activation["rbac_users"] = users
+    activation["rbac_updated_at"] = datetime.now().isoformat(timespec="seconds")
+    return save_activation(activation)
 PARTICIPANTS_FILE = "data/participants.json"
 
 def load_participants():
@@ -1044,8 +1176,47 @@ def login():
             session.clear()
             session["logged_in"] = True
             session["owner_operator_email"] = stored_email
+            session["user_role"] = "owner_admin"
+            session["rbac_user_email"] = stored_email
             write_audit("login")
             return redirect(url_for("home"))
+
+        # ============================================================
+        # TH~OS RBAC STAFF LOGIN
+        # Authenticates active staff and loads assigned role.
+        # ============================================================
+        for user in get_rbac_users():
+            user_email = str(user.get("email", "")).strip().lower()
+
+            if (
+                entered_email == user_email
+                and user.get("active", True)
+                and check_password_hash(
+                    user.get("password_hash", ""),
+                    password or ""
+                )
+            ):
+                if not license_access_allowed(activated_system):
+                    flash("Your 3-day access window has ended. Payment is required to continue.")
+                    return redirect(url_for("login"))
+
+                role = user.get("role", "")
+                if role not in RBAC_ROLES:
+                    break
+
+                session.clear()
+                session["logged_in"] = True
+                session["user_role"] = role
+                session["rbac_user_email"] = user_email
+                session["rbac_user_name"] = user.get("name", "")
+
+                write_audit(
+                    "staff_login",
+                    details=f"{user_email}; role={role}"
+                )
+
+                return redirect(url_for("home"))
+
         flash("Invalid email or password")
         return redirect(url_for("login"))
 
@@ -1209,13 +1380,85 @@ def logout():
 def operations():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
     activated_system = load_activation()
-    return render_template("operations.html", activation=activated_system)
+
+    return render_template(
+        "operations.html",
+        activation=activated_system,
+        permissions=current_permissions()
+    )
+
+
+# ============================================================
+# TH~OS RBAC STAFF ACCESS & ROLE MANAGEMENT
+# Owner/Admin-controlled staff account creation and role assignment.
+# ============================================================
+
+@app.route("/staff-access", methods=["GET", "POST"])
+def staff_access():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if not has_permission("staff_manage"):
+        flash("You do not have permission to manage staff access.")
+        return redirect(url_for("operations"))
+
+    users = get_rbac_users()
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        role = request.form.get("role", "").strip()
+
+        if not name or not email or not password or role not in RBAC_ROLES:
+            flash("Name, email, password, and a valid role are required.")
+            return redirect(url_for("staff_access"))
+
+        if any(
+            str(u.get("email", "")).strip().lower() == email
+            for u in users
+        ):
+            flash("A staff account with that email already exists.")
+            return redirect(url_for("staff_access"))
+
+        users.append({
+            "name": name,
+            "email": email,
+            "password_hash": generate_password_hash(password),
+            "role": role,
+            "active": True,
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+        })
+
+        save_rbac_users(users)
+
+        write_audit(
+            "staff_account_created",
+            details=f"{email}; role={role}"
+        )
+
+        flash("Staff account created.")
+        return redirect(url_for("staff_access"))
+
+    return render_template(
+        "staff_access.html",
+        users=users,
+        roles=RBAC_ROLES,
+    )
 
 @app.route("/core-docs")
 def core_docs():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC CORE DOCS ROUTE GATE
+    # ============================================================
+    if not has_permission("participant_edit"):
+        flash("You do not have permission to access participant core documents.")
+        return redirect(url_for("operations"))
     activated_system = load_activation()
     return render_template("core_docs.html", activation=activated_system, program_type=activated_system.get("program_type", "ILH"), docs=CORE_DOCS_BY_PROGRAM.get(activated_system.get("program_type", "ILH"), []))
 
@@ -1265,6 +1508,13 @@ def refresh_participants_from_storage():
 def add_participant():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC PARTICIPANT EDIT ROUTE GATE
+    # ============================================================
+    if not has_permission("participant_edit"):
+        flash("You do not have permission to add or edit participant records.")
+        return redirect(url_for("operations"))
 
     if request.method == "POST":
         participants = load_participants()
@@ -1372,6 +1622,13 @@ def property_paper_templates(route):
 
 @app.route("/property-paper/<route>", methods=["GET", "POST"])
 def property_paper_form(route):
+    # ============================================================
+    # TH~OS RBAC PROPERTY PAPER FORM GATE
+    # ============================================================
+    if not has_permission("property_papers_manage"):
+        flash("You do not have permission to access Property Papers.")
+        return redirect(url_for("operations"))
+
     route_name = route
     if not is_property_paper_route(route_name):
         return redirect("/property-papers")
@@ -1416,6 +1673,13 @@ def property_paper_form(route):
 
 @app.route("/property-paper-edit/<route>/<int:record_id>", methods=["GET", "POST"])
 def property_paper_edit(route, record_id):
+    # ============================================================
+    # TH~OS RBAC PROPERTY PAPER EDIT GATE
+    # ============================================================
+    if not has_permission("property_papers_manage"):
+        flash("You do not have permission to access Property Papers.")
+        return redirect(url_for("operations"))
+
     if not is_property_paper_route(route):
         return redirect("/property-papers")
 
@@ -1456,6 +1720,13 @@ def property_paper_edit(route, record_id):
 
 @app.route("/property-paper-print/<route>/<int:record_id>")
 def property_paper_print(route, record_id):
+    # ============================================================
+    # TH~OS RBAC PROPERTY PAPER PRINT GATE
+    # ============================================================
+    if not has_permission("property_papers_manage"):
+        flash("You do not have permission to access Property Papers.")
+        return redirect(url_for("operations"))
+
     if not is_property_paper_route(route):
         return redirect("/property-papers")
 
@@ -1477,6 +1748,13 @@ def property_paper_print(route, record_id):
 
 @app.route("/property-paper-final/<route>/<int:record_id>", methods=["POST"])
 def property_paper_final(route, record_id):
+    # ============================================================
+    # TH~OS RBAC PROPERTY PAPER FINAL GATE
+    # ============================================================
+    if not has_permission("property_papers_manage"):
+        flash("You do not have permission to access Property Papers.")
+        return redirect(url_for("operations"))
+
     if not is_property_paper_route(route):
         return redirect("/property-papers")
 
@@ -1496,6 +1774,13 @@ def property_paper_final(route, record_id):
 
 @app.route("/property-paper-unlock/<route>/<int:record_id>", methods=["GET", "POST"])
 def property_paper_unlock(route, record_id):
+    # ============================================================
+    # TH~OS RBAC PROPERTY PAPER UNLOCK GATE
+    # ============================================================
+    if not has_permission("property_papers_manage"):
+        flash("You do not have permission to access Property Papers.")
+        return redirect(url_for("operations"))
+
     if not is_property_paper_route(route):
         return redirect("/property-papers")
 
@@ -1514,6 +1799,16 @@ def property_paper_unlock(route, record_id):
 
 @app.route("/property-papers")
 def property_papers():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC PROPERTY PAPERS ROUTE GATE
+    # Restricts Property Papers to authorized roles.
+    # ============================================================
+    if not has_permission("property_papers_manage"):
+        flash("You do not have permission to access Property Papers.")
+        return redirect(url_for("operations"))
     org = request.args.get("org", "").strip().lower()
     doc_type = request.args.get("doc_type", "").strip().lower()
 
@@ -1550,7 +1845,25 @@ def property_papers():
 def tsh_program_tools():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
-    return render_template("tsh_program_tools.html")
+
+    # ============================================================
+    # TH~OS RBAC TSH TOOLS ROUTE GATE
+    # ============================================================
+    permissions = current_permissions()
+
+    if not (
+        "service_records" in permissions
+        or "checkin_manage" in permissions
+        or "certifications_manage" in permissions
+        or "audit_view" in permissions
+    ):
+        flash("You do not have permission to access TSH Program Tools.")
+        return redirect(url_for("operations"))
+
+    return render_template(
+        "tsh_program_tools.html",
+        permissions=permissions
+    )
 
 
 
@@ -1736,6 +2049,13 @@ def build_apb_hmis_readiness_summary(selected_pid=None):
 
 @app.route("/audit-packet-builder")
 def audit_packet_builder():
+    # ============================================================
+    # TH~OS RBAC AUDIT VIEW ROUTE GATE
+    # ============================================================
+    if not has_permission("audit_view"):
+        flash("You do not have permission to view the Audit Packet Builder.")
+        return redirect(url_for("operations"))
+
     current_participants = load_participants()
     return render_template("audit_packet_builder.html", participants=current_participants)
 
@@ -1743,6 +2063,13 @@ def audit_packet_builder():
 def audit_packet_builder_summary():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC AUDIT RUN ROUTE GATE
+    # ============================================================
+    if not has_permission("audit_run"):
+        flash("You do not have permission to run audit summaries.")
+        return redirect(url_for("audit_packet_builder"))
 
     participant_scope = request.args.get("participant_scope", "")
     current_participants = load_participants()
@@ -1783,6 +2110,13 @@ def employee_certifications():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
+    # ============================================================
+    # TH~OS RBAC CERTIFICATIONS ROUTE GATE
+    # ============================================================
+    if not has_permission("certifications_manage"):
+        flash("You do not have permission to manage employee certifications.")
+        return redirect(url_for("operations"))
+
     from datetime import datetime, timedelta
 
     records = load_employee_certs()
@@ -1820,6 +2154,13 @@ def employee_certifications():
 def participant_checkin_checkout():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC CHECKIN ROUTE GATE
+    # ============================================================
+    if not has_permission("checkin_manage"):
+        flash("You do not have permission to manage participant check-in or check-out.")
+        return redirect(url_for("operations"))
 
     from datetime import datetime, timedelta
 
@@ -2122,12 +2463,26 @@ def participant_program_adherence_review_final(id):
 def service_coordination():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC SERVICE COORDINATION ROUTE GATE
+    # ============================================================
+    if not has_permission("service_records"):
+        flash("You do not have permission to access service coordination records.")
+        return redirect(url_for("operations"))
     participants = load_participants()
     return render_template("service_coordination.html", participants=participants)
 
 
 @app.route("/single-form-print")
 def single_form_print_center():
+    # ============================================================
+    # TH~OS RBAC SINGLE FORM ROUTE GATE
+    # ============================================================
+    if not has_permission("single_form_manage"):
+        flash("You do not have permission to access Single Form Upload / Print.")
+        return redirect(url_for("operations"))
+
     activated_system = load_activation()
     current_participants = load_participants()
 
@@ -2166,6 +2521,13 @@ def single_form_print_center():
 def single_form_upload():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC SINGLE FORM UPLOAD ROUTE GATE
+    # ============================================================
+    if not has_permission("single_form_manage"):
+        flash("You do not have permission to upload participant documents.")
+        return redirect(url_for("operations"))
 
     participants = load_participants()
 
@@ -2232,6 +2594,16 @@ def participant_upload_file(pid, filename):
 def admin_forms():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC ADMIN FORMS ROUTE GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
     activated_system = load_activation()
     current_participants = load_participants()
     return render_template("admin_forms.html", activation=activated_system, participants=current_participants)
@@ -2610,6 +2982,13 @@ def entry_screening_unlock(id):
 
 @app.route("/packet-builder", methods=["GET", "POST"])
 def packet_builder_select():
+    # ============================================================
+    # TH~OS RBAC PACKET BUILDER SELECT ROUTE GATE
+    # ============================================================
+    if not has_permission("packet_builder_manage"):
+        flash("You do not have permission to use Packet Builder.")
+        return redirect(url_for("operations"))
+
     live_participants = load_participants()
 
     if request.method == "POST":
@@ -2630,6 +3009,13 @@ def packet_builder_select():
 def packet_builder(id):
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    # ============================================================
+    # TH~OS RBAC PACKET BUILDER ROUTE GATE
+    # ============================================================
+    if not has_permission("packet_builder_manage"):
+        flash("You do not have permission to use Packet Builder.")
+        return redirect(url_for("operations"))
 
     participants = load_participants()
 
@@ -3503,6 +3889,13 @@ def render_pdf_diagnostic():
 
 @app.route("/download-packet/<int:id>")
 def download_packet(id):
+    # ============================================================
+    # TH~OS RBAC PACKET DOWNLOAD ROUTE GATE
+    # ============================================================
+    if not has_permission("packet_builder_manage"):
+        flash("You do not have permission to download participant packets.")
+        return redirect(url_for("operations"))
+
     activated_system = load_activation()
     if not activated_system:
         return redirect(url_for("activate"))
@@ -4098,6 +4491,13 @@ def _encrypt_sensitivity_vault_data(data):
 
 @app.route("/sensitive-identity-record/<int:id>", methods=["GET", "POST"])
 def sensitive_identity_record(id):
+    # ============================================================
+    # TH~OS RBAC SENSITIVITY VAULT EDIT GATE
+    # ============================================================
+    if not has_permission("sensitivity_vault"):
+        flash("You do not have permission to access the Sensitivity Vault.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
 
     if id < 0 or id >= len(participants):
@@ -4142,6 +4542,13 @@ def sensitive_identity_record(id):
 
 @app.route("/sensitive-identity-record-print/<int:id>")
 def sensitive_identity_record_print(id):
+    # ============================================================
+    # TH~OS RBAC SENSITIVITY VAULT PRINT GATE
+    # ============================================================
+    if not has_permission("sensitivity_vault"):
+        flash("You do not have permission to access the Sensitivity Vault.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
 
     if id < 0 or id >= len(participants):
@@ -4166,6 +4573,13 @@ def sensitive_identity_record_print(id):
 
 @app.route("/sensitive-identity-record-final/<int:id>", methods=["POST"])
 def sensitive_identity_record_final(id):
+    # ============================================================
+    # TH~OS RBAC SENSITIVITY VAULT FINAL GATE
+    # ============================================================
+    if not has_permission("sensitivity_vault"):
+        flash("You do not have permission to access the Sensitivity Vault.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
 
     if id < 0 or id >= len(participants):
@@ -4185,6 +4599,13 @@ def sensitive_identity_record_final(id):
 
 @app.route("/sensitive-identity-record-unlock/<int:id>", methods=["GET", "POST"])
 def sensitive_identity_record_unlock(id):
+    # ============================================================
+    # TH~OS RBAC SENSITIVITY VAULT UNLOCK GATE
+    # ============================================================
+    if not has_permission("sensitivity_vault"):
+        flash("You do not have permission to access the Sensitivity Vault.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
 
     if id < 0 or id >= len(participants):
@@ -4401,6 +4822,16 @@ make_th_routes("va-coordination-acknowledgment", "va_coordination_acknowledgment
 
 @app.route("/payor-funding-record/<int:id>", methods=["GET", "POST"])
 def payor_funding_record(id):
+    # ============================================================
+    # TH~OS RBAC PAYOR FUNDING ROUTE GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
     activation = load_activation()
 
@@ -4438,6 +4869,16 @@ def payor_funding_record(id):
 
 @app.route("/payor-funding-record-print/<int:id>")
 def payor_funding_record_print(id):
+    # ============================================================
+    # TH~OS RBAC PAYOR FUNDING PRINT GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
     activation = load_activation()
 
@@ -4462,6 +4903,16 @@ def payor_funding_record_print(id):
 
 @app.route("/payor-funding-record-final/<int:id>", methods=["POST"])
 def payor_funding_record_final(id):
+    # ============================================================
+    # TH~OS RBAC PAYOR FUNDING FINAL GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
 
     if id < 0 or id >= len(participants):
@@ -4481,6 +4932,16 @@ def payor_funding_record_final(id):
 
 @app.route("/billing-invoice-setup/<int:id>", methods=["GET", "POST"])
 def billing_invoice_setup(id):
+    # ============================================================
+    # TH~OS RBAC BILLING ROUTE GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
     activation = load_activation()
 
@@ -4518,6 +4979,16 @@ def billing_invoice_setup(id):
 
 @app.route("/billing-invoice-setup-print/<int:id>")
 def billing_invoice_setup_print(id):
+    # ============================================================
+    # TH~OS RBAC BILLING PRINT GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
     activation = load_activation()
 
@@ -4542,6 +5013,16 @@ def billing_invoice_setup_print(id):
 
 @app.route("/billing-invoice-setup-final/<int:id>", methods=["POST"])
 def billing_invoice_setup_final(id):
+    # ============================================================
+    # TH~OS RBAC BILLING FINAL GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     participants = load_participants()
 
     if id < 0 or id >= len(participants):
@@ -4561,6 +5042,16 @@ def billing_invoice_setup_final(id):
 
 @app.route("/referral-source-record/<int:id>", methods=["GET", "POST"])
 def referral_source_record(id):
+    # ============================================================
+    # TH~OS RBAC REFERRAL ROUTE GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     if id >= len(participants):
         return "Participant not found"
 
@@ -4581,6 +5072,16 @@ def referral_source_record(id):
 
 @app.route("/referral-source-record-print/<int:id>")
 def referral_source_record_print(id):
+    # ============================================================
+    # TH~OS RBAC REFERRAL PRINT GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     if id >= len(participants):
         return "Participant not found"
 
@@ -4594,6 +5095,16 @@ def referral_source_record_print(id):
 
 @app.route("/referral-source-record-final/<int:id>", methods=["POST"])
 def referral_source_record_final(id):
+    # ============================================================
+    # TH~OS RBAC REFERRAL FINAL GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     if id >= len(participants):
         return "Participant not found"
 
@@ -4612,6 +5123,16 @@ def referral_source_record_final(id):
 
 @app.route("/agency-sponsorship-record/<int:id>", methods=["GET", "POST"])
 def agency_sponsorship_record(id):
+    # ============================================================
+    # TH~OS RBAC AGENCY SPONSOR ROUTE GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     if id >= len(participants):
         return "Participant not found"
 
@@ -4632,6 +5153,16 @@ def agency_sponsorship_record(id):
 
 @app.route("/agency-sponsorship-record-print/<int:id>")
 def agency_sponsorship_record_print(id):
+    # ============================================================
+    # TH~OS RBAC AGENCY SPONSOR PRINT GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     if id >= len(participants):
         return "Participant not found"
 
@@ -4645,6 +5176,16 @@ def agency_sponsorship_record_print(id):
 
 @app.route("/agency-sponsorship-record-final/<int:id>", methods=["POST"])
 def agency_sponsorship_record_final(id):
+    # ============================================================
+    # TH~OS RBAC AGENCY SPONSOR FINAL GATE
+    # ============================================================
+    if not (
+        has_permission("funding_view")
+        or has_permission("service_records")
+    ):
+        flash("You do not have permission to access Admin Forms.")
+        return redirect(url_for("operations"))
+
     if id >= len(participants):
         return "Participant not found"
 
@@ -4669,6 +5210,16 @@ def save_rolodex(contacts):
 
 @app.route("/rolodex", methods=["GET","POST"])
 def rolodex():
+    # ============================================================
+    # TH~OS RBAC ROLODEX ROUTE GATE
+    # ============================================================
+    if not (
+        has_permission("service_records")
+        or has_permission("waitlist_manage")
+    ):
+        flash("You do not have permission to access the Rolodex.")
+        return redirect(url_for("operations"))
+
     contacts = load_rolodex()
     if request.method == "POST":
         contact = {
@@ -5081,6 +5632,15 @@ def version_check():
     </html>
     """
 
+
+# ============================================================
+# TH~OS BED MANAGEMENT RBAC CONNECTION
+# Connects scalable Bed Management to the main TH permission system.
+# ============================================================
+app.config["BED_PERMISSION_CHECKER"] = has_permission
+
+from bed_management import register_bed_management
+register_bed_management(app)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -379,6 +379,7 @@
     </section>
 
     <section class="control-grid">
+      {% if "property_papers_manage" in permissions %}
       <article class="card">
         <div>
           <div class="icon">📁</div>
@@ -388,7 +389,9 @@
         </div>
         <a class="button" href="/property-papers">Enter</a>
       </article>
+      {% endif %}
 
+      {% if "funding_view" in permissions or "service_records" in permissions %}
       <article class="card">
         <div>
           <div class="icon">📋</div>
@@ -398,7 +401,9 @@
         </div>
         <a class="button" href="/admin-forms">Enter</a>
       </article>
+      {% endif %}
 
+      {% if "service_records" in permissions or "waitlist_manage" in permissions %}
       <article class="card">
         <div>
           <div class="icon">☎️</div>
@@ -408,7 +413,9 @@
         </div>
         <a class="button" href="/rolodex">Enter</a>
       </article>
+      {% endif %}
 
+      {% if "single_form_manage" in permissions %}
       <article class="card">
         <div>
           <div class="icon">🖨️</div>
@@ -418,22 +425,69 @@
         </div>
         <a class="button" href="/single-form-print">Enter</a>
       </article>
+      {% endif %}
+
+      {% if "bed_manage" in permissions %}
+      <article class="card">
+        <div>
+          <div class="icon">🛏️</div>
+          <h2>Bed Count & Occupancy</h2>
+          <div class="gold-line"></div>
+          <p>Track property capacity, sleeping spaces, availability, and participant assignments.</p>
+        </div>
+        <a class="button" href="/bed-management">Enter</a>
+      </article>
+      {% endif %}
+
+      {% if "staff_manage" in permissions %}
+      <article class="card">
+        <div>
+          <div class="icon">🔐</div>
+          <h2>Staff Access & Roles</h2>
+          <div class="gold-line"></div>
+          <p>Create staff logins and assign role-based access for this property.</p>
+        </div>
+        <a class="button" href="/staff-access">Enter</a>
+      </article>
+      {% endif %}
     </section>
 
     <div class="bottom-action-row">
+      {% if "service_records" in permissions or "checkin_manage" in permissions or "certifications_manage" in permissions or "audit_view" in permissions %}
       <a class="button back" href="/tsh-program-tools">TSH Tools</a>
+      {% endif %}
+      {% if "packet_builder_manage" in permissions %}
       <a class="button back" href="/packet-builder">Packet Builder</a>
-      <a class="button back" href="/">Back to Dashboard</a>
+      {% endif %}
+      <a class="button back" href="{{ url_for('home') }}">Back to Dashboard</a>
     </div>
 
     <section class="mobile-ops-menu" aria-label="Mobile Operations Menu">
       <div class="mobile-ops-title">Quick Operations Menu</div>
+      {% if "property_papers_manage" in permissions %}
       <a class="mobile-ops-link" href="/property-papers">📁 Property Papers</a>
+      {% endif %}
+      {% if "funding_view" in permissions or "service_records" in permissions %}
       <a class="mobile-ops-link" href="/admin-forms">📋 Admin Forms</a>
+      {% endif %}
+      {% if "service_records" in permissions or "waitlist_manage" in permissions %}
       <a class="mobile-ops-link" href="/rolodex">☎️ Rolodex</a>
+      {% endif %}
+      {% if "single_form_manage" in permissions %}
       <a class="mobile-ops-link" href="/single-form-print">🖨️ Single Form Upload / Print</a>
+      {% endif %}
+      {% if "bed_manage" in permissions %}
+      <a class="mobile-ops-link" href="/bed-management">🛏️ Bed Count & Occupancy</a>
+      {% endif %}
+      {% if "staff_manage" in permissions %}
+      <a class="mobile-ops-link" href="/staff-access">🔐 Staff Access & Roles</a>
+      {% endif %}
+      {% if "service_records" in permissions or "checkin_manage" in permissions or "certifications_manage" in permissions or "audit_view" in permissions %}
       <a class="mobile-ops-link" href="/tsh-program-tools">TSH Tools</a>
+      {% endif %}
+      {% if "packet_builder_manage" in permissions %}
       <a class="mobile-ops-link" href="/packet-builder">Packet Builder</a>
+      {% endif %}
       <a class="mobile-ops-link secondary" href="/">Back to Dashboard</a>
     </section>
 
