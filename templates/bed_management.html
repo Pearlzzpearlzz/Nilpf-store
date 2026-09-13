@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='bed_management.css') }}">
 </head>
 <body>
-<header><div><strong>NILPF / TH OPERATIONS</strong><small>Housing Operations System</small></div><h1>Bed Count &amp; Occupancy</h1><nav><a href="/home">Home</a><a href="/participants">Participants</a><a href="{{ url_for('bed_management.assignment_history') }}">Assignment History</a></nav></header>
+<header><div><strong>NILPF / TH OPERATIONS</strong><small>Housing Operations System</small></div><h1>Bed Count &amp; Occupancy</h1><nav><a href="/operations">Exit to Operations</a><a href="/participants">Participants</a><a href="{{ url_for('bed_management.assignment_history') }}">Assignment History</a></nav></header>
 <main>
   {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
   <section class="toolbar">
