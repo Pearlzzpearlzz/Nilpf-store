@@ -1354,7 +1354,7 @@ function togglePass() {{
 <h2>NILPF OS Login</h2>
 
 <form method="POST">
-<input name="email" value="{activated_system.get("email","")}" readonly><br>
+<input name="email" value="{activated_system.get("email","")}"><br>
 
 <input id="pw" type="password" name="password" placeholder="Password">
 <span class="eye" onclick="togglePass()">👁</span><br>
