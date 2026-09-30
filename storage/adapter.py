@@ -47,6 +47,26 @@ class JSONStorageAdapter:
     def save_participants(self, data):
         return write_json(self.participants_file, data, indent=2)
 
+    def _property_participants_file(self, property_id):
+        safe = "".join(
+            ch if ch.isalnum() or ch in ("-", "_") else "_"
+            for ch in str(property_id or "site_primary")
+        )
+        folder = self.data_dir / "properties" / safe
+        folder.mkdir(parents=True, exist_ok=True)
+        return folder / "participants.json"
+
+    def get_participants_for_property(self, property_id):
+        target = self._property_participants_file(property_id)
+        if not target.exists():
+            return None
+        data = read_json(target, [])
+        return data if isinstance(data, list) else []
+
+    def save_participants_for_property(self, property_id, data):
+        target = self._property_participants_file(property_id)
+        return write_json(target, data, indent=2)
+
     def get_license_requests(self):
         return read_json(self.license_requests_file, [])
 

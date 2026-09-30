@@ -365,6 +365,34 @@
   <main class="page">
     <h1>OPERATIONS</h1>
 
+    {% if properties %}
+    <section style="max-width:760px;margin:0 auto 24px auto;padding:16px;border:1px solid #8f7425;border-radius:12px;background:#0b0b0b;">
+      <form method="POST" action="{{ url_for('switch_property') }}">
+        <label for="active-property" style="display:block;color:#d4af37;font-weight:bold;margin-bottom:8px;">
+          Active Property
+        </label>
+
+        <select id="active-property"
+                name="property_id"
+                style="width:100%;padding:10px;border-radius:8px;background:#151515;color:#fff;border:1px solid #6d5a20;">
+          {% for property in properties %}
+          <option value="{{ property.id }}"
+                  {% if property.id == current_property_id %}selected{% endif %}>
+            {{ property.name }}
+            {% if property.license_number %} - {{ property.license_number }}{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+
+        {% if properties|length > 1 %}
+        <button class="button" type="submit" style="margin-top:10px;">
+          Switch Property
+        </button>
+        {% endif %}
+      </form>
+    </section>
+    {% endif %}
+
     <section class="clock-wrap" aria-label="NILPF Live Operations Clock">
       <div class="clock-crown">
         <span class="crown">♛</span>

@@ -117,6 +117,62 @@ class StorageCoordinator:
 
         return self.json_backup.get_participants()
 
+    def get_participants_for_property(self, property_id):
+        """
+        Return participants belonging only to the requested property.
+
+        None means the property has never received a scoped participant
+        store yet. An empty list means the scoped store exists but contains
+        no participants.
+        """
+        if getattr(self, "pg_engine", None):
+            try:
+                return self.pg_engine.get_participants_for_property(property_id)
+            except Exception as exc:
+                logger.exception(
+                    "Postgres scoped participant read failed for %s. "
+                    "Trying scoped JSON backup: %s",
+                    property_id,
+                    exc,
+                )
+
+        return self.json_backup.get_participants_for_property(property_id)
+
+    def save_participants_for_property(self, property_id, data):
+        """
+        Save participants only inside the requested property scope.
+        PostgreSQL remains primary when active; JSON is the backup mirror.
+        """
+        data = self.zones_engine.process('controlled', data)
+
+        if getattr(self, "pg_engine", None):
+            try:
+                result = self.pg_engine.save_participants_for_property(
+                    property_id, data
+                )
+                try:
+                    self.json_backup.save_participants_for_property(
+                        property_id, data
+                    )
+                except Exception as backup_exc:
+                    logger.exception(
+                        "Scoped JSON participant backup failed for %s: %s",
+                        property_id,
+                        backup_exc,
+                    )
+                return result
+            except Exception as exc:
+                logger.exception(
+                    "Postgres scoped participant save failed for %s. "
+                    "Falling back to scoped JSON: %s",
+                    property_id,
+                    exc,
+                )
+
+        return self.json_backup.save_participants_for_property(
+            property_id, data
+        )
+
     def save_participants(self, data):
         # SECURITY ENFORCEMENT LAYER (auto)
         data = self.zones_engine.process('controlled', data)

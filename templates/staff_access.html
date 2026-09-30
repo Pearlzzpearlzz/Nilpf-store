@@ -40,6 +40,29 @@ input, select {
   background:#151515;
   color:#fff;
 }
+.property-list {
+  display:grid;
+  gap:8px;
+  margin-top:8px;
+}
+.property-option {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 10px;
+  border:1px solid #333;
+  border-radius:8px;
+  background:#111;
+}
+.property-option input[type="checkbox"] {
+  width:auto;
+  margin:0;
+}
+.property-option label {
+  display:inline;
+  margin:0;
+  font-weight:normal;
+}
 button, .btn {
   display:inline-block;
   margin-top:16px;
@@ -120,6 +143,23 @@ Create property staff accounts and assign access by job function.
     {% endfor %}
   </select>
 
+  <label>Authorized Properties</label>
+  <div class="property-list">
+    {% for property in properties %}
+    <div class="property-option">
+      <input type="checkbox"
+             id="new-property-{{ loop.index }}"
+             name="allowed_property_ids"
+             value="{{ property.id }}"
+             {% if property.id == current_property_id %}checked{% endif %}>
+      <label for="new-property-{{ loop.index }}">
+        {{ property.name }}
+        {% if property.license_number %} - {{ property.license_number }}{% endif %}
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+
   <button type="submit">Create Staff Account</button>
 </form>
 </div>
@@ -134,6 +174,7 @@ Create property staff accounts and assign access by job function.
   <th>Name</th>
   <th>Email</th>
   <th>Role</th>
+  <th>Properties</th>
   <th>Status</th>
 </tr>
 </thead>
@@ -148,6 +189,28 @@ Create property staff accounts and assign access by job function.
     {% else %}
       {{ user.role }}
     {% endif %}
+  </td>
+  <td>
+    <form method="POST" action="{{ url_for('staff_property_access_update') }}">
+      <input type="hidden" name="email" value="{{ user.email }}">
+
+      <div class="property-list">
+        {% for property in properties %}
+        <div class="property-option">
+          <input type="checkbox"
+                 id="staff-{{ loop.index }}-{{ user.email|replace('@','-')|replace('.','-') }}"
+                 name="allowed_property_ids"
+                 value="{{ property.id }}"
+                 {% if property.id in (user.get('allowed_property_ids') or [current_property_id]) %}checked{% endif %}>
+          <label for="staff-{{ loop.index }}-{{ user.email|replace('@','-')|replace('.','-') }}">
+            {{ property.name }}
+          </label>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit">Update Properties</button>
+    </form>
   </td>
   <td>
     {% if user.active %}

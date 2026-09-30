@@ -4,7 +4,7 @@ from pathlib import Path
 from storage.coordinator import storage_coordinator as storage
 from storage.enforcement_gate import audit_enforcement_request, classify_route_family
 from werkzeug.middleware.proxy_fix import ProxyFix
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory, has_request_context
 import json
 import os
 from datetime import date, datetime, timedelta
@@ -126,6 +126,168 @@ def current_permissions():
 
 def has_permission(permission_name):
     return permission_name in current_permissions()
+
+
+# ============================================================
+# TH~OS PROPERTY ACCESS SCOPE
+# RBAC answers WHAT a user may do.
+# Property scope answers WHERE the user may do it.
+# ============================================================
+def activation_property_id(activation):
+    activation = activation or {}
+
+    property_id = str(activation.get("property_id") or "").strip()
+    if property_id:
+        return property_id
+
+    license_number = str(activation.get("license_number") or "").strip()
+    if license_number:
+        return f"site:{license_number}"
+
+    # Backward-compatible identifier for older installations
+    # that predate explicit property IDs.
+    return "site:primary"
+
+
+def current_property_id():
+    # Session exists only during an active Flask request.
+    # Startup/import/background code must safely fall back to
+    # the activated installation property.
+    if has_request_context():
+        property_id = str(session.get("current_property_id") or "").strip()
+        if property_id:
+            return property_id
+
+    try:
+        return activation_property_id(load_activation())
+    except Exception:
+        return "site:primary"
+
+
+def current_allowed_property_ids():
+    if current_user_role() == "owner_admin":
+        return {"*"}
+
+    raw = session.get("allowed_property_ids", [])
+    if isinstance(raw, str):
+        raw = [raw]
+
+    return {
+        str(value).strip()
+        for value in raw
+        if str(value).strip()
+    }
+
+
+def has_property_access(property_id=None):
+    target = str(property_id or current_property_id()).strip()
+    allowed = current_allowed_property_ids()
+
+    if "*" in allowed:
+        return True
+
+    return bool(target and target in allowed)
+
+
+def property_registry():
+    """
+    Return only properties belonging to this activated purchaser.
+
+    The active installation is always represented. Additional sites come
+    only from active license requests matching the activated owner's email.
+    This prevents the global license request store from becoming a
+    cross-customer property directory.
+    """
+    activation = load_activation() or {}
+    owner_email = str(activation.get("email") or "").strip().lower()
+
+    properties = []
+    seen_ids = set()
+    seen_licenses = set()
+
+    def add_property(property_id, name, license_number="", address="", city="", state="", zip_code=""):
+        property_id = str(property_id or "").strip()
+        license_number = str(license_number or "").strip()
+
+        if not property_id or property_id in seen_ids:
+            return
+
+        if license_number and license_number in seen_licenses:
+            return
+
+        properties.append({
+            "id": property_id,
+            "name": str(name or "Licensed Property").strip() or "Licensed Property",
+            "license_number": license_number,
+            "address": str(address or "").strip(),
+            "city": str(city or "").strip(),
+            "state": str(state or "").strip(),
+            "zip_code": str(zip_code or "").strip(),
+        })
+
+        seen_ids.add(property_id)
+        if license_number:
+            seen_licenses.add(license_number)
+
+    current_license = str(activation.get("license_number") or "").strip()
+
+    add_property(
+        activation_property_id(activation),
+        activation.get("property_name") or activation.get("business_name"),
+        current_license,
+        activation.get("licensed_site_address"),
+        activation.get("licensed_site_city"),
+        activation.get("licensed_site_state"),
+        activation.get("licensed_site_zip"),
+    )
+
+    if owner_email:
+        for item in load_license_requests():
+            item_email = str(item.get("paypal_email") or "").strip().lower()
+            status = str(item.get("status") or "").strip()
+            license_number = str(item.get("license_number") or "").strip()
+
+            if item_email != owner_email:
+                continue
+
+            if status != "payment_received_active":
+                continue
+
+            if not license_number:
+                continue
+
+            add_property(
+                item.get("property_id") or f"site:{license_number}",
+                item.get("business_name") or "Licensed Property",
+                license_number,
+                item.get("site_address"),
+                item.get("city"),
+                item.get("state"),
+                item.get("zip_code"),
+            )
+
+    return properties
+
+
+def property_registry_map():
+    return {
+        item["id"]: item
+        for item in property_registry()
+    }
+
+
+def visible_properties():
+    properties = property_registry()
+    allowed = current_allowed_property_ids()
+
+    if "*" in allowed:
+        return properties
+
+    return [
+        item
+        for item in properties
+        if item["id"] in allowed
+    ]
 
 # Render runs Flask behind a reverse proxy; trust forwarded HTTPS/session headers.
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_for=1)
@@ -892,10 +1054,48 @@ def save_rbac_users(users):
 PARTICIPANTS_FILE = "data/participants.json"
 
 def load_participants():
-    return storage.get_participants()
+    """
+    Load participants only for the active TH~OS property.
+
+    Existing single-property installations are migrated once from the
+    legacy global participant store into the current property namespace.
+    After that migration, new properties start with their own empty store
+    instead of inheriting another property's participant records.
+    """
+    property_id = current_property_id()
+
+    scoped = storage.get_participants_for_property(property_id)
+    if scoped is not None:
+        return scoped
+
+    activation = load_activation() or {}
+    migrated_to = str(
+        activation.get("participant_scope_migrated_to") or ""
+    ).strip()
+
+    # One-time compatibility migration for the existing installation.
+    if not migrated_to:
+        legacy = storage.get_participants()
+        if not isinstance(legacy, list):
+            legacy = []
+
+        storage.save_participants_for_property(property_id, legacy)
+
+        activation["participant_scope_migrated_to"] = property_id
+        activation["participant_scope_enabled"] = True
+        activation["participant_scope_version"] = 1
+        save_activation(activation)
+
+        return legacy
+
+    # Another property must not inherit the first property's participants.
+    storage.save_participants_for_property(property_id, [])
+    return []
+
 
 def save_participants(data):
-    return storage.save_participants(data)
+    property_id = current_property_id()
+    return storage.save_participants_for_property(property_id, data)
 
 
 LICENSE_REQUESTS_FILE = "data/license_requests.json"
@@ -1178,6 +1378,8 @@ def login():
             session["owner_operator_email"] = stored_email
             session["user_role"] = "owner_admin"
             session["rbac_user_email"] = stored_email
+            session["allowed_property_ids"] = ["*"]
+            session["current_property_id"] = activation_property_id(activated_system)
             write_audit("login")
             return redirect(url_for("home"))
 
@@ -1209,6 +1411,31 @@ def login():
                 session["user_role"] = role
                 session["rbac_user_email"] = user_email
                 session["rbac_user_name"] = user.get("name", "")
+
+                current_site = activation_property_id(activated_system)
+                allowed_sites = user.get("allowed_property_ids")
+
+                # Backward compatibility:
+                # older staff accounts predate property scoping,
+                # so they remain assigned to this installation's
+                # current property rather than being locked out.
+                if not isinstance(allowed_sites, list) or not allowed_sites:
+                    allowed_sites = [current_site]
+
+                session["allowed_property_ids"] = [
+                    str(site).strip()
+                    for site in allowed_sites
+                    if str(site).strip()
+                ]
+
+                normalized_allowed_sites = session["allowed_property_ids"]
+
+                if current_site in normalized_allowed_sites:
+                    session["current_property_id"] = current_site
+                elif normalized_allowed_sites:
+                    session["current_property_id"] = normalized_allowed_sites[0]
+                else:
+                    session["current_property_id"] = current_site
 
                 write_audit(
                     "staff_login",
@@ -1386,8 +1613,53 @@ def operations():
     return render_template(
         "operations.html",
         activation=activated_system,
-        permissions=current_permissions()
+        permissions=current_permissions(),
+        properties=visible_properties(),
+        current_property_id=current_property_id(),
     )
+
+
+@app.route("/switch-property", methods=["POST"])
+def switch_property():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    target_property_id = str(
+        request.form.get("property_id") or ""
+    ).strip()
+
+    registry = property_registry_map()
+
+    # A submitted ID must represent a legitimate property belonging
+    # to this activated purchaser. "*" never authorizes invented IDs.
+    if target_property_id not in registry:
+        write_audit(
+            "property_switch_blocked",
+            details=f"unknown_property={target_property_id}"
+        )
+        return "Property not found.", 400
+
+    if not has_property_access(target_property_id):
+        write_audit(
+            "property_switch_blocked",
+            details=f"unauthorized_property={target_property_id}"
+        )
+        return "Property access denied.", 403
+
+    session["current_property_id"] = target_property_id
+
+    selected = registry[target_property_id]
+
+    write_audit(
+        "property_switch",
+        details=f"property_id={target_property_id}"
+    )
+
+    flash(
+        f"Active property changed to {selected.get('name', 'Licensed Property')}."
+    )
+
+    return redirect(url_for("operations"))
 
 
 # ============================================================
@@ -1423,11 +1695,41 @@ def staff_access():
             flash("A staff account with that email already exists.")
             return redirect(url_for("staff_access"))
 
+        current_site = current_property_id()
+
+        assignable_properties = visible_properties()
+        assignable_ids = {
+            item["id"]
+            for item in assignable_properties
+        }
+
+        requested_property_ids = [
+            str(value).strip()
+            for value in request.form.getlist("allowed_property_ids")
+            if str(value).strip()
+        ]
+
+        selected_property_ids = []
+        for property_id in requested_property_ids:
+            if (
+                property_id in assignable_ids
+                and property_id not in selected_property_ids
+            ):
+                selected_property_ids.append(property_id)
+
+        if not selected_property_ids:
+            if current_site in assignable_ids:
+                selected_property_ids = [current_site]
+            else:
+                flash("Select at least one authorized property for this staff account.")
+                return redirect(url_for("staff_access"))
+
         users.append({
             "name": name,
             "email": email,
             "password_hash": generate_password_hash(password),
             "role": role,
+            "allowed_property_ids": selected_property_ids,
             "active": True,
             "created_at": datetime.now().isoformat(timespec="seconds"),
         })
@@ -1446,7 +1748,70 @@ def staff_access():
         "staff_access.html",
         users=users,
         roles=RBAC_ROLES,
+        properties=visible_properties(),
+        current_property_id=current_property_id(),
     )
+
+@app.route("/staff-access/property-access", methods=["POST"])
+def staff_property_access_update():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if not has_permission("staff_manage"):
+        return "Staff management access denied.", 403
+
+    email = str(request.form.get("email") or "").strip().lower()
+
+    assignable_properties = visible_properties()
+    assignable_ids = {
+        item["id"]
+        for item in assignable_properties
+    }
+
+    requested_property_ids = [
+        str(value).strip()
+        for value in request.form.getlist("allowed_property_ids")
+        if str(value).strip()
+    ]
+
+    selected_property_ids = []
+
+    for property_id in requested_property_ids:
+        if (
+            property_id in assignable_ids
+            and property_id not in selected_property_ids
+        ):
+            selected_property_ids.append(property_id)
+
+    if not selected_property_ids:
+        flash("Staff must have access to at least one authorized property.")
+        return redirect(url_for("staff_access"))
+
+    users = get_rbac_users()
+    matched_user = None
+
+    for user in users:
+        if str(user.get("email") or "").strip().lower() == email:
+            matched_user = user
+            break
+
+    if matched_user is None:
+        return "Staff account not found.", 404
+
+    matched_user["allowed_property_ids"] = selected_property_ids
+    save_rbac_users(users)
+
+    write_audit(
+        "staff_property_access_updated",
+        details=(
+            f"{email}; properties="
+            + ",".join(selected_property_ids)
+        )
+    )
+
+    flash("Staff property access updated.")
+    return redirect(url_for("staff_access"))
+
 
 @app.route("/core-docs")
 def core_docs():
@@ -5638,6 +6003,8 @@ def version_check():
 # Connects scalable Bed Management to the main TH permission system.
 # ============================================================
 app.config["BED_PERMISSION_CHECKER"] = has_permission
+app.config["BED_PROPERTY_ID_PROVIDER"] = current_property_id
+app.config["BED_PARTICIPANT_PROVIDER"] = load_participants
 
 from bed_management import register_bed_management
 register_bed_management(app)

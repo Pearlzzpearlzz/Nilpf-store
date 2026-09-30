@@ -96,6 +96,21 @@ class PostgresStorageAdapter:
     def save_participants(self, data):
         return self._save_doc("participants", data)
 
+    def _participant_scope_name(self, property_id):
+        property_id = str(property_id or "").strip()
+        if not property_id:
+            raise ValueError("property_id is required for scoped participant storage")
+        return f"participants::{property_id}"
+
+    def get_participants_for_property(self, property_id):
+        data = self._get_doc(self._participant_scope_name(property_id), None)
+        if data is None:
+            return None
+        return data if isinstance(data, list) else []
+
+    def save_participants_for_property(self, property_id, data):
+        return self._save_doc(self._participant_scope_name(property_id), data)
+
     def get_license_requests(self):
         data = self._get_doc("license_requests", [])
         return data if isinstance(data, list) else []

@@ -14,13 +14,22 @@ class BedManagementTests(unittest.TestCase):
         os.close(handle)
         self.app = Flask(__name__, template_folder="../templates", static_folder="../static")
         self.app.secret_key = "test"
-        self.app.config.update(TESTING=True, BED_DB_PATH=self.path)
+        self.current_property = "site:test-A"
+        self.participants = [
+            {"pid": 1, "name": "John D."},
+            {"pid": 2, "name": "Tanya L."},
+        ]
+
+        self.app.config.update(
+            TESTING=True,
+            BED_DB_PATH=self.path,
+            BED_PROPERTY_ID_PROVIDER=lambda: self.current_property,
+            BED_PARTICIPANT_PROVIDER=lambda: self.participants,
+        )
+
         register_bed_management(self.app)
+
         with self.app.app_context():
-            conn = sqlite3.connect(self.path)
-            conn.execute("CREATE TABLE participants(id INTEGER PRIMARY KEY, full_name TEXT)")
-            conn.executemany("INSERT INTO participants(id,full_name) VALUES (?,?)", [(1,"John D."),(2,"Tanya L.")])
-            conn.commit(); conn.close()
             init_bed_management_db()
         self.client = self.app.test_client()
 
@@ -53,6 +62,45 @@ class BedManagementTests(unittest.TestCase):
         self.assertTrue(assignment[0]); self.assertEqual(assignment[1],"Transfer")
         conn.close()
 
+    def test_property_b_cannot_access_property_a_beds(self):
+        self._seed(2)
+
+        conn = sqlite3.connect(self.path)
+        property_a_count = conn.execute(
+            "SELECT COUNT(*) FROM bed_facilities WHERE property_id=?",
+            ("site:test-A",),
+        ).fetchone()[0]
+        conn.close()
+
+        self.assertEqual(property_a_count, 1)
+
+        self.current_property = "site:test-B"
+
+        response = self.client.get("/bed-management")
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"Main Shelter", response.data)
+
+        blocked = self.client.post(
+            "/bed-management/spaces/1/assign",
+            data={"participant_id": "1"},
+            follow_redirects=True,
+        )
+
+        self.assertIn(
+            b"space was not found for this property",
+            blocked.data,
+        )
+
+        conn = sqlite3.connect(self.path)
+        assignments = conn.execute(
+            "SELECT COUNT(*) FROM bed_assignments"
+        ).fetchone()[0]
+        conn.close()
+
+        self.assertEqual(assignments, 0)
+
+
+
     def test_out_of_service_counts_in_capacity_not_availability(self):
         self._seed(4)
         self.client.post("/bed-management/spaces/1/status",data={"facility_id":1,"new_status":"Out of Service"})
@@ -65,13 +113,24 @@ class BedManagementTests(unittest.TestCase):
         self._seed(186)
         conn=sqlite3.connect(self.path)
         now="2026-09-04T00:00:00+00:00"
-        conn.executemany(
-            "INSERT INTO participants(id,full_name) VALUES (?,?)",
-            [(pid,f"Participant {pid}") for pid in range(3,143)],
+
+        self.participants.extend(
+            {"pid": pid, "name": f"Participant {pid}"}
+            for pid in range(3, 143)
         )
+
         conn.executemany(
-            "INSERT INTO bed_assignments(space_id,participant_id,assigned_at) VALUES (?,?,?)",
-            [(pid,str(pid),now) for pid in range(1,143)],
+            """INSERT INTO bed_assignments(
+                   space_id,
+                   participant_id,
+                   assigned_at,
+                   property_id
+               )
+               VALUES (?,?,?,?)""",
+            [
+                (pid, str(pid), now, self.current_property)
+                for pid in range(1,143)
+            ],
         )
         conn.execute("UPDATE bed_spaces SET status='Occupied' WHERE id<=142")
         conn.commit(); conn.close()

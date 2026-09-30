@@ -32,6 +32,59 @@ def _db() -> sqlite3.Connection:
     return conn
 
 
+def _current_property_id() -> str:
+    provider = current_app.config.get("BED_PROPERTY_ID_PROVIDER")
+    if callable(provider):
+        value = str(provider() or "").strip()
+        if value:
+            return value
+    return "site:primary"
+
+
+def _participant_rows() -> list[dict]:
+    provider = current_app.config.get("BED_PARTICIPANT_PROVIDER")
+    if not callable(provider):
+        return []
+
+    rows = provider()
+    if not isinstance(rows, list):
+        return []
+
+    normalized = []
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            continue
+
+        pid = row.get("pid")
+        if pid is None:
+            pid = row.get("participant_id")
+        if pid is None:
+            pid = index
+
+        name = (
+            row.get("name")
+            or row.get("participant_name")
+            or row.get("legal_name")
+            or row.get("full_name")
+            or row.get("preferred_name")
+            or ""
+        )
+
+        normalized.append({
+            "pid": str(pid),
+            "name": str(name or "").strip(),
+        })
+
+    return normalized
+
+
+def _participant_map() -> dict[str, str]:
+    return {
+        row["pid"]: row["name"]
+        for row in _participant_rows()
+    }
+
+
 def init_bed_management_db() -> None:
     conn = _db()
     conn.executescript(
@@ -84,6 +137,58 @@ def init_bed_management_db() -> None:
             ON bed_assignments(participant_id, assigned_at);
         """
     )
+    # --------------------------------------------------------
+    # PROPERTY-SCOPE MIGRATION
+    # Existing TH~OS bed data belongs to the currently licensed
+    # property. Future properties remain isolated.
+    # --------------------------------------------------------
+    facility_columns = {
+        row[1] for row in conn.execute("PRAGMA table_info(bed_facilities)")
+    }
+    if "property_id" not in facility_columns:
+        conn.execute("ALTER TABLE bed_facilities ADD COLUMN property_id TEXT")
+
+    assignment_columns = {
+        row[1] for row in conn.execute("PRAGMA table_info(bed_assignments)")
+    }
+    if "property_id" not in assignment_columns:
+        conn.execute("ALTER TABLE bed_assignments ADD COLUMN property_id TEXT")
+
+    property_id = _current_property_id()
+
+    conn.execute(
+        """UPDATE bed_facilities
+           SET property_id=?
+           WHERE property_id IS NULL OR TRIM(property_id)=''""",
+        (property_id,),
+    )
+
+    conn.execute(
+        """UPDATE bed_assignments
+           SET property_id=?
+           WHERE property_id IS NULL OR TRIM(property_id)=''""",
+        (property_id,),
+    )
+
+    # Old participant uniqueness was global across every property.
+    # Replace it with property-scoped uniqueness so PID 1 at
+    # Property A does not collide with PID 1 at Property B.
+    conn.execute("DROP INDEX IF EXISTS uq_bed_active_participant")
+    conn.execute(
+        """CREATE UNIQUE INDEX IF NOT EXISTS uq_bed_active_participant_property
+           ON bed_assignments(property_id, participant_id)
+           WHERE unassigned_at IS NULL"""
+    )
+
+    conn.execute(
+        """CREATE INDEX IF NOT EXISTS ix_bed_facility_property
+           ON bed_facilities(property_id)"""
+    )
+    conn.execute(
+        """CREATE INDEX IF NOT EXISTS ix_bed_assignment_property
+           ON bed_assignments(property_id, assigned_at)"""
+    )
+
     conn.commit()
     conn.close()
 
@@ -130,40 +235,77 @@ def dashboard():
     if per_page not in (20, 50, 100):
         per_page = 20
 
+    property_id = _current_property_id()
+    participant_names = _participant_map()
+
     conn = _db()
-    facilities = conn.execute("SELECT id, name FROM bed_facilities ORDER BY name").fetchall()
+
+    facilities = conn.execute(
+        """SELECT id, name
+           FROM bed_facilities
+           WHERE property_id=?
+           ORDER BY name""",
+        (property_id,),
+    ).fetchall()
+
     if facility_id is None and facilities:
         facility_id = facilities[0]["id"]
+
+    if facility_id is not None:
+        valid_facility = conn.execute(
+            """SELECT 1 FROM bed_facilities
+               WHERE id=? AND property_id=?""",
+            (facility_id, property_id),
+        ).fetchone()
+        if not valid_facility:
+            facility_id = facilities[0]["id"] if facilities else None
+            area_id = None
 
     areas = []
     if facility_id:
         areas = conn.execute(
             """SELECT a.id, a.name, COUNT(s.id) AS capacity
-               FROM bed_areas a LEFT JOIN bed_spaces s ON s.area_id=a.id
-               WHERE a.facility_id=? GROUP BY a.id ORDER BY a.name""",
-            (facility_id,),
+               FROM bed_areas a
+               JOIN bed_facilities f ON f.id=a.facility_id
+               LEFT JOIN bed_spaces s ON s.area_id=a.id
+               WHERE a.facility_id=? AND f.property_id=?
+               GROUP BY a.id
+               ORDER BY a.name""",
+            (facility_id, property_id),
         ).fetchall()
 
-    conditions = ["a.facility_id = ?"] if facility_id else ["1 = 0"]
-    params: list[object] = [facility_id] if facility_id else []
+    conditions = [
+        "a.facility_id = ?",
+        "f.property_id = ?",
+    ] if facility_id else ["1 = 0"]
+
+    params: list[object] = (
+        [facility_id, property_id] if facility_id else []
+    )
+
     if area_id:
-        conditions.append("a.id = ?")
-        params.append(area_id)
+        valid_area = conn.execute(
+            """SELECT 1
+               FROM bed_areas a
+               JOIN bed_facilities f ON f.id=a.facility_id
+               WHERE a.id=? AND f.property_id=?""",
+            (area_id, property_id),
+        ).fetchone()
+
+        if valid_area:
+            conditions.append("a.id = ?")
+            params.append(area_id)
+        else:
+            area_id = None
+
     if status in STATUSES:
         conditions.append("s.status = ?")
         params.append(status)
+
     if space_type in SPACE_TYPES:
         conditions.append("s.space_type = ?")
         params.append(space_type)
-    has_participants = conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='participants'"
-    ).fetchone() is not None
-    participant_name = _participant_expression(conn) if has_participants else "''"
-    participant_join = "LEFT JOIN participants p ON CAST(p.id AS TEXT)=ba.participant_id" if has_participants else ""
-    if query:
-        conditions.append(f"(s.label LIKE ? OR a.name LIKE ? OR ba.participant_id LIKE ? OR {participant_name} LIKE ?)")
-        needle = f"%{query}%"
-        params.extend([needle, needle, needle, needle])
+
     where = " AND ".join(conditions)
 
     summary = conn.execute(
@@ -171,54 +313,112 @@ def dashboard():
                   SUM(CASE WHEN s.status='Occupied' THEN 1 ELSE 0 END) AS occupied,
                   SUM(CASE WHEN s.status='Available' THEN 1 ELSE 0 END) AS available,
                   SUM(CASE WHEN s.status='Out of Service' THEN 1 ELSE 0 END) AS out_of_service
-           FROM bed_spaces s JOIN bed_areas a ON a.id=s.area_id
-           WHERE a.facility_id=?""" if facility_id else
+           FROM bed_spaces s
+           JOIN bed_areas a ON a.id=s.area_id
+           JOIN bed_facilities f ON f.id=a.facility_id
+           WHERE a.facility_id=? AND f.property_id=?"""
+        if facility_id else
         "SELECT 0 AS capacity, 0 AS occupied, 0 AS available, 0 AS out_of_service",
-        (facility_id,) if facility_id else (),
+        (facility_id, property_id) if facility_id else (),
     ).fetchone()
-    stats = {key: int(summary[key] or 0) for key in ("capacity", "occupied", "available", "out_of_service")}
-    stats["occupancy"] = round((stats["occupied"] / stats["capacity"] * 100), 1) if stats["capacity"] else 0
 
-    total = conn.execute(
-        f"""SELECT COUNT(*) FROM bed_spaces s
-             JOIN bed_areas a ON a.id=s.area_id
-             LEFT JOIN bed_assignments ba ON ba.space_id=s.id AND ba.unassigned_at IS NULL
-             {participant_join}
-             WHERE {where}""", params,
-    ).fetchone()[0]
-    pages = max(1, math.ceil(total / per_page))
-    page = min(page, pages)
-    spaces = conn.execute(
-        f"""SELECT s.id, a.name AS area_name, s.label, s.space_type, s.status,
-                    ba.participant_id, {participant_name} AS participant_name
-             FROM bed_spaces s
-             JOIN bed_areas a ON a.id=s.area_id
-             LEFT JOIN bed_assignments ba ON ba.space_id=s.id AND ba.unassigned_at IS NULL
-             {participant_join}
-             WHERE {where}
-             ORDER BY a.name COLLATE NOCASE, s.label COLLATE NOCASE
-             LIMIT ? OFFSET ?""", params + [per_page, (page - 1) * per_page],
+    stats = {
+        key: int(summary[key] or 0)
+        for key in ("capacity", "occupied", "available", "out_of_service")
+    }
+    stats["occupancy"] = (
+        round(stats["occupied"] / stats["capacity"] * 100, 1)
+        if stats["capacity"] else 0
+    )
+
+    raw_spaces = conn.execute(
+        f"""SELECT s.id, a.name AS area_name, s.label,
+                   s.space_type, s.status, ba.participant_id
+            FROM bed_spaces s
+            JOIN bed_areas a ON a.id=s.area_id
+            JOIN bed_facilities f ON f.id=a.facility_id
+            LEFT JOIN bed_assignments ba
+              ON ba.space_id=s.id
+             AND ba.unassigned_at IS NULL
+             AND ba.property_id=?
+            WHERE {where}
+            ORDER BY a.name COLLATE NOCASE,
+                     s.label COLLATE NOCASE""",
+        [property_id] + params,
     ).fetchall()
 
-    participants = []
-    if has_participants:
-        participants = conn.execute(
-            f"""SELECT CAST(p.id AS TEXT) AS pid, {participant_name} AS name
-                 FROM participants p
-                 WHERE NOT EXISTS (
-                    SELECT 1 FROM bed_assignments ba
-                    WHERE ba.participant_id=CAST(p.id AS TEXT) AND ba.unassigned_at IS NULL
-                 ) ORDER BY name COLLATE NOCASE"""
+    spaces = []
+    needle = query.lower()
+
+    for row in raw_spaces:
+        item = dict(row)
+        pid = str(item.get("participant_id") or "")
+        item["participant_name"] = participant_names.get(pid, "")
+
+        if needle:
+            haystack = " ".join([
+                str(item.get("label") or ""),
+                str(item.get("area_name") or ""),
+                pid,
+                item["participant_name"],
+            ]).lower()
+
+            if needle not in haystack:
+                continue
+
+        spaces.append(item)
+
+    total = len(spaces)
+    pages = max(1, math.ceil(total / per_page))
+    page = min(page, pages)
+
+    offset = (page - 1) * per_page
+    spaces = spaces[offset:offset + per_page]
+
+    assigned_pids = {
+        str(row["participant_id"])
+        for row in conn.execute(
+            """SELECT participant_id
+               FROM bed_assignments
+               WHERE property_id=?
+                 AND unassigned_at IS NULL""",
+            (property_id,),
         ).fetchall()
+    }
+
+    participants = [
+        row
+        for row in _participant_rows()
+        if row["pid"] not in assigned_pids
+    ]
+    participants.sort(key=lambda row: row["name"].lower())
+
     conn.close()
 
-    selected_facility = next((f for f in facilities if f["id"] == facility_id), None)
+    selected_facility = next(
+        (f for f in facilities if f["id"] == facility_id),
+        None,
+    )
+
     return render_template(
-        "bed_management.html", facilities=facilities, selected_facility=selected_facility,
-        facility_id=facility_id, areas=areas, area_id=area_id, spaces=spaces,
-        participants=participants, stats=stats, q=query, status=status,
-        space_type=space_type, space_types=SPACE_TYPES, statuses=STATUSES,
-        page=page, pages=pages, per_page=per_page, total=total,
+        "bed_management.html",
+        facilities=facilities,
+        selected_facility=selected_facility,
+        facility_id=facility_id,
+        areas=areas,
+        area_id=area_id,
+        spaces=spaces,
+        participants=participants,
+        stats=stats,
+        q=query,
+        status=status,
+        space_type=space_type,
+        space_types=SPACE_TYPES,
+        statuses=STATUSES,
+        page=page,
+        pages=pages,
+        per_page=per_page,
+        total=total,
     )
 
 
@@ -229,7 +429,11 @@ def add_facility():
         flash("Facility/property name is required.", "error")
         return _redirect_dashboard()
     conn = _db()
-    cur = conn.execute("INSERT INTO bed_facilities(name, created_at) VALUES (?, ?)", (name, _now()))
+    cur = conn.execute(
+        """INSERT INTO bed_facilities(name, created_at, property_id)
+           VALUES (?, ?, ?)""",
+        (name, _now(), _current_property_id()),
+    )
     conn.commit()
     facility_id = cur.lastrowid
     conn.close()
@@ -246,7 +450,22 @@ def add_area():
         return _redirect_dashboard()
     try:
         conn = _db()
-        cur = conn.execute("INSERT INTO bed_areas(facility_id, name, created_at) VALUES (?, ?, ?)", (facility_id, name, _now()))
+
+        owns_facility = conn.execute(
+            """SELECT 1 FROM bed_facilities
+               WHERE id=? AND property_id=?""",
+            (facility_id, _current_property_id()),
+        ).fetchone()
+
+        if not owns_facility:
+            conn.close()
+            abort(404)
+
+        cur = conn.execute(
+            """INSERT INTO bed_areas(facility_id, name, created_at)
+               VALUES (?, ?, ?)""",
+            (facility_id, name, _now()),
+        )
         conn.commit()
         area_id = cur.lastrowid
         conn.close()
@@ -268,7 +487,13 @@ def generate_spaces():
         flash("Choose an area and generate between 1 and 400 valid spaces at a time.", "error")
         return _redirect_dashboard()
     conn = _db()
-    row = conn.execute("SELECT facility_id FROM bed_areas WHERE id=?", (area_id,)).fetchone()
+    row = conn.execute(
+        """SELECT a.facility_id
+           FROM bed_areas a
+           JOIN bed_facilities f ON f.id=a.facility_id
+           WHERE a.id=? AND f.property_id=?""",
+        (area_id, _current_property_id()),
+    ).fetchone()
     if not row:
         conn.close()
         abort(404)
@@ -292,61 +517,149 @@ def generate_spaces():
 
 @bed_management.post("/bed-management/spaces/<int:space_id>/assign")
 def assign_space(space_id: int):
-    participant_id = (request.form.get("participant_id") or "").strip()
+    participant_id = (
+        request.form.get("participant_id") or ""
+    ).strip()
+
     if not participant_id:
         flash("Select a participant PID.", "error")
         return _redirect_dashboard()
+
+    property_id = _current_property_id()
+    participant_names = _participant_map()
+
+    if participant_id not in participant_names:
+        flash("The participant PID was not found for this property.", "error")
+        return _redirect_dashboard()
+
     conn = _db()
+
     try:
         conn.execute("BEGIN IMMEDIATE")
-        space = conn.execute("SELECT status FROM bed_spaces WHERE id=?", (space_id,)).fetchone()
-        has_participants = conn.execute(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='participants'"
+
+        space = conn.execute(
+            """SELECT s.status
+               FROM bed_spaces s
+               JOIN bed_areas a ON a.id=s.area_id
+               JOIN bed_facilities f ON f.id=a.facility_id
+               WHERE s.id=? AND f.property_id=?""",
+            (space_id, property_id),
         ).fetchone()
-        participant = conn.execute(
-            "SELECT 1 FROM participants WHERE CAST(id AS TEXT)=?", (participant_id,)
-        ).fetchone() if has_participants else None
-        if not space or not participant:
-            raise ValueError("The space or participant PID was not found.")
+
+        if not space:
+            raise ValueError(
+                "The space was not found for this property."
+            )
+
         if space["status"] != "Available":
-            raise ValueError("Only available spaces can be assigned.")
+            raise ValueError(
+                "Only available spaces can be assigned."
+            )
+
         conn.execute(
-            "INSERT INTO bed_assignments(space_id,participant_id,assigned_at) VALUES (?,?,?)",
-            (space_id, participant_id, _now()),
+            """INSERT INTO bed_assignments(
+                   space_id,
+                   participant_id,
+                   assigned_at,
+                   property_id
+               )
+               VALUES (?,?,?,?)""",
+            (
+                space_id,
+                participant_id,
+                _now(),
+                property_id,
+            ),
         )
-        conn.execute("UPDATE bed_spaces SET status='Occupied', updated_at=? WHERE id=?", (_now(), space_id))
+
+        conn.execute(
+            """UPDATE bed_spaces
+               SET status='Occupied', updated_at=?
+               WHERE id=?""",
+            (_now(), space_id),
+        )
+
         conn.commit()
-        flash(f"PID {participant_id} assigned.", "success")
+        flash(
+            f"PID {participant_id} assigned.",
+            "success",
+        )
+
     except (sqlite3.IntegrityError, ValueError) as exc:
         conn.rollback()
         message = str(exc)
+
         if isinstance(exc, sqlite3.IntegrityError):
-            message = "Assignment blocked: the space or participant is already assigned."
+            message = (
+                "Assignment blocked: the space or participant "
+                "is already assigned."
+            )
+
         flash(message, "error")
+
     finally:
         conn.close()
+
     return _redirect_dashboard()
 
 
 @bed_management.post("/bed-management/spaces/<int:space_id>/unassign")
 def unassign_space(space_id: int):
-    reason = (request.form.get("reason") or "Participant unassigned").strip()[:250]
+    reason = (
+        request.form.get("reason")
+        or "Participant unassigned"
+    ).strip()[:250]
+
+    property_id = _current_property_id()
     conn = _db()
     conn.execute("BEGIN IMMEDIATE")
+
     assignment = conn.execute(
-        "SELECT id FROM bed_assignments WHERE space_id=? AND unassigned_at IS NULL", (space_id,)
+        """SELECT ba.id
+           FROM bed_assignments ba
+           JOIN bed_spaces s ON s.id=ba.space_id
+           JOIN bed_areas a ON a.id=s.area_id
+           JOIN bed_facilities f ON f.id=a.facility_id
+           WHERE ba.space_id=?
+             AND ba.property_id=?
+             AND f.property_id=?
+             AND ba.unassigned_at IS NULL""",
+        (space_id, property_id, property_id),
     ).fetchone()
+
     if assignment:
         conn.execute(
-            "UPDATE bed_assignments SET unassigned_at=?, unassigned_reason=? WHERE id=?",
-            (_now(), reason, assignment["id"]),
+            """UPDATE bed_assignments
+               SET unassigned_at=?, unassigned_reason=?
+               WHERE id=? AND property_id=?""",
+            (
+                _now(),
+                reason,
+                assignment["id"],
+                property_id,
+            ),
         )
-        conn.execute("UPDATE bed_spaces SET status='Available', updated_at=? WHERE id=?", (_now(), space_id))
+
+        conn.execute(
+            """UPDATE bed_spaces
+               SET status='Available', updated_at=?
+               WHERE id=?""",
+            (_now(), space_id),
+        )
+
         conn.commit()
-        flash("Participant unassigned; assignment history was preserved.", "success")
+
+        flash(
+            "Participant unassigned; assignment history was preserved.",
+            "success",
+        )
     else:
         conn.rollback()
-        flash("No active assignment was found.", "error")
+        flash(
+            "No active assignment was found for this property.",
+            "error",
+        )
+
     conn.close()
     return _redirect_dashboard()
 
@@ -356,39 +669,91 @@ def change_status(space_id: int):
     status = request.form.get("new_status") or ""
     if status not in ("Available", "Out of Service"):
         abort(400)
+
+    property_id = _current_property_id()
     conn = _db()
-    active = conn.execute(
-        "SELECT 1 FROM bed_assignments WHERE space_id=? AND unassigned_at IS NULL", (space_id,)
+
+    owned_space = conn.execute(
+        """SELECT 1
+           FROM bed_spaces s
+           JOIN bed_areas a ON a.id=s.area_id
+           JOIN bed_facilities f ON f.id=a.facility_id
+           WHERE s.id=? AND f.property_id=?""",
+        (space_id, property_id),
     ).fetchone()
+
+    if not owned_space:
+        conn.close()
+        abort(404)
+
+    active = conn.execute(
+        """SELECT 1
+           FROM bed_assignments
+           WHERE space_id=?
+             AND property_id=?
+             AND unassigned_at IS NULL""",
+        (space_id, property_id),
+    ).fetchone()
+
     if active:
-        flash("Unassign the participant before changing this space's status.", "error")
+        flash(
+            "Unassign the participant before changing this space's status.",
+            "error",
+        )
     else:
-        conn.execute("UPDATE bed_spaces SET status=?, updated_at=? WHERE id=?", (status, _now(), space_id))
+        conn.execute(
+            """UPDATE bed_spaces
+               SET status=?, updated_at=?
+               WHERE id=?""",
+            (status, _now(), space_id),
+        )
         conn.commit()
         flash(f"Space marked {status}.", "success")
+
     conn.close()
     return _redirect_dashboard()
 
 
 @bed_management.get("/bed-management/history")
 def assignment_history():
+    property_id = _current_property_id()
+    participant_names = _participant_map()
+
     conn = _db()
-    has_participants = conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='participants'"
-    ).fetchone() is not None
-    participant_name = _participant_expression(conn) if has_participants else "''"
-    participant_join = "LEFT JOIN participants p ON CAST(p.id AS TEXT)=ba.participant_id" if has_participants else ""
-    rows = conn.execute(
-        f"""SELECT ba.participant_id, {participant_name} AS participant_name,
-                    f.name AS facility_name, a.name AS area_name, s.label,
-                    ba.assigned_at, ba.unassigned_at, ba.unassigned_reason
-             FROM bed_assignments ba JOIN bed_spaces s ON s.id=ba.space_id
-             JOIN bed_areas a ON a.id=s.area_id JOIN bed_facilities f ON f.id=a.facility_id
-             {participant_join}
-             ORDER BY ba.assigned_at DESC LIMIT 500"""
+
+    raw_rows = conn.execute(
+        """SELECT ba.participant_id,
+                  f.name AS facility_name,
+                  a.name AS area_name,
+                  s.label,
+                  ba.assigned_at,
+                  ba.unassigned_at,
+                  ba.unassigned_reason
+           FROM bed_assignments ba
+           JOIN bed_spaces s ON s.id=ba.space_id
+           JOIN bed_areas a ON a.id=s.area_id
+           JOIN bed_facilities f ON f.id=a.facility_id
+           WHERE ba.property_id=?
+             AND f.property_id=?
+           ORDER BY ba.assigned_at DESC
+           LIMIT 500""",
+        (property_id, property_id),
     ).fetchall()
+
+    rows = []
+
+    for row in raw_rows:
+        item = dict(row)
+        pid = str(item.get("participant_id") or "")
+        item["participant_name"] = participant_names.get(pid, "")
+        rows.append(item)
+
     conn.close()
-    return render_template("bed_history.html", rows=rows)
+
+    return render_template(
+        "bed_history.html",
+        rows=rows,
+    )
 
 
 def register_bed_management(app) -> None:
