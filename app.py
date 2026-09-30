@@ -1917,7 +1917,28 @@ def add_participant():
 
         return redirect(f"/intake-assessment/{new_id}")
 
-    return render_template("add_participant.html")
+    return render_template(
+        "add_participant.html",
+        participants=load_participants(),
+    )
+
+
+@app.route("/participants", methods=["GET", "POST"])
+def participants():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        return add_participant()
+
+    if not has_permission("participant_view"):
+        flash("You do not have permission to view participant records.")
+        return redirect(url_for("operations"))
+
+    return render_template(
+        "add_participant.html",
+        participants=load_participants(),
+    )
 
 
 PROPERTY_PAPERS_FILE = "data/property_papers.json"
