@@ -89,7 +89,10 @@
               ?
               <strong>{{ space.bed_check.status }}</strong>
               <br>
-              {{ space.bed_check.checked_at }}
+              <span class="bed-check-local-time"
+                    data-utc="{{ space.bed_check.checked_at }}">
+                {{ space.bed_check.checked_at }}
+              </span>
               ? {{ space.bed_check.checked_by }}
             </div>
             {% endif %}
@@ -162,6 +165,36 @@
 
     document.querySelectorAll(".bed-check-local-date").forEach(function (input) {
         input.value = localDate;
+    });
+
+    document.querySelectorAll(".bed-check-local-time").forEach(function (element) {
+        const raw = element.dataset.utc;
+
+        if (!raw) {
+            return;
+        }
+
+        const date = new Date(raw);
+
+        if (Number.isNaN(date.getTime())) {
+            return;
+        }
+
+        const formatted = new Intl.DateTimeFormat(
+            undefined,
+            {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "numeric",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+                timeZoneName: "short"
+            }
+        ).format(date);
+
+        element.textContent = formatted;
     });
 })();
 </script>
