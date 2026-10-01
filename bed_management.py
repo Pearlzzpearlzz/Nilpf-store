@@ -6,7 +6,7 @@ import math
 import sqlite3
 from datetime import datetime, timezone
 
-from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, session, url_for
 
 
 bed_management = Blueprint("bed_management", __name__)
@@ -85,6 +85,29 @@ def _participant_map() -> dict[str, str]:
     }
 
 
+def _permission_allowed(permission: str) -> bool:
+    checker = current_app.config.get("BED_PERMISSION_CHECKER")
+    if not callable(checker):
+        return True
+    return bool(checker(permission))
+
+
+def _bed_check_staff_identity() -> str:
+    for key in (
+        "staff_email",
+        "user_email",
+        "email",
+        "username",
+        "staff_name",
+        "user_name",
+    ):
+        value = session.get(key)
+        if value:
+            return str(value).strip()
+
+    return "Authenticated staff"
+
+
 def init_bed_management_db() -> None:
     conn = _db()
     conn.executescript(
@@ -127,6 +150,19 @@ def init_bed_management_db() -> None:
             unassigned_reason TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS bed_checks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            property_id TEXT NOT NULL,
+            space_id INTEGER NOT NULL REFERENCES bed_spaces(id) ON DELETE RESTRICT,
+            assignment_id INTEGER NOT NULL REFERENCES bed_assignments(id) ON DELETE RESTRICT,
+            participant_id TEXT NOT NULL,
+            check_date TEXT NOT NULL,
+            scheduled_time TEXT NOT NULL DEFAULT '23:00',
+            status TEXT NOT NULL CHECK(status IN ('Present','Not Present')),
+            checked_at TEXT NOT NULL,
+            checked_by TEXT NOT NULL
+        );
+
         CREATE UNIQUE INDEX IF NOT EXISTS uq_bed_active_space
             ON bed_assignments(space_id) WHERE unassigned_at IS NULL;
         CREATE UNIQUE INDEX IF NOT EXISTS uq_bed_active_participant
@@ -135,6 +171,12 @@ def init_bed_management_db() -> None:
             ON bed_spaces(area_id, status);
         CREATE INDEX IF NOT EXISTS ix_bed_assignment_history
             ON bed_assignments(participant_id, assigned_at);
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_bed_check_assignment_night
+            ON bed_checks(property_id, assignment_id, check_date);
+
+        CREATE INDEX IF NOT EXISTS ix_bed_check_property_date
+            ON bed_checks(property_id, check_date);
         """
     )
     # --------------------------------------------------------
@@ -218,7 +260,27 @@ def _ensure_schema():
     # ============================================================
     permission_checker = current_app.config.get("BED_PERMISSION_CHECKER")
 
-    if callable(permission_checker) and not permission_checker("bed_manage"):
+    if not callable(permission_checker):
+        return None
+
+    endpoint = request.endpoint or ""
+
+    if endpoint == "bed_management.record_bed_check":
+        if not permission_checker("nightly_check"):
+            flash("You do not have permission to record the nightly bed check.")
+            return redirect(url_for("operations"))
+        return None
+
+    if endpoint == "bed_management.dashboard":
+        if (
+            not permission_checker("bed_manage")
+            and not permission_checker("nightly_check")
+        ):
+            flash("You do not have permission to view Bed Management.")
+            return redirect(url_for("operations"))
+        return None
+
+    if not permission_checker("bed_manage"):
         flash("You do not have permission to manage bed count or occupancy.")
         return redirect(url_for("operations"))
 
@@ -333,7 +395,9 @@ def dashboard():
 
     raw_spaces = conn.execute(
         f"""SELECT s.id, a.name AS area_name, s.label,
-                   s.space_type, s.status, ba.participant_id
+                   s.space_type, s.status,
+                   ba.id AS assignment_id,
+                   ba.participant_id
             FROM bed_spaces s
             JOIN bed_areas a ON a.id=s.area_id
             JOIN bed_facilities f ON f.id=a.facility_id
@@ -354,6 +418,26 @@ def dashboard():
         item = dict(row)
         pid = str(item.get("participant_id") or "")
         item["participant_name"] = participant_names.get(pid, "")
+
+        item["bed_check"] = None
+
+        if item.get("assignment_id"):
+            last_check = conn.execute(
+                """SELECT check_date,
+                          scheduled_time,
+                          status,
+                          checked_at,
+                          checked_by
+                     FROM bed_checks
+                    WHERE property_id=?
+                      AND assignment_id=?
+                    ORDER BY check_date DESC, id DESC
+                    LIMIT 1""",
+                (property_id, item["assignment_id"]),
+            ).fetchone()
+
+            if last_check:
+                item["bed_check"] = dict(last_check)
 
         if needle:
             haystack = " ".join([
@@ -419,6 +503,8 @@ def dashboard():
         pages=pages,
         per_page=per_page,
         total=total,
+        can_bed_manage=_permission_allowed("bed_manage"),
+        can_nightly_check=_permission_allowed("nightly_check"),
     )
 
 
@@ -711,6 +797,93 @@ def change_status(space_id: int):
         flash(f"Space marked {status}.", "success")
 
     conn.close()
+    return _redirect_dashboard()
+
+
+@bed_management.post("/bed-management/spaces/<int:space_id>/bed-check")
+def record_bed_check(space_id: int):
+    status = (request.form.get("bed_check_status") or "").strip()
+    check_date = (request.form.get("check_date") or "").strip()
+
+    if status not in ("Present", "Not Present"):
+        flash("Select Present or Not Present.", "error")
+        return _redirect_dashboard()
+
+    try:
+        datetime.strptime(check_date, "%Y-%m-%d")
+    except ValueError:
+        flash("A valid nightly bed-check date is required.", "error")
+        return _redirect_dashboard()
+
+    property_id = _current_property_id()
+    conn = _db()
+
+    assignment = conn.execute(
+        """SELECT ba.id AS assignment_id,
+                  ba.participant_id,
+                  s.status AS space_status
+             FROM bed_assignments ba
+             JOIN bed_spaces s ON s.id=ba.space_id
+             JOIN bed_areas a ON a.id=s.area_id
+             JOIN bed_facilities f ON f.id=a.facility_id
+            WHERE ba.space_id=?
+              AND ba.property_id=?
+              AND f.property_id=?
+              AND ba.unassigned_at IS NULL""",
+        (space_id, property_id, property_id),
+    ).fetchone()
+
+    if not assignment or assignment["space_status"] != "Occupied":
+        conn.close()
+        flash(
+            "Bed check blocked: no occupied assignment was found for this property.",
+            "error",
+        )
+        return _redirect_dashboard()
+
+    try:
+        conn.execute(
+            """INSERT INTO bed_checks(
+                   property_id,
+                   space_id,
+                   assignment_id,
+                   participant_id,
+                   check_date,
+                   scheduled_time,
+                   status,
+                   checked_at,
+                   checked_by
+               )
+               VALUES (?,?,?,?,?,'23:00',?,?,?)""",
+            (
+                property_id,
+                space_id,
+                assignment["assignment_id"],
+                str(assignment["participant_id"]),
+                check_date,
+                status,
+                _now(),
+                _bed_check_staff_identity(),
+            ),
+        )
+        conn.commit()
+
+    except sqlite3.IntegrityError:
+        conn.close()
+        flash(
+            "This occupied bed already has a recorded bed check for that night.",
+            "error",
+        )
+        return _redirect_dashboard()
+
+    conn.close()
+
+    flash(
+        f"11:00 PM bed check recorded: PID "
+        f"{assignment['participant_id']} ? {status}.",
+        "success",
+    )
+
     return _redirect_dashboard()
 
 

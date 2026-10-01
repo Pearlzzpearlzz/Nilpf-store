@@ -15,6 +15,7 @@ class BedManagementTests(unittest.TestCase):
         self.app = Flask(__name__, template_folder="../templates", static_folder="../static")
         self.app.secret_key = "test"
         self.current_property = "site:test-A"
+        self.permissions = {"bed_manage", "nightly_check"}
         self.participants = [
             {"pid": 1, "name": "John D."},
             {"pid": 2, "name": "Tanya L."},
@@ -25,6 +26,13 @@ class BedManagementTests(unittest.TestCase):
             BED_DB_PATH=self.path,
             BED_PROPERTY_ID_PROVIDER=lambda: self.current_property,
             BED_PARTICIPANT_PROVIDER=lambda: self.participants,
+            BED_PERMISSION_CHECKER=lambda permission: permission in self.permissions,
+        )
+
+        self.app.add_url_rule(
+            "/operations",
+            "operations",
+            lambda: "Operations",
         )
 
         register_bed_management(self.app)
@@ -137,6 +145,162 @@ class BedManagementTests(unittest.TestCase):
         response=self.client.get("/bed-management?facility_id=1")
         self.assertIn(b"Occupied</span><strong>142",response.data)
         self.assertIn(b"76.3%",response.data)
+
+
+    def test_nightly_bed_check_records_once_per_assignment_per_night(self):
+        self._seed(1)
+
+        self.client.post(
+            "/bed-management/spaces/1/assign",
+            data={"facility_id": 1, "participant_id": "1"},
+        )
+
+        first = self.client.post(
+            "/bed-management/spaces/1/bed-check",
+            data={
+                "facility_id": 1,
+                "check_date": "2026-10-01",
+                "bed_check_status": "Present",
+            },
+            follow_redirects=True,
+        )
+
+        self.assertIn(b"bed check recorded", first.data)
+
+        duplicate = self.client.post(
+            "/bed-management/spaces/1/bed-check",
+            data={
+                "facility_id": 1,
+                "check_date": "2026-10-01",
+                "bed_check_status": "Not Present",
+            },
+            follow_redirects=True,
+        )
+
+        self.assertIn(
+            b"already has a recorded bed check",
+            duplicate.data,
+        )
+
+        conn = sqlite3.connect(self.path)
+
+        row = conn.execute(
+            """SELECT property_id,
+                      participant_id,
+                      check_date,
+                      scheduled_time,
+                      status,
+                      checked_at,
+                      checked_by
+                 FROM bed_checks"""
+        ).fetchone()
+
+        count = conn.execute(
+            "SELECT COUNT(*) FROM bed_checks"
+        ).fetchone()[0]
+
+        conn.close()
+
+        self.assertEqual(count, 1)
+        self.assertEqual(row[0], "site:test-A")
+        self.assertEqual(row[1], "1")
+        self.assertEqual(row[2], "2026-10-01")
+        self.assertEqual(row[3], "23:00")
+        self.assertEqual(row[4], "Present")
+        self.assertTrue(row[5])
+        self.assertTrue(row[6])
+
+
+    def test_nightly_check_requires_nightly_permission(self):
+        self._seed(1)
+
+        self.client.post(
+            "/bed-management/spaces/1/assign",
+            data={"facility_id": 1, "participant_id": "1"},
+        )
+
+        self.permissions.discard("nightly_check")
+
+        denied = self.client.post(
+            "/bed-management/spaces/1/bed-check",
+            data={
+                "facility_id": 1,
+                "check_date": "2026-10-01",
+                "bed_check_status": "Present",
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(denied.status_code, 302)
+        self.assertTrue(
+            denied.headers["Location"].endswith("/operations")
+        )
+
+        conn = sqlite3.connect(self.path)
+
+        count = conn.execute(
+            "SELECT COUNT(*) FROM bed_checks"
+        ).fetchone()[0]
+
+        conn.close()
+
+        self.assertEqual(count, 0)
+
+
+    def test_property_cannot_record_check_on_other_property_bed(self):
+        self._seed(1)
+
+        self.client.post(
+            "/bed-management/spaces/1/assign",
+            data={"facility_id": 1, "participant_id": "1"},
+        )
+
+        self.current_property = "site:test-B"
+
+        blocked = self.client.post(
+            "/bed-management/spaces/1/bed-check",
+            data={
+                "check_date": "2026-10-01",
+                "bed_check_status": "Present",
+            },
+            follow_redirects=True,
+        )
+
+        self.assertIn(
+            b"no occupied assignment was found for this property",
+            blocked.data,
+        )
+
+        conn = sqlite3.connect(self.path)
+
+        count = conn.execute(
+            "SELECT COUNT(*) FROM bed_checks"
+        ).fetchone()[0]
+
+        conn.close()
+
+        self.assertEqual(count, 0)
+
+
+    def test_nightly_only_user_can_view_check_but_not_manage_beds(self):
+        self._seed(1)
+
+        self.client.post(
+            "/bed-management/spaces/1/assign",
+            data={"facility_id": 1, "participant_id": "1"},
+        )
+
+        self.permissions = {"nightly_check"}
+
+        response = self.client.get(
+            "/bed-management?facility_id=1"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"11:00 PM Bed Check", response.data)
+        self.assertIn(b"Present", response.data)
+        self.assertIn(b"Not Present", response.data)
+        self.assertNotIn(b"Unassign", response.data)
 
 
 if __name__ == "__main__":

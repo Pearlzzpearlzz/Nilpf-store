@@ -49,13 +49,121 @@
       </form>
       <div class="table-wrap"><table><thead><tr><th>Area / Room</th><th>Space</th><th>Type</th><th>Status</th><th>Assigned Participant</th><th>Actions</th></tr></thead><tbody>
       {% for space in spaces %}<tr><td>{{ space.area_name }}</td><td><strong>{{ space.label }}</strong></td><td>{{ space.space_type }}</td><td><span class="status {{ space.status|lower|replace(' ','-') }}">{{ space.status }}</span></td><td>{% if space.participant_id %}<strong>PID {{ space.participant_id }}</strong>{% if space.participant_name %} — {{ space.participant_name }}{% endif %}{% else %}—{% endif %}</td><td>
-        {% if space.status=='Available' %}<form method="post" action="{{ url_for('bed_management.assign_space', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input type="hidden" name="area_id" value="{{ area_id or '' }}"><select name="participant_id" required><option value="">Assign PID…</option>{% for p in participants %}<option value="{{ p.pid }}">PID {{ p.pid }} — {{ p.name }}</option>{% endfor %}</select><button>Assign</button></form><form method="post" action="{{ url_for('bed_management.change_status', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input type="hidden" name="new_status" value="Out of Service"><button class="muted">Out of Service</button></form>
-        {% elif space.status=='Occupied' %}<form method="post" action="{{ url_for('bed_management.unassign_space', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input name="reason" placeholder="Reason (optional)"><button>Unassign</button></form>
-        {% else %}<form method="post" action="{{ url_for('bed_management.change_status', space_id=space.id) }}"><input type="hidden" name="facility_id" value="{{ facility_id }}"><input type="hidden" name="new_status" value="Available"><button>Return to Service</button></form>{% endif %}
+        {% if space.status=='Available' %}
+
+          {% if can_bed_manage %}
+          <form method="post"
+                action="{{ url_for('bed_management.assign_space', space_id=space.id) }}">
+            <input type="hidden" name="facility_id" value="{{ facility_id }}">
+            <input type="hidden" name="area_id" value="{{ area_id or '' }}">
+
+            <select name="participant_id" required>
+              <option value="">Assign PID?</option>
+              {% for p in participants %}
+              <option value="{{ p.pid }}">PID {{ p.pid }} ? {{ p.name }}</option>
+              {% endfor %}
+            </select>
+
+            <button>Assign</button>
+          </form>
+
+          <form method="post"
+                action="{{ url_for('bed_management.change_status', space_id=space.id) }}">
+            <input type="hidden" name="facility_id" value="{{ facility_id }}">
+            <input type="hidden" name="new_status" value="Out of Service">
+            <button class="muted">Out of Service</button>
+          </form>
+          {% endif %}
+
+
+        {% elif space.status=='Occupied' %}
+
+          {% if can_nightly_check %}
+          <div style="margin-bottom:8px;padding:8px;border:1px solid #9b7b2f;border-radius:6px;">
+            <strong>11:00 PM Bed Check</strong>
+
+            {% if space.bed_check %}
+            <div style="margin:5px 0;font-size:.85rem;">
+              Last:
+              {{ space.bed_check.check_date }}
+              ?
+              <strong>{{ space.bed_check.status }}</strong>
+              <br>
+              {{ space.bed_check.checked_at }}
+              ? {{ space.bed_check.checked_by }}
+            </div>
+            {% endif %}
+
+            <form method="post"
+                  action="{{ url_for('bed_management.record_bed_check', space_id=space.id) }}">
+
+              <input type="hidden" name="facility_id" value="{{ facility_id }}">
+              <input type="hidden" name="area_id" value="{{ area_id or '' }}">
+
+              <input type="hidden"
+                     name="check_date"
+                     class="bed-check-local-date"
+                     value="">
+
+              <button type="submit"
+                      name="bed_check_status"
+                      value="Present">
+                Present
+              </button>
+
+              <button type="submit"
+                      name="bed_check_status"
+                      value="Not Present"
+                      class="muted">
+                Not Present
+              </button>
+            </form>
+          </div>
+          {% endif %}
+
+          {% if can_bed_manage %}
+          <form method="post"
+                action="{{ url_for('bed_management.unassign_space', space_id=space.id) }}">
+            <input type="hidden" name="facility_id" value="{{ facility_id }}">
+            <input name="reason" placeholder="Reason (optional)">
+            <button>Unassign</button>
+          </form>
+          {% endif %}
+
+
+        {% else %}
+
+          {% if can_bed_manage %}
+          <form method="post"
+                action="{{ url_for('bed_management.change_status', space_id=space.id) }}">
+            <input type="hidden" name="facility_id" value="{{ facility_id }}">
+            <input type="hidden" name="new_status" value="Available">
+            <button>Return to Service</button>
+          </form>
+          {% endif %}
+
+        {% endif %}
       </td></tr>{% else %}<tr><td colspan="6" class="empty">No sleeping spaces match these filters.</td></tr>{% endfor %}
       </tbody></table></div>
       <footer><span>Showing {{ ((page-1)*per_page+1) if total else 0 }}–{{ [page*per_page,total]|min }} of {{ total }} spaces</span><div>{% if page>1 %}<a href="{{ url_for('bed_management.dashboard', facility_id=facility_id, area_id=area_id, q=q, status=status, space_type=space_type, page=page-1, per_page=per_page) }}">Previous</a>{% endif %}<strong>Page {{ page }} of {{ pages }}</strong>{% if page<pages %}<a href="{{ url_for('bed_management.dashboard', facility_id=facility_id, area_id=area_id, q=q, status=status, space_type=space_type, page=page+1, per_page=per_page) }}">Next</a>{% endif %}<form method="get"><input type="hidden" name="facility_id" value="{{ facility_id }}"><select name="per_page" onchange="this.form.submit()">{% for n in (20,50,100) %}<option value="{{ n }}" {% if per_page==n %}selected{% endif %}>{{ n }} / page</option>{% endfor %}</select></form></div></footer>
     </section>
   </div>
   {% else %}<section class="empty-state"><h2>Add your first facility/property</h2><p>Then create an area or room and automatically generate its sleeping spaces.</p></section>{% endif %}
-</main></body></html>
+</main>
+<script>
+(function () {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const localDate = `${year}-${month}-${day}`;
+
+    document.querySelectorAll(".bed-check-local-date").forEach(function (input) {
+        input.value = localDate;
+    });
+})();
+</script>
+
+</body></html>
